@@ -8,6 +8,7 @@ import {
   FAQItem,
   AIGuardrails,
   AIProviderSettings,
+  AppointmentApprovalPolicy,
 } from '@/types/clinic';
 
 export const DEFAULT_SERVICES: DentalService[] = [
@@ -217,11 +218,11 @@ export const DEFAULT_FAQS: FAQItem[] = [
 ];
 
 export const DEFAULT_AI_GUARDRAILS: AIGuardrails = {
-  identityRole: 'You are the official, intelligent triage and booking AI assistant for Vertex Dental Lab clinic in London, United Kingdom.',
+  identityRole: 'You are the official, intelligent triage, reasoning, and booking AI assistant for Vertex Dental Lab clinic in London, United Kingdom.',
   targetAudience: 'Private dental patients in the UK seeking consultations, cosmetic dentistry, dental implants, teeth whitening, hygiene, and emergency dental care.',
   toneManner: 'Empathetic, professional, polite, clinically reassuring, trustworthy, and British English phrased.',
   responseLength: 'Concise and helpful. 2 to 4 sentences or a clean bullet list.',
-  businessGoals: 'Provide accurate clinic information, guide patients to book appointments, address dental concerns, and build trust in Vertex Dental Lab.',
+  businessGoals: 'Provide accurate clinic information, reason through patient concerns, apply admin-approved appointment guidelines, and build trust in Vertex Dental Lab.',
   shouldSay: [
     'Strictly quote verified pricing in GBP (£) as set in the official Vertex Dental Lab price schedule.',
     'Emphasize GDC compliance, CQC standards, and British clinical excellence.',
@@ -241,10 +242,25 @@ export const DEFAULT_AI_GUARDRAILS: AIGuardrails = {
   languageBehaviorPolicy: 'Default to professional British English (e.g. colour, programme, anaesthesia, paediatric), maintaining clear, polite, and reassuring phrasing.',
 };
 
+// Exactly 3 Agent API Options: Gemini, Claude, ChatGPT
 export const DEFAULT_AI_PROVIDER_SETTINGS: AIProviderSettings = {
-  provider: 'OpenAI',
-  modelName: 'gpt-4o-mini',
-  apiKey: 'sk-proj-vertex-demo-key-encrypted',
+  activeProvider: 'Gemini',
+  geminiApiKey: 'AIzaSyCLIfxp-Demo-GeminiKey-Vertex-2026',
+  geminiModel: 'gemini-2.0-flash',
+  claudeApiKey: 'sk-ant-api03-claude-demo-key-encrypted',
+  claudeModel: 'claude-3-5-sonnet-20241022',
+  chatgptApiKey: 'sk-proj-chatgpt-demo-key-encrypted',
+  chatgptModel: 'gpt-4o-mini',
+};
+
+// Admin Appointment Approval Policy
+export const DEFAULT_APPROVAL_POLICY: AppointmentApprovalPolicy = {
+  autoApproveEnabled: true,
+  approvedCategories: ['General', 'Preventive', 'Cosmetic', 'Pediatric'],
+  manualReviewCategories: ['Surgical', 'Endodontics', 'Orthodontics', 'Emergency'],
+  adminApprovalDirectives: 'Auto-approve routine checkups, digital OPG scans, Airflow hygiene cleanings, laser whitening, and pediatric visits. For complex procedures (dental implants, root canals, Invisalign, emergencies), flag for Dr. Vance’s manual clinical verification before confirmation.',
+  autoConfirmMessage: 'Appointment automatically verified and APPROVED according to clinic schedule directives.',
+  manualReviewMessage: 'Appointment logged as PENDING: This procedure requires manual clinical approval by Lead Surgeon Dr. Vance.',
 };
 
 export const INITIAL_APPOINTMENTS: Appointment[] = [
@@ -262,6 +278,8 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     notes: 'Interested in digital smile simulation and 12-month 0% payment plan.',
     createdAt: '2026-09-30T10:15:00Z',
     source: 'Online Booking',
+    approvedByAI: true,
+    aiApprovalReason: 'Approved under routine cosmetic consult quota.',
   },
   {
     id: 'apt-102',
@@ -277,6 +295,8 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     notes: 'Upper right molar restoration consultation and CBCT scan.',
     createdAt: '2026-09-29T14:30:00Z',
     source: 'Reception',
+    approvedByAI: false,
+    aiApprovalReason: 'Surgical implant procedure reviewed and confirmed by clinic director.',
   },
   {
     id: 'apt-103',
@@ -288,10 +308,12 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     clinicianName: 'Sarah Jenkins, RDH',
     date: '2026-10-03',
     timeSlot: '11:15 AM',
-    status: 'Pending',
+    status: 'Confirmed',
     notes: 'Routine 6-month hygiene maintenance before international travel.',
     createdAt: '2026-10-01T08:20:00Z',
     source: 'AI Assistant',
+    approvedByAI: true,
+    aiApprovalReason: 'Auto-approved by AI Agent per Admin Approval Policy (Preventive category).',
   },
   {
     id: 'apt-104',
@@ -308,6 +330,8 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     notes: 'Chipped front tooth during sports, requires urgent composite rebuild.',
     createdAt: '2026-10-01T09:40:00Z',
     source: 'AI Assistant',
+    approvedByAI: false,
+    aiApprovalReason: 'Held for manual clinician triage, confirmed by duty surgeon.',
   },
 ];
 

@@ -11,10 +11,10 @@ export type ServiceCategory =
 export interface DentalService {
   id: string;
   name: string;
-  priceRange: string; // e.g. "From £95" or "£450 - £750"
+  priceRange: string;
   basePriceGbp: number;
   category: ServiceCategory;
-  duration: string; // e.g. "45 mins"
+  duration: string;
   description: string;
   features: string[];
   popular?: boolean;
@@ -25,8 +25,8 @@ export interface Clinician {
   id: string;
   name: string;
   title: string;
-  credentials: string; // e.g. "BDS (Hons), MFDS RCS Eng, M.Sc Oral Implantology"
-  gdcNumber: string; // e.g. "GDC No. 248912"
+  credentials: string;
+  gdcNumber: string;
   bio: string;
   experienceYears: number;
   specialties: string[];
@@ -46,13 +46,15 @@ export interface Appointment {
   serviceId: string;
   serviceName: string;
   clinicianName: string;
-  date: string; // YYYY-MM-DD
-  timeSlot: string; // e.g. "10:30 AM"
+  date: string;
+  timeSlot: string;
   status: AppointmentStatus;
   notes?: string;
   isEmergency?: boolean;
   createdAt: string;
   source: 'Online Booking' | 'AI Assistant' | 'Walk-In / Phone' | 'Reception';
+  approvedByAI?: boolean;
+  aiApprovalReason?: string;
 }
 
 export interface WebInquiry {
@@ -104,12 +106,34 @@ export interface AIGuardrails {
   languageBehaviorPolicy: string;
 }
 
-export type AIProvider = 'OpenAI' | 'OpenRouter' | 'Custom Endpoint';
+// Exactly 3 AI Agent Provider Options as requested: Gemini, Claude, ChatGPT
+export type AIProvider = 'Gemini' | 'Claude' | 'ChatGPT';
 
 export interface AIProviderSettings {
-  provider: AIProvider;
-  modelName: string;
-  apiKey: string;
+  activeProvider: AIProvider;
+  geminiApiKey: string;
+  geminiModel: string;
+  claudeApiKey: string;
+  claudeModel: string;
+  chatgptApiKey: string;
+  chatgptModel: string;
+}
+
+// Appointment Approval Policy configured by Admin
+export interface AppointmentApprovalPolicy {
+  autoApproveEnabled: boolean; // if admin says yes, AI can confirm
+  approvedCategories: ServiceCategory[]; // which kinds of appointments AI is authorized to approve
+  manualReviewCategories: ServiceCategory[]; // which kinds must be held for doctor manual review
+  adminApprovalDirectives: string; // admin's specific written rules for booking confirmation
+  autoConfirmMessage: string;
+  manualReviewMessage: string;
+}
+
+export interface ReasoningStep {
+  step: number;
+  title: string;
+  detail: string;
+  status: 'perception' | 'retrieval' | 'policy_eval' | 'guardrail';
 }
 
 export interface UserAuth {

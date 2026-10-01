@@ -11,6 +11,7 @@ import {
   FAQItem,
   AIGuardrails,
   AIProviderSettings,
+  AppointmentApprovalPolicy,
   UserAuth,
 } from '@/types/clinic';
 import {
@@ -20,6 +21,7 @@ import {
   DEFAULT_FAQS,
   DEFAULT_AI_GUARDRAILS,
   DEFAULT_AI_PROVIDER_SETTINGS,
+  DEFAULT_APPROVAL_POLICY,
   INITIAL_APPOINTMENTS,
   INITIAL_INQUIRIES,
 } from '@/lib/default-data';
@@ -35,6 +37,7 @@ interface ClinicContextType {
   faqs: FAQItem[];
   aiSettings: AIGuardrails;
   aiProviderSettings: AIProviderSettings;
+  approvalPolicy: AppointmentApprovalPolicy;
   currentUser: UserAuth;
   currency: Currency;
   setCurrency: (c: Currency) => void;
@@ -76,6 +79,7 @@ interface ClinicContextType {
 
   updateAISettings: (settings: Partial<AIGuardrails>) => void;
   updateAIProviderSettings: (settings: Partial<AIProviderSettings>) => void;
+  updateApprovalPolicy: (policy: Partial<AppointmentApprovalPolicy>) => void;
 
   loginAs: (role: 'admin' | 'patient', email?: string, name?: string) => void;
   logout: () => void;
@@ -86,16 +90,17 @@ interface ClinicContextType {
 const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  SERVICES: 'vdl_services_v2',
-  APPOINTMENTS: 'vdl_appointments_v2',
-  INQUIRIES: 'vdl_inquiries_v2',
-  COMPANY: 'vdl_company_v2',
-  POLICIES: 'vdl_policies_v2',
-  FAQS: 'vdl_faqs_v2',
-  AI_SETTINGS: 'vdl_ai_settings_v2',
-  AI_PROVIDER: 'vdl_ai_provider_v2',
-  USER: 'vdl_user_v2',
-  CURRENCY: 'vdl_currency_v2',
+  SERVICES: 'vdl_services_v3',
+  APPOINTMENTS: 'vdl_appointments_v3',
+  INQUIRIES: 'vdl_inquiries_v3',
+  COMPANY: 'vdl_company_v3',
+  POLICIES: 'vdl_policies_v3',
+  FAQS: 'vdl_faqs_v3',
+  AI_SETTINGS: 'vdl_ai_settings_v3',
+  AI_PROVIDER: 'vdl_ai_provider_v3',
+  APPROVAL_POLICY: 'vdl_approval_policy_v3',
+  USER: 'vdl_user_v3',
+  CURRENCY: 'vdl_currency_v3',
 };
 
 function getStoredItem<T>(key: string, fallback: T): T {
@@ -132,6 +137,9 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
   const [aiProviderSettings, setAiProviderSettings] = useState<AIProviderSettings>(() =>
     getStoredItem(STORAGE_KEYS.AI_PROVIDER, DEFAULT_AI_PROVIDER_SETTINGS)
+  );
+  const [approvalPolicy, setApprovalPolicy] = useState<AppointmentApprovalPolicy>(() =>
+    getStoredItem(STORAGE_KEYS.APPROVAL_POLICY, DEFAULT_APPROVAL_POLICY)
   );
   const [currency, setCurrencyState] = useState<Currency>(() => {
     if (typeof window === 'undefined') return 'GBP';
@@ -222,14 +230,32 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     saveServices(services.filter(s => s.id !== id));
   };
 
-  // Appointment CRUD
+  // Appointment CRUD with Admin Approval Evaluation
   const addAppointment = (app: Omit<Appointment, 'id' | 'createdAt'>): string => {
     const newId = `apt-${Date.now().toString().slice(-4)}`;
+
+    // Evaluate against Admin Approval Policy
+    const targetService = services.find(s => s.id === app.serviceId || s.name === app.serviceName);
+    const category = targetService?.category || 'General';
+
+    const isAutoApprovedByAdmin =
+      approvalPolicy.autoApproveEnabled &&
+      approvalPolicy.approvedCategories.includes(category);
+
+    const calculatedStatus: AppointmentStatus = isAutoApprovedByAdmin ? 'Confirmed' : 'Pending';
+    const approvalReason = isAutoApprovedByAdmin
+      ? `AI Confirmed: Category [${category}] is approved per Admin Appointment Directive.`
+      : `AI Marked Pending: Category [${category}] requires manual doctor sign-off.`;
+
     const newAppointment: Appointment = {
       ...app,
       id: newId,
+      status: app.status || calculatedStatus,
+      approvedByAI: isAutoApprovedByAdmin,
+      aiApprovalReason: approvalReason,
       createdAt: new Date().toISOString(),
     };
+
     saveAppointments([newAppointment, ...appointments]);
     return newId;
   };
@@ -309,6 +335,12 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem(STORAGE_KEYS.AI_PROVIDER, JSON.stringify(updated));
   };
 
+  const updateApprovalPolicy = (policy: Partial<AppointmentApprovalPolicy>) => {
+    const updated = { ...approvalPolicy, ...policy };
+    setApprovalPolicy(updated);
+    localStorage.setItem(STORAGE_KEYS.APPROVAL_POLICY, JSON.stringify(updated));
+  };
+
   // Auth
   const loginAs = (role: 'admin' | 'patient', email?: string, name?: string) => {
     const user: UserAuth = {
@@ -343,6 +375,7 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setFaqs(DEFAULT_FAQS);
     setAiSettings(DEFAULT_AI_GUARDRAILS);
     setAiProviderSettings(DEFAULT_AI_PROVIDER_SETTINGS);
+    setApprovalPolicy(DEFAULT_APPROVAL_POLICY);
     localStorage.clear();
   };
 
@@ -357,6 +390,7 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         faqs,
         aiSettings,
         aiProviderSettings,
+        approvalPolicy,
         currentUser,
         currency,
         setCurrency,
@@ -387,6 +421,7 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         deleteFAQ,
         updateAISettings,
         updateAIProviderSettings,
+        updateApprovalPolicy,
         loginAs,
         logout,
         resetToDefaults,
