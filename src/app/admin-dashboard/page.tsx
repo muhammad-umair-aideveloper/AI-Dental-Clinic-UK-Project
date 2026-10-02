@@ -45,6 +45,8 @@ import {
   UploadCloud,
   Shield,
   HelpCircle,
+  Settings,
+  FileText,
 } from 'lucide-react';
 
 interface SimulatedMessage {
@@ -82,7 +84,7 @@ export default function AdminDashboardPage() {
 
   // Navigation matching Image 2 & 3:
   // Overview | Appointments | Services Catalog | AI Chatbot Studio | Patients
-  const [activeNav, setActiveNav] = useState<'overview' | 'appointments' | 'services' | 'ai-studio' | 'patients'>('ai-studio');
+  const [activeNav, setActiveNav] = useState<'overview' | 'appointments' | 'services' | 'ai-studio' | 'patients'>('overview');
 
   // Save banner feedback
   const [saveSuccessBanner, setSaveSuccessBanner] = useState(false);
@@ -248,9 +250,9 @@ export default function AdminDashboardPage() {
           clinicalAddress: clinicProfile.address,
           workingHours: clinicProfile.operatingHours,
         },
-        clinicPolicies,
+        policies: clinicPolicies,
         faqs,
-        aiSettings,
+        guardrails: aiSettings,
         providerSettings: {
           activeProvider: localProvider,
           geminiApiKey: localGeminiKey,
@@ -275,11 +277,11 @@ export default function AdminDashboardPage() {
       const botMsg: SimulatedMessage = {
         id: `b-${Date.now()}`,
         sender: 'bot',
-        text: result.replyText,
+        text: result.reply,
         isAlert: isPainQuery,
         alertText: isPainQuery ? 'Severe dental symptoms require immediate clinical evaluation by Dr. Sarah Jenkins.' : undefined,
         reasoningTrace: result.reasoningTrace,
-        sources: result.groundedSources,
+        sources: result.sourceGrounded,
       };
 
       setChatMessages(prev => [...prev, botMsg]);
