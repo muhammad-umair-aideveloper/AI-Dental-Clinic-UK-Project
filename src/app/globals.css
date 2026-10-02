@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --font-stitch: 'Google Sans Text', 'Google Sans', system-ui, -apple-system, sans-serif;
+  --font-stitch: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
   --bg-canvas: #0b0f17;
   --bg-surface: #111622;
   --bg-card: #161e2e;
@@ -11,8 +11,8 @@
 }
 
 body {
-  font-family: var(--font-stitch);
-  background-color: #ffffff;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #f4f5fb;
   color: #0f172a;
 }
 
