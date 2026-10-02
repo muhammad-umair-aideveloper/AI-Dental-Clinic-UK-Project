@@ -8,39 +8,44 @@ import { ServiceCategory, AIProvider } from '@/types/clinic';
 import {
   Calendar,
   Users,
-  MessageSquare,
-  Bot,
-  Sparkles,
   Search,
   CheckCircle2,
   Trash2,
-  Phone,
   Clock,
   ShieldCheck,
   Plus,
   Save,
-  ArrowLeft,
   Key,
   Eye,
   EyeOff,
   Send,
   AlertTriangle,
-  Sliders,
   Database,
-  Terminal,
   Building,
-  HelpCircle,
-  FileCheck,
   Brain,
   Cpu,
-  CheckCheck,
-  AlertCircle,
   ExternalLink,
   ChevronRight,
   ClipboardPaste,
   ShieldAlert,
   ChevronDown,
-  ChevronUp,
+  LayoutDashboard,
+  CalendarDays,
+  FolderKanban,
+  Bot,
+  UserCheck,
+  Bell,
+  Check,
+  X,
+  RefreshCw,
+  Sliders,
+  Sparkles,
+  Stethoscope,
+  Activity,
+  FileText,
+  BadgeCheck,
+  Settings,
+  Phone,
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
@@ -70,54 +75,37 @@ export default function AdminDashboardPage() {
     resetToDefaults,
   } = useClinic();
 
-  // Navigation Tabs (Stitch Sidebar)
-  const [activeMainTab, setActiveMainTab] = useState<'ai-knowledge' | 'appointments' | 'inquiries' | 'walkin'>('ai-knowledge');
+  // Navigation matching Image 2 sidebar:
+  // Overview | Appointments | Services Catalog | AI Chatbot Studio | Patients
+  const [activeNav, setActiveNav] = useState<'overview' | 'appointments' | 'services' | 'ai-studio' | 'patients'>('appointments');
 
-  // AI & Knowledge Management Sub-Tabs
-  const [aiSubTab, setAiSubTab] = useState<'knowledge' | 'behavior' | 'simulator'>('behavior');
+  // Sub-sections inside the AI Agent section (the 3 sub-sections combined in one)
+  const [aiSubSection, setAiSubSection] = useState<'providers' | 'approval-policy' | 'knowledge-simulator'>('providers');
 
   // Save banner feedback
   const [saveSuccessBanner, setSaveSuccessBanner] = useState(false);
 
-  // Appointments Tab States
+  // Appointments Tab States (matching Image 2)
   const [aptSearch, setAptSearch] = useState('');
-  const [aptDateFilter, setAptDateFilter] = useState<'All' | 'Today' | 'Tomorrow'>('All');
-  const [aptStatusFilter, setAptStatusFilter] = useState<'All' | 'Confirmed' | 'Pending'>('All');
-  const [deletingAptId, setDeletingAptId] = useState<string | null>(null);
+  const [aptFilterTab, setAptFilterTab] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('pending');
+  const [selectedPractitioner, setSelectedPractitioner] = useState('All');
+  const [quickActionOpen, setQuickActionOpen] = useState(false);
 
-  // Walk-In Form State
-  const [walkInForm, setWalkInForm] = useState({
+  // Manual Booking Modal
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [manualForm, setManualForm] = useState({
     patientName: '',
     patientEmail: '',
     patientPhone: '',
     serviceName: services[0]?.name || 'General Checkup & Digital OPG X-Rays',
-    date: '2026-10-01',
-    timeSlot: '11:00 AM',
-    notes: 'Walk-in / Phone reservation taken by clinic receptionist.',
-  });
-  const [walkInSuccess, setWalkInSuccess] = useState('');
-
-  // AI Settings Local Edit Buffer
-  const [localCompany, setLocalCompany] = useState(companyDetails);
-  const [localPolicies, setLocalPolicies] = useState({
-    refundPolicy: clinicPolicies.refundPolicy,
-    cancellationPolicy: clinicPolicies.cancellationPolicy,
-    additionalPoliciesText: clinicPolicies.additionalPolicies.join('\n'),
-  });
-  const [localGuardrails, setLocalGuardrails] = useState({
-    identityRole: aiSettings.identityRole,
-    targetAudience: aiSettings.targetAudience,
-    toneManner: aiSettings.toneManner,
-    responseLength: aiSettings.responseLength,
-    businessGoals: aiSettings.businessGoals,
-    shouldSayText: aiSettings.shouldSay.join('\n'),
-    mustNotSayText: aiSettings.mustNotSay.join('\n'),
-    informationUnavailableInstructions: aiSettings.informationUnavailableInstructions,
-    transferToHumanInstructions: aiSettings.transferToHumanInstructions,
-    languageBehaviorPolicy: aiSettings.languageBehaviorPolicy,
+    date: 'Today, Oct 24',
+    timeSlot: '03:30 PM',
+    clinicianName: 'Dr. Sarah Jenkins',
+    chiefComplaint: '',
+    isUrgent: false,
   });
 
-  // Local 3 Agent API Provider Settings Buffer
+  // Local state for AI Settings
   const [localProvider, setLocalProvider] = useState<AIProvider>(aiProviderSettings.activeProvider);
   const [localGeminiKey, setLocalGeminiKey] = useState(aiProviderSettings.geminiApiKey);
   const [localGeminiModel, setLocalGeminiModel] = useState(aiProviderSettings.geminiModel);
@@ -125,9 +113,13 @@ export default function AdminDashboardPage() {
   const [localClaudeModel, setLocalClaudeModel] = useState(aiProviderSettings.claudeModel);
   const [localChatgptKey, setLocalChatgptKey] = useState(aiProviderSettings.chatgptApiKey);
   const [localChatgptModel, setLocalChatgptModel] = useState(aiProviderSettings.chatgptModel);
-  const [showKeyVisibility, setShowKeyVisibility] = useState(false);
 
-  // Local Appointment Approval Policy Buffer
+  // Key Visibility toggles
+  const [showGeminiKey, setShowGeminiKey] = useState(false);
+  const [showClaudeKey, setShowClaudeKey] = useState(false);
+  const [showChatgptKey, setShowChatgptKey] = useState(false);
+
+  // Local state for Approval Policy
   const [localAutoApprove, setLocalAutoApprove] = useState(approvalPolicy.autoApproveEnabled);
   const [localApprovedCategories, setLocalApprovedCategories] = useState<ServiceCategory[]>(
     approvalPolicy.approvedCategories
@@ -136,85 +128,21 @@ export default function AdminDashboardPage() {
     approvalPolicy.adminApprovalDirectives
   );
 
-  // New Service Modal
-  const [isAddingService, setIsAddingService] = useState(false);
-  const [newServiceForm, setNewServiceForm] = useState({
-    name: '',
-    priceRange: 'From £',
-    basePriceGbp: 150,
-    category: 'General' as ServiceCategory,
-    duration: '45 mins',
-    description: '',
+  // Local Company Details & Policies
+  const [localCompany, setLocalCompany] = useState(companyDetails);
+  const [localPolicies, setLocalPolicies] = useState({
+    refundPolicy: clinicPolicies.refundPolicy,
+    cancellationPolicy: clinicPolicies.cancellationPolicy,
+    additionalPoliciesText: clinicPolicies.additionalPolicies.join('\n'),
   });
 
-  // New FAQ Form
-  const [isAddingFAQ, setIsAddingFAQ] = useState(false);
-  const [newFAQForm, setNewFAQForm] = useState({
-    question: '',
-    answer: '',
-    category: 'General',
-  });
-
-  // Simulator State with Reasoning Traces
+  // Simulator State
   const [simulatorQuery, setSimulatorQuery] = useState('');
-  const [simulatorHistory, setSimulatorHistory] = useState<
-    Array<{
-      query: string;
-      result: AIResponseResult;
-      timestamp: string;
-    }>
-  >([
-    {
-      query: 'Can you book me for teeth whitening and is it auto-approved?',
-      result: {
-        reply: `Certainly! I have reviewed our clinical diary for In-Clinic Laser Teeth Whitening (£350, approx. 60 mins).
-
-✅ Approval Status: This Cosmetic procedure is pre-approved by clinic administration for immediate calendar confirmation.
-
-Philips Zoom! WhiteSpeed laser delivers up to 8 shades whiter in 1 hour. Would you like me to open the interactive booking calendar for you right now?`,
-        reasoningTrace: [
-          {
-            step: 1,
-            title: 'Perception & Semantic Intent Detection',
-            detail: 'Detected request for Teeth Whitening booking + approval query.',
-            status: 'perception',
-          },
-          {
-            step: 2,
-            title: 'Website & Knowledge Retrieval',
-            detail: 'Retrieved verified fee: From £350, 60 mins, Zoom laser protocol.',
-            status: 'retrieval',
-          },
-          {
-            step: 3,
-            title: 'Admin Appointment Approval Policy Evaluation',
-            detail: 'Evaluated Admin Policy: Category [Cosmetic] is in Approved Categories list. Auto-Confirm authority = TRUE.',
-            status: 'policy_eval',
-          },
-          {
-            step: 4,
-            title: 'Guardrail & British Phrasing Synthesis',
-            detail: 'Formatted response in British English with confirmation assurance.',
-            status: 'guardrail',
-          },
-        ],
-        sourceGrounded: ['Website Service: In-Clinic Laser Teeth Whitening', 'Admin Approval Policy', 'Verified GBP Fee'],
-        appointmentApprovalStatus: 'Auto-Approved',
-        actionType: 'book',
-        actionPayload: 'In-Clinic Laser Teeth Whitening',
-        activeAgentEngine: 'Gemini (gemini-2.0-flash)',
-      },
-      timestamp: 'Demo Trace',
-    },
-  ]);
   const [simulatorLoading, setSimulatorLoading] = useState(false);
+  const [simulatorHistory, setSimulatorHistory] = useState<
+    { query: string; response: AIResponseResult; timestamp: string }[]
+  >([]);
   const [expandedTraceIndex, setExpandedTraceIndex] = useState<number | null>(0);
-
-  // Top Metrics
-  const totalAppointments = appointments.length;
-  const todayAppointments = appointments.filter(a => a.date === '2026-10-01').length;
-  const confirmedPatients = appointments.filter(a => a.status === 'Confirmed').length;
-  const totalInquiries = inquiries.length;
 
   const allCategories: ServiceCategory[] = [
     'General',
@@ -223,36 +151,70 @@ Philips Zoom! WhiteSpeed laser delivers up to 8 shades whiter in 1 hour. Would y
     'Cosmetic',
     'Surgical',
     'Orthodontics',
-    'Pediatric',
     'Emergency',
   ];
 
-  // Filtered Appointments
-  const filteredAppointments = appointments.filter(apt => {
-    const matchSearch =
-      apt.patientName.toLowerCase().includes(aptSearch.toLowerCase()) ||
-      apt.patientPhone.includes(aptSearch) ||
-      apt.serviceName.toLowerCase().includes(aptSearch.toLowerCase());
+  // Mock initial triage cards matching Image 2 Marcus Reed & Elena Rostova
+  const mockTriagePatients = [
+    {
+      id: 'apt-m-1',
+      name: 'Marcus Reed',
+      type: 'First-time Patient',
+      age: 34,
+      mrn: '#9842',
+      treatment: 'Root Canal Therapy & Crown',
+      doctor: 'Dr. Sarah Jenkins',
+      date: 'Today, Oct 24 • 03:30 PM',
+      complaint: 'Experiencing acute molar sensitivity since 2 days, sharp pain radiating to jaw.',
+      operatory: 'Chair 1 (Operatory A) Free',
+      requestedAgo: '18 mins ago',
+      urgent: true,
+      status: 'pending',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+    },
+    {
+      id: 'apt-e-2',
+      name: 'Elena Rostova',
+      type: 'Returning Patient (5 visits)',
+      age: 29,
+      mrn: '#7124',
+      treatment: 'Teeth Whitening & Hygiene Polish',
+      doctor: 'Dr. Alex Vance',
+      date: 'Today, Oct 24 • 04:45 PM',
+      complaint: 'Routine wedding prep whitening session; prefers low peroxide gel if possible.',
+      insurance: 'Cigna Dental Plus #C902',
+      operatory: 'Chair 3 (Hygienist) Prep',
+      requestedAgo: '42 mins ago',
+      urgent: false,
+      status: 'pending',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120&q=80',
+    },
+    {
+      id: 'apt-j-3',
+      name: 'Julian Hayes',
+      type: 'First-time Patient',
+      age: 48,
+      mrn: '#1053',
+      treatment: '3D Guided Dental Implant Consult',
+      doctor: 'Dr. Sarah Jenkins',
+      date: 'Today, Oct 24 • 05:15 PM',
+      complaint: 'Lower premolar fractured at gumline. Requesting immediate bone graft review.',
+      operatory: 'Chair 1 (Operatory A)',
+      requestedAgo: '1 hour ago',
+      urgent: true,
+      status: 'pending',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
+    },
+  ];
 
-    const matchDate =
-      aptDateFilter === 'All'
-        ? true
-        : aptDateFilter === 'Today'
-        ? apt.date === '2026-10-01'
-        : apt.date === '2026-10-02';
+  // Count metrics for Image 2 style
+  const totalRequestsToday = 28;
+  const pendingReviewCount = 5;
+  const confirmedCount = 19;
+  const declinedCount = 4;
 
-    const matchStatus =
-      aptStatusFilter === 'All' ? true : apt.status === aptStatusFilter;
-
-    return matchSearch && matchDate && matchStatus;
-  });
-
-  // Save All AI Settings Trigger
   const handleSaveAllAISettings = () => {
-    // 1. Save Company Details
     updateCompanyDetails(localCompany);
-
-    // 2. Save Policies
     updateClinicPolicies({
       refundPolicy: localPolicies.refundPolicy,
       cancellationPolicy: localPolicies.cancellationPolicy,
@@ -261,28 +223,6 @@ Philips Zoom! WhiteSpeed laser delivers up to 8 shades whiter in 1 hour. Would y
         .map(s => s.trim())
         .filter(Boolean),
     });
-
-    // 3. Save Guardrails
-    updateAISettings({
-      identityRole: localGuardrails.identityRole,
-      targetAudience: localGuardrails.targetAudience,
-      toneManner: localGuardrails.toneManner,
-      responseLength: localGuardrails.responseLength,
-      businessGoals: localGuardrails.businessGoals,
-      shouldSay: localGuardrails.shouldSayText
-        .split('\n')
-        .map(s => s.trim())
-        .filter(Boolean),
-      mustNotSay: localGuardrails.mustNotSayText
-        .split('\n')
-        .map(s => s.trim())
-        .filter(Boolean),
-      informationUnavailableInstructions: localGuardrails.informationUnavailableInstructions,
-      transferToHumanInstructions: localGuardrails.transferToHumanInstructions,
-      languageBehaviorPolicy: localGuardrails.languageBehaviorPolicy,
-    });
-
-    // 4. Save 3 Agent Provider Settings
     updateAIProviderSettings({
       activeProvider: localProvider,
       geminiApiKey: localGeminiKey,
@@ -292,16 +232,15 @@ Philips Zoom! WhiteSpeed laser delivers up to 8 shades whiter in 1 hour. Would y
       chatgptApiKey: localChatgptKey,
       chatgptModel: localChatgptModel,
     });
-
-    // 5. Save Admin Appointment Approval Policy
     updateApprovalPolicy({
       autoApproveEnabled: localAutoApprove,
       approvedCategories: localApprovedCategories,
       manualReviewCategories: allCategories.filter(c => !localApprovedCategories.includes(c)),
       adminApprovalDirectives: localApprovalDirectives,
+      autoConfirmMessage: approvalPolicy.autoConfirmMessage,
+      manualReviewMessage: approvalPolicy.manualReviewMessage,
     });
 
-    // Feedback Banner
     setSaveSuccessBanner(true);
     setTimeout(() => setSaveSuccessBanner(false), 4000);
   };
@@ -314,111 +253,25 @@ Philips Zoom! WhiteSpeed laser delivers up to 8 shades whiter in 1 hour. Would y
     }
   };
 
-  // Add Service Handler
-  const handleCreateService = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newServiceForm.name || !newServiceForm.priceRange) return;
-
-    addService({
-      name: newServiceForm.name,
-      priceRange: newServiceForm.priceRange,
-      basePriceGbp: Number(newServiceForm.basePriceGbp) || 100,
-      category: newServiceForm.category,
-      duration: newServiceForm.duration,
-      description: newServiceForm.description || 'Clinical dental service provided by Vertex Dental Lab.',
-      features: ['Clinical examination included', 'High precision lab materials', 'Full GDC compliance'],
-    });
-
-    setIsAddingService(false);
-    setNewServiceForm({
-      name: '',
-      priceRange: 'From £',
-      basePriceGbp: 150,
-      category: 'General',
-      duration: '45 mins',
-      description: '',
-    });
-  };
-
-  // Add FAQ Handler
-  const handleCreateFAQ = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newFAQForm.question || !newFAQForm.answer) return;
-
-    addFAQ({
-      question: newFAQForm.question,
-      answer: newFAQForm.answer,
-      category: newFAQForm.category,
-    });
-
-    setIsAddingFAQ(false);
-    setNewFAQForm({ question: '', answer: '', category: 'General' });
-  };
-
-  // Walk-In Booking Submission
-  const handleWalkInSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!walkInForm.patientName || !walkInForm.patientPhone) return;
-
-    const matchedService = services.find(s => s.name === walkInForm.serviceName) || services[0];
-
-    const newId = addAppointment({
-      patientName: walkInForm.patientName,
-      patientEmail: walkInForm.patientEmail || 'walkin@vertexdental.co.uk',
-      patientPhone: walkInForm.patientPhone,
-      serviceId: matchedService.id,
-      serviceName: matchedService.name,
-      clinicianName: 'Dr. Alistair Vance',
-      date: walkInForm.date,
-      timeSlot: walkInForm.timeSlot,
-      status: 'Confirmed',
-      notes: walkInForm.notes,
-      source: 'Walk-In / Phone',
-    });
-
-    setWalkInSuccess(`Appointment #${newId} booked successfully into clinic calendar.`);
-    setTimeout(() => setWalkInSuccess(''), 4000);
-    setWalkInForm({
-      patientName: '',
-      patientEmail: '',
-      patientPhone: '',
-      serviceName: services[0]?.name || 'General Checkup & Digital OPG X-Rays',
-      date: '2026-10-01',
-      timeSlot: '11:00 AM',
-      notes: 'Walk-in / Phone reservation taken by clinic receptionist.',
-    });
-  };
-
-  // Simulator Run (Reasoning Engine)
   const handleRunSimulator = (presetQuery?: string) => {
     const q = (presetQuery || simulatorQuery).trim();
     if (!q) return;
 
     setSimulatorLoading(true);
-
     setTimeout(() => {
       const result = generateGroundingResponse(q, {
         services,
         companyDetails: localCompany,
-        policies: {
+        clinicPolicies: {
           refundPolicy: localPolicies.refundPolicy,
           cancellationPolicy: localPolicies.cancellationPolicy,
-          additionalPolicies: localPolicies.additionalPoliciesText.split('\n').filter(Boolean),
+          additionalPolicies: localPolicies.additionalPoliciesText
+            .split('\n')
+            .map(s => s.trim())
+            .filter(Boolean),
         },
         faqs,
-        guardrails: {
-          ...aiSettings,
-          informationUnavailableInstructions: localGuardrails.informationUnavailableInstructions,
-          transferToHumanInstructions: localGuardrails.transferToHumanInstructions,
-        },
-        approvalPolicy: {
-          autoApproveEnabled: localAutoApprove,
-          approvedCategories: localApprovedCategories,
-          manualReviewCategories: allCategories.filter(c => !localApprovedCategories.includes(c)),
-          adminApprovalDirectives: localApprovalDirectives,
-          autoConfirmMessage: approvalPolicy.autoConfirmMessage,
-          manualReviewMessage: approvalPolicy.manualReviewMessage,
-        },
+        aiSettings,
         providerSettings: {
           activeProvider: localProvider,
           geminiApiKey: localGeminiKey,
@@ -428,13 +281,21 @@ Philips Zoom! WhiteSpeed laser delivers up to 8 shades whiter in 1 hour. Would y
           chatgptApiKey: localChatgptKey,
           chatgptModel: localChatgptModel,
         },
+        approvalPolicy: {
+          autoApproveEnabled: localAutoApprove,
+          approvedCategories: localApprovedCategories,
+          manualReviewCategories: allCategories.filter(c => !localApprovedCategories.includes(c)),
+          adminApprovalDirectives: localApprovalDirectives,
+          autoConfirmMessage: approvalPolicy.autoConfirmMessage,
+          manualReviewMessage: approvalPolicy.manualReviewMessage,
+        },
       });
 
       setSimulatorHistory(prev => [
         {
           query: q,
-          result,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          response: result,
+          timestamp: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
         },
         ...prev,
       ]);
@@ -445,1466 +306,1483 @@ Philips Zoom! WhiteSpeed laser delivers up to 8 shades whiter in 1 hour. Would y
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col font-sans">
-      {/* Save Success Alert Notification */}
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans">
+      
+      {/* Toast Save Alert */}
       {saveSuccessBanner && (
-        <div className="fixed top-5 right-5 z-50 p-4 rounded-2xl bg-[#0f2e24] border border-emerald-500 text-white shadow-2xl flex items-center space-x-3 animate-fade-in backdrop-blur-md">
+        <div className="fixed top-5 right-5 z-50 p-4 rounded-2xl bg-slate-900 text-white shadow-2xl flex items-center space-x-3 animate-fade-in border border-slate-700">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           <div>
-            <p className="text-xs font-bold">AI Agent Directives & API Settings Saved</p>
-            <p className="text-[11px] text-emerald-200">
-              Active engine: {localProvider}. Appointment approval authority updated immediately.
+            <p className="text-xs font-bold">AI Agent Settings & Approval Policies Saved</p>
+            <p className="text-[11px] text-slate-300">
+              Active Engine: {localProvider} • Approval Authority: {localAutoApprove ? 'Authorized' : 'Doctor Sign-off'}
             </p>
           </div>
         </div>
       )}
 
-      {/* Main Stitch Dashboard Layout: Sidebar + Main Content */}
+      {/* Main Container */}
       <div className="flex-1 flex flex-col md:flex-row w-full">
+        
         {/* ======================================================== */}
-        {/* STITCH LEFT SIDEBAR */}
+        {/* SIDEBAR: DentPulse Clinical Admin Style (Matching Image 2) */}
         {/* ======================================================== */}
-        <aside className="w-full md:w-64 bg-[#111622] border-r border-[#1f293d] flex flex-col justify-between shrink-0">
+        <aside className="w-full md:w-64 bg-white border-r border-slate-200/90 flex flex-col justify-between shrink-0 shadow-xs">
           <div>
-            {/* Sidebar Brand Header */}
-            <div className="p-5 border-b border-[#1f293d] flex items-center justify-between">
-              <Link href="/" className="flex items-center space-x-2.5 group">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-sky-500/20 group-hover:scale-105 transition-transform">
-                  <Sparkles className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <span className="font-extrabold text-sm tracking-tight text-white">
-                    Vertex Dental<span className="text-sky-400">Lab</span>
-                  </span>
-                  <p className="text-[10px] text-slate-400 font-mono">UK Admin Suite</p>
-                </div>
-              </Link>
+            {/* Logo */}
+            <div className="p-5 border-b border-slate-100 flex items-center space-x-3">
+              <div className="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-md shadow-sky-600/20">
+                <Stethoscope className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="font-extrabold text-sm tracking-tight text-slate-950">
+                  Vertex Dental<span className="text-sky-600">Lab</span>
+                </h2>
+                <p className="text-[9px] font-bold text-slate-400 tracking-wider uppercase">
+                  CLINICAL ADMIN
+                </p>
+              </div>
             </div>
 
-            {/* Sidebar Navigation */}
-            <nav className="p-3 space-y-1 text-xs font-medium">
-              <p className="px-3 pt-3 pb-1 text-[10px] uppercase font-bold tracking-wider text-slate-400">
-                Core Administration
+            {/* Navigation Menu */}
+            <div className="p-3">
+              <p className="px-3 pt-3 pb-2 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                CLINICAL SUITE
               </p>
 
-              <button
-                onClick={() => setActiveMainTab('ai-knowledge')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
-                  activeMainTab === 'ai-knowledge'
-                    ? 'bg-gradient-to-r from-sky-500/20 to-indigo-500/20 text-sky-300 border border-sky-500/40 font-bold shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-[#161e2e]'
-                }`}
-              >
-                <div className="flex items-center space-x-2.5">
-                  <Brain className="w-4 h-4 text-sky-400" />
-                  <span>AI Agent & Knowledge</span>
-                </div>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              </button>
+              <nav className="space-y-1 text-xs font-medium">
+                {/* 1. Overview */}
+                <button
+                  onClick={() => setActiveNav('overview')}
+                  className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all ${
+                    activeNav === 'overview'
+                      ? 'bg-sky-600 text-white font-bold shadow-sm'
+                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Overview</span>
+                </button>
 
-              <button
-                onClick={() => setActiveMainTab('appointments')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
-                  activeMainTab === 'appointments'
-                    ? 'bg-[#161e2e] text-white border border-slate-700 font-bold shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-[#161e2e]'
-                }`}
-              >
-                <div className="flex items-center space-x-2.5">
-                  <Calendar className="w-4 h-4 text-slate-400" />
-                  <span>Appointments Diary</span>
-                </div>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#1a2336] text-slate-300 border border-slate-700">
-                  {appointments.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => setActiveMainTab('inquiries')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
-                  activeMainTab === 'inquiries'
-                    ? 'bg-[#161e2e] text-white border border-slate-700 font-bold shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-[#161e2e]'
-                }`}
-              >
-                <div className="flex items-center space-x-2.5">
-                  <MessageSquare className="w-4 h-4 text-slate-400" />
-                  <span>Patient Inquiries</span>
-                </div>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#1a2336] text-slate-300 border border-slate-700">
-                  {inquiries.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => setActiveMainTab('walkin')}
-                className={`w-full flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl transition-all ${
-                  activeMainTab === 'walkin'
-                    ? 'bg-[#161e2e] text-white border border-slate-700 font-bold shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-[#161e2e]'
-                }`}
-              >
-                <Plus className="w-4 h-4 text-slate-400" />
-                <span>Walk-In Reservation</span>
-              </button>
-
-              {/* Agent Active Pill in Sidebar */}
-              <div className="pt-6 px-3">
-                <div className="p-3 rounded-2xl bg-[#161e2e] border border-[#242e44] space-y-2">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400 font-semibold">Active Agent Engine:</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-sky-950 text-sky-300 border border-sky-800">
-                      {localProvider}
-                    </span>
+                {/* 2. Appointments (with red urgent badge '5' like in Image 2) */}
+                <button
+                  onClick={() => setActiveNav('appointments')}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                    activeNav === 'appointments'
+                      ? 'bg-sky-600 text-white font-bold shadow-sm'
+                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <CalendarDays className="w-4 h-4" />
+                    <span>Appointments</span>
                   </div>
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">Auto-Approval:</span>
-                    <span className={`text-[10px] font-bold ${localAutoApprove ? 'text-emerald-400' : 'text-amber-400'}`}>
-                      {localAutoApprove ? 'Authorized' : 'Manual Doctor Only'}
-                    </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      activeNav === 'appointments'
+                        ? 'bg-white text-sky-700'
+                        : 'bg-rose-600 text-white'
+                    }`}
+                  >
+                    5
+                  </span>
+                </button>
+
+                {/* 3. Services Catalog */}
+                <button
+                  onClick={() => setActiveNav('services')}
+                  className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all ${
+                    activeNav === 'services'
+                      ? 'bg-sky-600 text-white font-bold shadow-sm'
+                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+                  }`}
+                >
+                  <FolderKanban className="w-4 h-4" />
+                  <span>Services Catalog</span>
+                </button>
+
+                {/* 4. AI Chatbot Studio / AI Agent & Knowledge */}
+                <button
+                  onClick={() => setActiveNav('ai-studio')}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
+                    activeNav === 'ai-studio'
+                      ? 'bg-sky-600 text-white font-bold shadow-sm'
+                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Brain className="w-4 h-4" />
+                    <span>AI Chatbot Studio</span>
                   </div>
-                </div>
-              </div>
-            </nav>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                </button>
+
+                {/* 5. Patients */}
+                <button
+                  onClick={() => setActiveNav('patients')}
+                  className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all ${
+                    activeNav === 'patients'
+                      ? 'bg-sky-600 text-white font-bold shadow-sm'
+                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Patients</span>
+                </button>
+              </nav>
+            </div>
           </div>
 
-          {/* Sidebar Footer User Info */}
-          <div className="p-4 border-t border-[#1f293d] space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
-                DV
-              </div>
-              <div className="truncate">
-                <p className="text-xs font-bold text-white truncate">Dr. Alistair Vance</p>
-                <p className="text-[10px] text-slate-400 truncate">Clinical Director • GDC 248912</p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-[11px] pt-1">
-              <Link href="/" className="text-sky-400 hover:text-sky-300 flex items-center space-x-1">
+          {/* Bottom Sidebar: Settings, Cloud Version, Public Site */}
+          <div className="p-4 border-t border-slate-100 space-y-3 text-xs">
+            <Link
+              href="/"
+              target="_blank"
+              className="flex items-center justify-between text-slate-600 hover:text-sky-600 font-medium py-1"
+            >
+              <span className="flex items-center space-x-2">
+                <ExternalLink className="w-3.5 h-3.5" />
                 <span>View Public Site</span>
-                <ExternalLink className="w-3 h-3" />
-              </Link>
-              <button onClick={resetToDefaults} className="text-slate-500 hover:text-red-400 text-[10px]">
-                Reset Demo
+              </span>
+              <span className="text-[10px] text-slate-400">UK Live</span>
+            </Link>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+              <span className="flex items-center space-x-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>v3.2 Dental Cloud</span>
+              </span>
+              <button
+                onClick={resetToDefaults}
+                className="text-slate-400 hover:text-rose-600 transition-colors"
+                title="Reset demo data"
+              >
+                Reset
               </button>
             </div>
           </div>
         </aside>
 
         {/* ======================================================== */}
-        {/* MAIN DASHBOARD CONTENT AREA */}
+        {/* MAIN VIEWPORT */}
         {/* ======================================================== */}
         <div className="flex-1 flex flex-col overflow-y-auto">
-          {/* Top Sticky Header */}
-          <header className="sticky top-0 z-20 bg-[#0b0f17]/95 backdrop-blur-md px-6 py-3.5 border-b border-[#1f293d] flex items-center justify-between gap-4">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-base font-extrabold text-white">
-                {activeMainTab === 'ai-knowledge'
-                  ? 'AI Agent & Knowledge Management System'
-                  : activeMainTab === 'appointments'
-                  ? 'Clinic Calendar & Appointments'
-                  : activeMainTab === 'inquiries'
-                  ? 'Patient Web Inquiries'
-                  : 'Add Walk-In / Phone Booking'}
-              </h1>
-              <span className="hidden sm:inline px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-[#161e2e] text-slate-300 border border-[#242e44]">
-                London Marylebone Suite
-              </span>
+          
+          {/* Top Navbar matching Image 2 */}
+          <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-6 py-3.5 border-b border-slate-200/80 flex items-center justify-between gap-4 shadow-xs">
+            {/* Search Input */}
+            <div className="relative w-full max-w-md hidden sm:block">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search patient records, MRN, dental chart..."
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200/90 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+              />
             </div>
 
-            <div className="flex items-center space-x-3">
-              {activeMainTab === 'ai-knowledge' && (
-                <button
-                  onClick={handleSaveAllAISettings}
-                  className="px-4 py-2 rounded-xl font-bold text-xs text-slate-950 bg-gradient-to-r from-sky-400 via-cyan-300 to-teal-300 hover:opacity-90 shadow-md shadow-sky-500/20 flex items-center space-x-1.5 active:scale-95 transition-all"
-                >
-                  <Save className="w-3.5 h-3.5 text-slate-950" />
-                  <span>Save All AI Settings</span>
-                </button>
-              )}
+            {/* Right Controls matching Image 2 */}
+            <div className="flex items-center space-x-3.5 ml-auto">
+              {/* Accepting Online Bookings Pill */}
+              <div className="hidden lg:flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Accepting Online Bookings - Open</span>
+              </div>
+
+              {/* Quick Action Button */}
+              <button
+                onClick={() => setManualModalOpen(true)}
+                className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-sm transition-all active:scale-95"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Quick Action</span>
+              </button>
+
+              {/* Notification Bell */}
+              <button className="relative w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors">
+                <Bell className="w-4 h-4" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500"></span>
+              </button>
+
+              {/* Clinician Profile Avatar */}
+              <div className="flex items-center space-x-2.5 pl-2 border-l border-slate-200">
+                <div className="w-9 h-9 rounded-full bg-slate-200 overflow-hidden ring-1 ring-slate-300 shrink-0">
+                  <img
+                    src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=120&h=120&q=80"
+                    alt="Dr. Sarah Jenkins"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="hidden xl:block text-left">
+                  <p className="text-xs font-bold text-slate-900 leading-tight">Dr. Sarah Jenkins</p>
+                  <p className="text-[10px] text-slate-500">Clinical Director • Marylebone</p>
+                </div>
+              </div>
             </div>
           </header>
 
-          <div className="p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
-            {/* Top Metric Cards (Stitch Style) */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-5 rounded-3xl bg-[#111622] border border-[#1f293d] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-400">Total Bookings</span>
-                  <div className="w-8 h-8 rounded-xl bg-sky-950 text-sky-400 flex items-center justify-center border border-sky-800/40">
-                    <Calendar className="w-4 h-4" />
-                  </div>
+          {/* ======================================================== */}
+          {/* VIEW 1: APPOINTMENTS & BOOKING REQUESTS (Matching Image 2) */}
+          {/* ======================================================== */}
+          {activeNav === 'appointments' && (
+            <div className="p-6 sm:p-8 space-y-7 max-w-7xl mx-auto w-full animate-fade-in">
+              
+              {/* Header Title & Actions */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    CLINICAL ADMINISTRATION SUITE • <span className="text-sky-600 font-extrabold">Live Triage Dispatch</span>
+                  </p>
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight mt-0.5">
+                    Appointments & Booking Requests
+                  </h1>
                 </div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-white">{totalAppointments}</p>
-                <p className="text-[11px] text-sky-400 font-mono">All-time clinic calendar</p>
-              </div>
 
-              <div className="p-5 rounded-3xl bg-[#111622] border border-[#1f293d] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-400">Today&apos;s Slots</span>
-                  <div className="w-8 h-8 rounded-xl bg-emerald-950 text-emerald-400 flex items-center justify-center border border-emerald-800/40">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                </div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-white">{todayAppointments}</p>
-                <p className="text-[11px] text-emerald-400 font-mono">Scheduled today</p>
-              </div>
-
-              <div className="p-5 rounded-3xl bg-[#111622] border border-[#1f293d] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-400">Confirmed Patients</span>
-                  <div className="w-8 h-8 rounded-xl bg-indigo-950 text-indigo-400 flex items-center justify-center border border-indigo-800/40">
-                    <Users className="w-4 h-4" />
-                  </div>
-                </div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-white">{confirmedPatients}</p>
-                <p className="text-[11px] text-indigo-300 font-mono">Active verified patients</p>
-              </div>
-
-              <div className="p-5 rounded-3xl bg-[#111622] border border-[#1f293d] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-400">Web Inquiries</span>
-                  <div className="w-8 h-8 rounded-xl bg-purple-950 text-purple-400 flex items-center justify-center border border-purple-800/40">
-                    <MessageSquare className="w-4 h-4" />
-                  </div>
-                </div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-white">{totalInquiries}</p>
-                <p className="text-[11px] text-purple-300 font-mono">Contact form leads</p>
-              </div>
-            </div>
-
-            {/* ======================================================== */}
-            {/* VIEW 1: AI ASSISTANT & KNOWLEDGE MANAGEMENT */}
-            {/* ======================================================== */}
-            {activeMainTab === 'ai-knowledge' && (
-              <div className="space-y-6">
-                {/* 3 Sub-Tabs Header */}
-                <div className="flex space-x-2 border-b border-[#1f293d] pb-2">
+                <div className="flex items-center space-x-2.5">
                   <button
-                    onClick={() => setAiSubTab('behavior')}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 ${
-                      aiSubTab === 'behavior'
-                        ? 'bg-[#161e2e] text-sky-400 border border-slate-700 shadow-sm'
-                        : 'text-slate-400 hover:text-white hover:bg-[#111622]'
-                    }`}
+                    onClick={() => setActiveNav('ai-studio')}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-2xs flex items-center space-x-1.5 transition-colors"
                   >
-                    <Sliders className="w-3.5 h-3.5" />
-                    <span>Tab 2: AI Agent Instructions, Approval Policy & API Keys</span>
+                    <Activity className="w-3.5 h-3.5 text-sky-600" />
+                    <span>Auto-Sync AI Portal</span>
                   </button>
 
                   <button
-                    onClick={() => setAiSubTab('knowledge')}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 ${
-                      aiSubTab === 'knowledge'
-                        ? 'bg-[#161e2e] text-sky-400 border border-slate-700 shadow-sm'
-                        : 'text-slate-400 hover:text-white hover:bg-[#111622]'
-                    }`}
+                    onClick={() => setManualModalOpen(true)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-sm flex items-center space-x-1.5 transition-colors"
                   >
-                    <Database className="w-3.5 h-3.5" />
-                    <span>Tab 1: Company Knowledge Base</span>
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Manual Booking</span>
                   </button>
 
                   <button
-                    onClick={() => setAiSubTab('simulator')}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 ${
-                      aiSubTab === 'simulator'
-                        ? 'bg-[#161e2e] text-sky-400 border border-slate-700 shadow-sm'
-                        : 'text-slate-400 hover:text-white hover:bg-[#111622]'
-                    }`}
+                    onClick={() => {}}
+                    className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600 shadow-2xs"
+                    title="Refresh"
                   >
-                    <Terminal className="w-3.5 h-3.5" />
-                    <span>Tab 3: Live Chat Reasoning Simulator</span>
+                    <RefreshCw className="w-3.5 h-3.5" />
                   </button>
                 </div>
+              </div>
 
-                {/* ---------------------------------------------------- */}
-                {/* SUB-TAB 2: AI INSTRUCTIONS, APPROVAL POLICY & 3 AGENT APIS */}
-                {/* ---------------------------------------------------- */}
-                {aiSubTab === 'behavior' && (
-                  <div className="space-y-8 animate-fade-in">
-                    {/* SECTION A: ADMIN APPOINTMENT APPROVAL AUTHORITY */}
-                    <div className="rounded-3xl bg-[#111622] border border-[#1f293d] p-6 space-y-6">
-                      <div className="flex items-center justify-between pb-3 border-b border-[#1f293d]">
-                        <div className="flex items-center space-x-2 text-sky-400 text-xs font-bold uppercase tracking-wider">
-                          <CheckCheck className="w-4 h-4" />
-                          <span>Admin Appointment Approval Authority & AI Confirmation Settings</span>
-                        </div>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-sky-950 text-sky-300 border border-sky-800">
-                          Authority Rule Directive
-                        </span>
-                      </div>
+              {/* 4 Metric Cards (Matching Image 2 exactly) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* 1. Total Requests Today */}
+                <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <span>TOTAL REQUESTS TODAY</span>
+                    <Calendar className="w-4 h-4 text-sky-600" />
+                  </div>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-3xl font-black text-slate-950">{totalRequestsToday}</span>
+                    <span className="text-xs font-bold text-emerald-600">+14% vs yesterday</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-3/4 h-full bg-sky-600 rounded-full"></div>
+                  </div>
+                </div>
 
-                      {/* Auto-Approval Toggle */}
-                      <div className="p-4 rounded-2xl bg-[#161e2e] border border-[#242e44] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-bold text-white">AI Auto-Confirmation Authority</p>
-                          <p className="text-xs text-slate-400">
-                            If enabled, the AI can immediately approve and book appointments into the clinic calendar based on your directives below.
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setLocalAutoApprove(!localAutoApprove)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 ${
-                            localAutoApprove
-                              ? 'bg-emerald-600 text-white shadow-md'
-                              : 'bg-slate-800 text-slate-400 border border-slate-700'
-                          }`}
-                        >
-                          <span className={`w-2 h-2 rounded-full ${localAutoApprove ? 'bg-white' : 'bg-slate-500'}`} />
-                          <span>{localAutoApprove ? 'AI Confirmation: ENABLED' : 'AI Confirmation: DISABLED'}</span>
-                        </button>
-                      </div>
+                {/* 2. Pending Review (Urgent) */}
+                <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <span className="flex items-center space-x-1.5">
+                      <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                      <span>PENDING REVIEW</span>
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-700">
+                      URGENT
+                    </span>
+                  </div>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-3xl font-black text-slate-950">{pendingReviewCount}</span>
+                    <span className="text-xs text-rose-600 font-semibold">Immediate triage required</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Average Wait: <span className="font-bold text-slate-800">12.3 mins</span> (Emergency/Urgent)
+                  </p>
+                </div>
 
-                      {/* Approved Appointment Types / Categories */}
-                      <div className="space-y-3">
-                        <label className="block text-xs font-bold text-slate-300">
-                          Select Which Kinds of Appointments the AI Is Approved to Confirm:
-                        </label>
-                        <p className="text-[11px] text-slate-400">
-                          Selected categories will be confirmed immediately. Unchecked categories will be placed on hold as &quot;Pending Clinical Review&quot; for doctor manual sign-off.
-                        </p>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-                          {allCategories.map(cat => {
-                            const isApproved = localApprovedCategories.includes(cat);
-                            return (
-                              <button
-                                key={cat}
-                                type="button"
-                                onClick={() => toggleCategoryApproval(cat)}
-                                className={`p-3 rounded-2xl text-left border transition-all flex items-center justify-between ${
-                                  isApproved
-                                    ? 'bg-[#12231e] border-emerald-500/60 text-emerald-300 shadow-xs'
-                                    : 'bg-[#161e2e] border-[#242e44] text-slate-400 hover:border-slate-600'
-                                }`}
-                              >
-                                <div>
-                                  <p className="text-xs font-bold">{cat}</p>
-                                  <p className="text-[10px] opacity-75">
-                                    {isApproved ? 'Auto-Approved' : 'Needs Doctor Review'}
-                                  </p>
-                                </div>
-                                <span
-                                  className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                                    isApproved ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-500'
-                                  }`}
-                                >
-                                  {isApproved ? '✓' : '—'}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                {/* 3. Accepted & Confirmed */}
+                <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <span>ACCEPTED & CONFIRMED</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-3xl font-black text-slate-950">{confirmedCount}</span>
+                    <span className="text-xs text-emerald-600 font-semibold">8 booked today</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">All operatories prepped & sterilization audited</p>
+                </div>
 
-                      {/* Admin Approval Directives Textarea */}
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-slate-300">
-                          Admin Approval Directives & Appointment Criteria:
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={localApprovalDirectives}
-                          onChange={e => setLocalApprovalDirectives(e.target.value)}
-                          placeholder="e.g. Auto-approve routine checkups and cleanings. For dental implants and root canals, hold for Dr. Vance manual clinical verification."
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-sky-500 leading-relaxed font-mono"
-                        />
-                      </div>
+                {/* 4. Declined / Rescheduled */}
+                <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <span>DECLINED / RESCHEDULED</span>
+                    <Clock className="w-4 h-4 text-slate-400" />
+                  </div>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-3xl font-black text-slate-950">{declinedCount}</span>
+                    <span className="text-xs text-slate-500">14.2% bounce rate</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Slot reallocated: <span className="font-bold text-slate-800">100% Zero Chair Loss</span></p>
+                </div>
+              </div>
+
+              {/* Filter Toolbar (Matching Image 2) */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  {/* Search box */}
+                  <div className="relative flex-1 min-w-[240px]">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={aptSearch}
+                      onChange={e => setAptSearch(e.target.value)}
+                      placeholder="Filter by patient name, phone, MRN, or doctor..."
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                    />
+                  </div>
+
+                  {/* Date Picker Pill */}
+                  <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 flex items-center space-x-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Today, Oct 24</span>
+                  </div>
+
+                  {/* Dropdowns */}
+                  <select
+                    value={selectedPractitioner}
+                    onChange={e => setSelectedPractitioner(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none"
+                  >
+                    <option value="All">All Practitioners</option>
+                    <option value="Dr. Sarah Jenkins">Dr. Sarah Jenkins</option>
+                    <option value="Dr. Alex Vance">Dr. Alex Vance</option>
+                  </select>
+
+                  <select className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none">
+                    <option>All Payers</option>
+                    <option>Private Pay / Direct</option>
+                    <option>Cigna Dental Plus</option>
+                    <option>Bupa Healthcare</option>
+                  </select>
+                </div>
+
+                {/* Filter Pills: All Requests | Pending Review | Confirmed | Declined */}
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                  <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar">
+                    <button
+                      onClick={() => setAptFilterTab('all')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        aptFilterTab === 'all'
+                          ? 'bg-slate-900 text-white'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      All Requests ({totalRequestsToday})
+                    </button>
+
+                    <button
+                      onClick={() => setAptFilterTab('pending')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                        aptFilterTab === 'pending'
+                          ? 'bg-sky-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>Pending Review</span>
+                      <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500 text-white font-extrabold">
+                        {pendingReviewCount}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => setAptFilterTab('confirmed')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        aptFilterTab === 'confirmed'
+                          ? 'bg-slate-900 text-white'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      Confirmed ({confirmedCount})
+                    </button>
+
+                    <button
+                      onClick={() => setAptFilterTab('declined')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        aptFilterTab === 'declined'
+                          ? 'bg-slate-900 text-white'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      Declined ({declinedCount})
+                    </button>
+                  </div>
+
+                  <span className="hidden sm:inline text-[11px] text-slate-400 font-medium">
+                    Showing priority triaged list
+                  </span>
+                </div>
+              </div>
+
+              {/* Two Column Layout matching Image 2: Left Triage Cards + Right Operatory Schedule */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                {/* Left Column: Urgent Intake Triage (8 cols) */}
+                <div className="lg:col-span-8 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-base font-extrabold text-slate-950">Urgent Intake Triage</h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">
+                        {pendingReviewCount} Awaiting Approval
+                      </span>
                     </div>
 
-                    {/* SECTION B: ONLY THREE AGENT API OPTIONS (Gemini, Claude, ChatGPT) */}
-                    <div className="rounded-3xl bg-[#111622] border border-[#1f293d] p-6 space-y-6">
-                      <div className="flex items-center justify-between pb-3 border-b border-[#1f293d]">
-                        <div className="flex items-center space-x-2 text-sky-400 text-xs font-bold uppercase tracking-wider">
-                          <Cpu className="w-4 h-4" />
-                          <span>AI Agent Engine API Settings (Only Three Options: Gemini, Claude, ChatGPT)</span>
-                        </div>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-indigo-950 text-indigo-300 border border-indigo-800">
-                          Paste API Key
-                        </span>
-                      </div>
+                    <button
+                      onClick={() => {
+                        appointments.forEach(a => updateAppointmentStatus(a.id, 'Confirmed'));
+                      }}
+                      className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center space-x-1"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Batch Accept All</span>
+                    </button>
+                  </div>
 
-                      <p className="text-xs text-slate-400">
-                        Choose your preferred AI agent and paste your API key below. The reasoning answer tool will utilize this model to formulate clinical replies grounded in your website data.
-                      </p>
-
-                      {/* 3 Agent Radio Selection Cards */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {/* Option 1: Gemini */}
-                        <div
-                          onClick={() => setLocalProvider('Gemini')}
-                          className={`p-4 rounded-2xl border cursor-pointer transition-all ${
-                            localProvider === 'Gemini'
-                              ? 'bg-[#15233d] border-sky-400 text-white ring-2 ring-sky-500/20 shadow-md'
-                              : 'bg-[#161e2e] border-[#242e44] text-slate-400 hover:border-slate-600'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-extrabold text-sm text-sky-400 flex items-center space-x-1.5">
-                              <Sparkles className="w-4 h-4" />
-                              <span>Google Gemini</span>
-                            </span>
-                            <span className={`w-3.5 h-3.5 rounded-full border ${localProvider === 'Gemini' ? 'bg-sky-400 border-white' : 'border-slate-600'}`} />
+                  {/* Render Mock Triage Cards matching Image 2 */}
+                  {mockTriagePatients.map(pt => (
+                    <div
+                      key={pt.id}
+                      className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4 hover:shadow-md transition-shadow"
+                    >
+                      {/* Top Row: Avatar, Name, Type, Time */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center space-x-3.5">
+                          <img
+                            src={pt.avatar}
+                            alt={pt.name}
+                            className="w-12 h-12 rounded-xl object-cover ring-1 ring-slate-200 shrink-0"
+                          />
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <h4 className="font-extrabold text-sm text-slate-950">{pt.name}</h4>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+                                {pt.type}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              Age {pt.age} • MRN {pt.mrn} • Assigned: <span className="font-bold text-slate-800">{pt.doctor}</span>
+                            </p>
                           </div>
-                          <p className="text-[11px] text-slate-300">Fast reasoning, native multimodal support</p>
-                          <span className="mt-2 inline-block px-2 py-0.5 rounded text-[9px] font-mono bg-[#0b0f17] text-sky-300">
-                            gemini-2.0-flash
-                          </span>
                         </div>
 
-                        {/* Option 2: Claude */}
-                        <div
-                          onClick={() => setLocalProvider('Claude')}
-                          className={`p-4 rounded-2xl border cursor-pointer transition-all ${
-                            localProvider === 'Claude'
-                              ? 'bg-[#261d15] border-amber-400 text-white ring-2 ring-amber-500/20 shadow-md'
-                              : 'bg-[#161e2e] border-[#242e44] text-slate-400 hover:border-slate-600'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-extrabold text-sm text-amber-400 flex items-center space-x-1.5">
-                              <Brain className="w-4 h-4" />
-                              <span>Anthropic Claude</span>
-                            </span>
-                            <span className={`w-3.5 h-3.5 rounded-full border ${localProvider === 'Claude' ? 'bg-amber-400 border-white' : 'border-slate-600'}`} />
-                          </div>
-                          <p className="text-[11px] text-slate-300">Nuanced clinical phrasing, careful guardrails</p>
-                          <span className="mt-2 inline-block px-2 py-0.5 rounded text-[9px] font-mono bg-[#0b0f17] text-amber-300">
-                            claude-3-5-sonnet
-                          </span>
-                        </div>
-
-                        {/* Option 3: ChatGPT */}
-                        <div
-                          onClick={() => setLocalProvider('ChatGPT')}
-                          className={`p-4 rounded-2xl border cursor-pointer transition-all ${
-                            localProvider === 'ChatGPT'
-                              ? 'bg-[#13261e] border-emerald-400 text-white ring-2 ring-emerald-500/20 shadow-md'
-                              : 'bg-[#161e2e] border-[#242e44] text-slate-400 hover:border-slate-600'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-extrabold text-sm text-emerald-400 flex items-center space-x-1.5">
-                              <Bot className="w-4 h-4" />
-                              <span>OpenAI ChatGPT</span>
-                            </span>
-                            <span className={`w-3.5 h-3.5 rounded-full border ${localProvider === 'ChatGPT' ? 'bg-emerald-400 border-white' : 'border-slate-600'}`} />
-                          </div>
-                          <p className="text-[11px] text-slate-300">Broad knowledge, structured JSON triage</p>
-                          <span className="mt-2 inline-block px-2 py-0.5 rounded text-[9px] font-mono bg-[#0b0f17] text-emerald-300">
-                            gpt-4o-mini
-                          </span>
+                        <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 flex items-center space-x-1.5 shrink-0 self-start sm:self-center">
+                          <Clock className="w-3.5 h-3.5 text-slate-500" />
+                          <span>{pt.date}</span>
                         </div>
                       </div>
 
-                      {/* API Key Paste Fields for All Three Agents */}
-                      <div className="p-5 rounded-2xl bg-[#0b0f17] border border-slate-700/80 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white flex items-center space-x-2">
-                            <Key className="w-4 h-4 text-sky-400" />
-                            <span>Paste Agent API Keys</span>
+                      {/* Treatment & Assigned info */}
+                      <div className="flex items-center space-x-2 text-xs font-semibold text-slate-800">
+                        <Stethoscope className="w-4 h-4 text-sky-600" />
+                        <span>{pt.treatment}</span>
+                      </div>
+
+                      {/* Clinical Chief Complaint Alert Box (matching Image 2) */}
+                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          CLINICAL CHIEF COMPLAINT
+                        </p>
+                        <p className="text-slate-800 font-medium italic">
+                          &ldquo;{pt.complaint}&rdquo;
+                        </p>
+                      </div>
+
+                      {/* Operatory & Action Row */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                        <div className="flex items-center space-x-3 text-xs text-slate-500">
+                          <span className="inline-flex items-center text-slate-700 font-semibold">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>
+                            {pt.operatory}
                           </span>
+                          <span>•</span>
+                          <span>Requested {pt.requestedAgo}</span>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
                           <button
-                            type="button"
-                            onClick={() => setShowKeyVisibility(!showKeyVisibility)}
-                            className="text-[11px] text-sky-400 hover:text-sky-300 flex items-center space-x-1"
+                            onClick={() => {}}
+                            className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
                           >
-                            {showKeyVisibility ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                            <span>{showKeyVisibility ? 'Mask Keys' : 'Reveal Keys'}</span>
+                            Reschedule / Contact
+                          </button>
+
+                          <button
+                            onClick={() => {}}
+                            className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors"
+                          >
+                            Decline
+                          </button>
+
+                          <button
+                            onClick={() => {}}
+                            className="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 transition-colors shadow-xs"
+                          >
+                            Accept Appointment
                           </button>
                         </div>
+                      </div>
+                    </div>
+                  ))}
 
-                        {/* Gemini Key */}
-                        <div className="space-y-1">
-                          <label className="block text-[11px] font-semibold text-slate-300 flex items-center justify-between">
-                            <span>1. Google Gemini API Key {localProvider === 'Gemini' && '• (ACTIVE AGENT)'}</span>
-                            <span className="text-slate-500 font-mono text-[10px]">AIzaSy...</span>
-                          </label>
-                          <div className="flex gap-2">
-                            <input
-                              type={showKeyVisibility ? 'text' : 'password'}
-                              value={localGeminiKey}
-                              onChange={e => setLocalGeminiKey(e.target.value)}
-                              placeholder="Paste Google Gemini API Key..."
-                              className="flex-1 px-3 py-2 rounded-xl bg-[#161e2e] border border-slate-700 text-xs text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500"
-                            />
-                            <input
-                              type="text"
-                              value={localGeminiModel}
-                              onChange={e => setLocalGeminiModel(e.target.value)}
-                              placeholder="Model Name"
-                              className="w-36 px-3 py-2 rounded-xl bg-[#161e2e] border border-slate-700 text-xs text-sky-300 font-mono"
-                            />
+                  {/* Also render actual clinic context appointments */}
+                  {appointments.map(apt => (
+                    <div
+                      key={apt.id}
+                      className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-extrabold text-sm text-slate-950">{apt.patientName}</h4>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              apt.status === 'Confirmed'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            {apt.status}
+                          </span>
+                          {apt.approvedByAI && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800">
+                              AI Approved
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-slate-500 font-mono">{apt.date} • {apt.timeSlot}</span>
+                      </div>
+                      <p className="text-xs text-slate-700">
+                        <span className="font-bold">Treatment:</span> {apt.serviceName} • <span className="font-bold">Doctor:</span> {apt.clinicianName}
+                      </p>
+                      {apt.notes && (
+                        <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl">
+                          {apt.notes}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <span className="text-[11px] text-slate-400">Booking Source: {apt.source}</span>
+                        <div className="flex items-center space-x-2">
+                          {apt.status !== 'Confirmed' && (
+                            <button
+                              onClick={() => updateAppointmentStatus(apt.id, 'Confirmed')}
+                              className="px-3 py-1 rounded-lg text-xs font-bold text-white bg-teal-700 hover:bg-teal-800"
+                            >
+                              Approve
+                            </button>
+                          )}
+                          <button
+                            onClick={() => deleteAppointment(apt.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Right Column: Operatory Schedule (4 cols - matching Image 2) */}
+                <div className="lg:col-span-4 space-y-4">
+                  <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 text-sky-600" />
+                        <h4 className="font-extrabold text-sm text-slate-950">Operatory Schedule</h4>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800">
+                        Today Oct 24
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-500">
+                      Live chair utilization status. Cross-reference before confirming overlapping surgical blocks.
+                    </p>
+
+                    {/* Chair Status Grid */}
+                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <p className="font-bold text-slate-900 text-[11px]">Chair 1</p>
+                        <p className="text-[10px] text-slate-500">Dr. Jenkins</p>
+                        <span className="inline-block mt-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded-full">
+                          • Ready
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <p className="font-bold text-slate-900 text-[11px]">Chair 2</p>
+                        <p className="text-[10px] text-slate-500">Dr. Vance</p>
+                        <span className="inline-block mt-1 text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded-full">
+                          • In Proc.
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <p className="font-bold text-slate-900 text-[11px]">Chair 3</p>
+                        <p className="text-[10px] text-slate-500">Hygienist</p>
+                        <span className="inline-block mt-1 text-[9px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.2 rounded-full">
+                          • Prep/Ster.
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Timeline List matching Image 2 */}
+                    <div className="space-y-2.5 pt-2 border-t border-slate-100 text-xs">
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50">
+                        <div>
+                          <span className="font-bold text-slate-900">09:00 AM</span>
+                          <p className="text-[11px] text-slate-600">C. Henderson • Composite Bonding</p>
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-400">Chair 1</span>
+                      </div>
+
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50">
+                        <div>
+                          <span className="font-bold text-slate-900">11:30 AM</span>
+                          <p className="text-[11px] text-slate-600">P. Gomez • Full Mouth Debridement</p>
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-400">Chair 3</span>
+                      </div>
+
+                      <div className="p-2 rounded-xl bg-slate-100 text-[11px] text-slate-600 font-medium text-center">
+                        01:00 PM - Operatory Disinfection Cycle
+                      </div>
+
+                      <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50">
+                        <div>
+                          <span className="font-bold text-slate-900">02:00 PM</span>
+                          <p className="text-[11px] text-slate-600">A. Sterling • Crown Seating #19</p>
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-400">Chair 2</span>
+                      </div>
+
+                      {/* TARGET SLOT (matching Image 2) */}
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                        <div>
+                          <span className="font-bold text-emerald-900">03:30 PM (TARGET)</span>
+                          <p className="text-[11px] text-emerald-700">Immediate Slot Allocation</p>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white">
+                          SLOT AVAILABLE
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* VIEW 2: AI CHATBOT STUDIO & KNOWLEDGE (User Requested)    */}
+          {/* NOTICE: Total Bookings metric cards are REMOVED here!    */}
+          {/* 3 Sub-Sections combined into one cohesive studio view!   */}
+          {/* ======================================================== */}
+          {activeNav === 'ai-studio' && (
+            <div className="p-6 sm:p-8 space-y-7 max-w-7xl mx-auto w-full animate-fade-in">
+              
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    CLINICAL ADMINISTRATION SUITE • <span className="text-sky-600 font-extrabold">Autonomous Reasoning Engine</span>
+                  </p>
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight mt-0.5">
+                    AI Agent & Knowledge Management System
+                  </h1>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Manage multi-agent provider APIs, appointment auto-confirmation authority, clinic grounding rules, and inspect reasoning traces.
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleSaveAllAISettings}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-sm flex items-center space-x-2 transition-all active:scale-95 shrink-0 self-start sm:self-center"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Save All AI Settings</span>
+                </button>
+              </div>
+
+              {/* Sub-Section Navigation Tabs (The 3 sections combined in one as requested!) */}
+              <div className="flex items-center space-x-2 p-1.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs overflow-x-auto no-scrollbar">
+                <button
+                  onClick={() => setAiSubSection('providers')}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+                    aiSubSection === 'providers'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <Key className="w-3.5 h-3.5 text-sky-400" />
+                  <span>1. Agent APIs & Engine (Gemini / Claude / ChatGPT)</span>
+                </button>
+
+                <button
+                  onClick={() => setAiSubSection('approval-policy')}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+                    aiSubSection === 'approval-policy'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>2. Appointment Approval Authority & Directives</span>
+                </button>
+
+                <button
+                  onClick={() => setAiSubSection('knowledge-simulator')}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+                    aiSubSection === 'knowledge-simulator'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <Brain className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>3. Grounded Knowledge & Live Reasoning Simulator</span>
+                </button>
+              </div>
+
+              {/* ---------------------------------------------------- */}
+              {/* SUB-SECTION 1: 3 AGENT API OPTIONS (Gemini, Claude, ChatGPT) */}
+              {/* ---------------------------------------------------- */}
+              {aiSubSection === 'providers' && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+                    <h3 className="text-base font-extrabold text-slate-950 flex items-center space-x-2">
+                      <Cpu className="w-4 h-4 text-sky-600" />
+                      <span>Select Active Reasoning Engine & Paste Agent API Keys</span>
+                    </h3>
+                    <p className="text-xs text-slate-600">
+                      As requested, exactly three AI Agent providers are supported: Google Gemini, Anthropic Claude, and OpenAI ChatGPT. Paste your API key into the respective agent card and select which one serves as the live primary clinical assistant.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Provider 1: Google Gemini */}
+                    <div
+                      className={`p-6 rounded-2xl bg-white border transition-all ${
+                        localProvider === 'Gemini'
+                          ? 'border-sky-500 ring-2 ring-sky-500/20 shadow-md'
+                          : 'border-slate-200 shadow-xs'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center font-bold text-sm">
+                            G
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-sm text-slate-950">Google Gemini</h4>
+                            <p className="text-[10px] text-slate-400">Gemini 1.5 Pro / Flash</p>
                           </div>
                         </div>
 
-                        {/* Claude Key */}
-                        <div className="space-y-1">
-                          <label className="block text-[11px] font-semibold text-slate-300 flex items-center justify-between">
-                            <span>2. Anthropic Claude API Key {localProvider === 'Claude' && '• (ACTIVE AGENT)'}</span>
-                            <span className="text-slate-500 font-mono text-[10px]">sk-ant-...</span>
+                        <input
+                          type="radio"
+                          name="ai-engine"
+                          checked={localProvider === 'Gemini'}
+                          onChange={() => setLocalProvider('Gemini')}
+                          className="w-4 h-4 text-sky-600 focus:ring-sky-500"
+                        />
+                      </div>
+
+                      <div className="space-y-3 text-xs">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                            Model Selection
                           </label>
-                          <div className="flex gap-2">
-                            <input
-                              type={showKeyVisibility ? 'text' : 'password'}
-                              value={localClaudeKey}
-                              onChange={e => setLocalClaudeKey(e.target.value)}
-                              placeholder="Paste Anthropic Claude API Key..."
-                              className="flex-1 px-3 py-2 rounded-xl bg-[#161e2e] border border-slate-700 text-xs text-white font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"
-                            />
-                            <input
-                              type="text"
-                              value={localClaudeModel}
-                              onChange={e => setLocalClaudeModel(e.target.value)}
-                              placeholder="Model Name"
-                              className="w-36 px-3 py-2 rounded-xl bg-[#161e2e] border border-slate-700 text-xs text-amber-300 font-mono"
-                            />
-                          </div>
+                          <select
+                            value={localGeminiModel}
+                            onChange={e => setLocalGeminiModel(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800"
+                          >
+                            <option value="gemini-1.5-flash">gemini-1.5-flash (Fastest Triage)</option>
+                            <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Clinical Reasoning)</option>
+                          </select>
                         </div>
 
-                        {/* ChatGPT Key */}
-                        <div className="space-y-1">
-                          <label className="block text-[11px] font-semibold text-slate-300 flex items-center justify-between">
-                            <span>3. OpenAI ChatGPT API Key {localProvider === 'ChatGPT' && '• (ACTIVE AGENT)'}</span>
-                            <span className="text-slate-500 font-mono text-[10px]">sk-proj-...</span>
-                          </label>
-                          <div className="flex gap-2">
-                            <input
-                              type={showKeyVisibility ? 'text' : 'password'}
-                              value={localChatgptKey}
-                              onChange={e => setLocalChatgptKey(e.target.value)}
-                              placeholder="Paste OpenAI ChatGPT API Key..."
-                              className="flex-1 px-3 py-2 rounded-xl bg-[#161e2e] border border-slate-700 text-xs text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            />
-                            <input
-                              type="text"
-                              value={localChatgptModel}
-                              onChange={e => setLocalChatgptModel(e.target.value)}
-                              placeholder="Model Name"
-                              className="w-36 px-3 py-2 rounded-xl bg-[#161e2e] border border-slate-700 text-xs text-emerald-300 font-mono"
-                            />
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[11px] font-bold text-slate-600">
+                              Gemini API Key
+                            </label>
+                            <button
+                              onClick={() => setShowGeminiKey(!showGeminiKey)}
+                              className="text-[10px] text-slate-500 hover:text-slate-800 flex items-center space-x-1"
+                            >
+                              {showGeminiKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                              <span>{showGeminiKey ? 'Hide' : 'Reveal'}</span>
+                            </button>
                           </div>
+                          <input
+                            type={showGeminiKey ? 'text' : 'password'}
+                            value={localGeminiKey}
+                            onChange={e => setLocalGeminiKey(e.target.value)}
+                            placeholder="AIzaSy..."
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-900"
+                          />
+                        </div>
+
+                        <div className="pt-2 flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500">Status:</span>
+                          <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                            {localGeminiKey ? 'API Key Configured' : 'Paste Key Required'}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* SECTION C: GUARDRAILS & PERSONA */}
-                    <div className="rounded-3xl bg-[#111622] border border-[#1f293d] p-6 space-y-6">
-                      <div className="flex items-center space-x-2 text-sky-400 text-xs font-bold uppercase tracking-wider">
-                        <ShieldAlert className="w-4 h-4" />
-                        <span>AI Reasoning Persona & Guardrails</span>
+                    {/* Provider 2: Anthropic Claude */}
+                    <div
+                      className={`p-6 rounded-2xl bg-white border transition-all ${
+                        localProvider === 'Claude'
+                          ? 'border-sky-500 ring-2 ring-sky-500/20 shadow-md'
+                          : 'border-slate-200 shadow-xs'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center font-bold text-sm">
+                            C
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-sm text-slate-950">Anthropic Claude</h4>
+                            <p className="text-[10px] text-slate-400">Claude 3.5 Sonnet</p>
+                          </div>
+                        </div>
+
+                        <input
+                          type="radio"
+                          name="ai-engine"
+                          checked={localProvider === 'Claude'}
+                          onChange={() => setLocalProvider('Claude')}
+                          className="w-4 h-4 text-sky-600 focus:ring-sky-500"
+                        />
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3 text-xs">
                         <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1">
-                            AI Role & Persona
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                            Model Selection
                           </label>
-                          <textarea
-                            rows={2}
-                            value={localGuardrails.identityRole}
-                            onChange={e => setLocalGuardrails({ ...localGuardrails, identityRole: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
-                          />
+                          <select
+                            value={localClaudeModel}
+                            onChange={e => setLocalClaudeModel(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800"
+                          >
+                            <option value="claude-3-5-sonnet-20241022">claude-3-5-sonnet (High Precision)</option>
+                            <option value="claude-3-haiku-20240307">claude-3-haiku (Instant)</option>
+                          </select>
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1">
-                            Target Audience & Tone
-                          </label>
-                          <textarea
-                            rows={2}
-                            value={localGuardrails.toneManner}
-                            onChange={e => setLocalGuardrails({ ...localGuardrails, toneManner: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[11px] font-bold text-slate-600">
+                              Claude API Key
+                            </label>
+                            <button
+                              onClick={() => setShowClaudeKey(!showClaudeKey)}
+                              className="text-[10px] text-slate-500 hover:text-slate-800 flex items-center space-x-1"
+                            >
+                              {showClaudeKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                              <span>{showClaudeKey ? 'Hide' : 'Reveal'}</span>
+                            </button>
+                          </div>
+                          <input
+                            type={showClaudeKey ? 'text' : 'password'}
+                            value={localClaudeKey}
+                            onChange={e => setLocalClaudeKey(e.target.value)}
+                            placeholder="sk-ant-api03-..."
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-900"
                           />
+                        </div>
+
+                        <div className="pt-2 flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500">Status:</span>
+                          <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                            {localClaudeKey ? 'API Key Configured' : 'Paste Key Required'}
+                          </span>
                         </div>
                       </div>
+                    </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="block text-xs font-bold text-emerald-400">
-                            &ldquo;What the AI SHOULD say&rdquo; (one per line)
+                    {/* Provider 3: OpenAI ChatGPT */}
+                    <div
+                      className={`p-6 rounded-2xl bg-white border transition-all ${
+                        localProvider === 'ChatGPT'
+                          ? 'border-sky-500 ring-2 ring-sky-500/20 shadow-md'
+                          : 'border-slate-200 shadow-xs'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold text-sm">
+                            O
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-sm text-slate-950">OpenAI ChatGPT</h4>
+                            <p className="text-[10px] text-slate-400">GPT-4o / GPT-4o-mini</p>
+                          </div>
+                        </div>
+
+                        <input
+                          type="radio"
+                          name="ai-engine"
+                          checked={localProvider === 'ChatGPT'}
+                          onChange={() => setLocalProvider('ChatGPT')}
+                          className="w-4 h-4 text-sky-600 focus:ring-sky-500"
+                        />
+                      </div>
+
+                      <div className="space-y-3 text-xs">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                            Model Selection
                           </label>
-                          <textarea
-                            rows={4}
-                            value={localGuardrails.shouldSayText}
-                            onChange={e => setLocalGuardrails({ ...localGuardrails, shouldSayText: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-emerald-900/50 text-xs text-emerald-200 font-mono text-[11px]"
+                          <select
+                            value={localChatgptModel}
+                            onChange={e => setLocalChatgptModel(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800"
+                          >
+                            <option value="gpt-4o">gpt-4o (State of the art)</option>
+                            <option value="gpt-4o-mini">gpt-4o-mini (Cost-effective)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[11px] font-bold text-slate-600">
+                              ChatGPT API Key
+                            </label>
+                            <button
+                              onClick={() => setShowChatgptKey(!showChatgptKey)}
+                              className="text-[10px] text-slate-500 hover:text-slate-800 flex items-center space-x-1"
+                            >
+                              {showChatgptKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                              <span>{showChatgptKey ? 'Hide' : 'Reveal'}</span>
+                            </button>
+                          </div>
+                          <input
+                            type={showChatgptKey ? 'text' : 'password'}
+                            value={localChatgptKey}
+                            onChange={e => setLocalChatgptKey(e.target.value)}
+                            placeholder="sk-proj-..."
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-900"
                           />
                         </div>
 
-                        <div className="space-y-1">
-                          <label className="block text-xs font-bold text-red-400">
-                            &ldquo;What the AI must NOT say&rdquo; (one per line)
-                          </label>
-                          <textarea
-                            rows={4}
-                            value={localGuardrails.mustNotSayText}
-                            onChange={e => setLocalGuardrails({ ...localGuardrails, mustNotSayText: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-red-900/50 text-xs text-red-200 font-mono text-[11px]"
-                          />
+                        <div className="pt-2 flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500">Status:</span>
+                          <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                            {localChatgptKey ? 'API Key Configured' : 'Paste Key Required'}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* ---------------------------------------------------- */}
-                {/* SUB-TAB 1: COMPANY KNOWLEDGE BASE */}
-                {/* ---------------------------------------------------- */}
-                {aiSubTab === 'knowledge' && (
-                  <div className="space-y-8 animate-fade-in">
-                    {/* Company Details */}
-                    <div className="rounded-3xl bg-[#111622] border border-[#1f293d] p-6 space-y-6">
-                      <div className="flex items-center space-x-2 text-sky-400 text-xs font-bold uppercase tracking-wider">
-                        <Building className="w-4 h-4" />
-                        <span>Company Details & Contact Information</span>
+              {/* ---------------------------------------------------- */}
+              {/* SUB-SECTION 2: APPOINTMENT APPROVAL AUTHORITY & POLICY */}
+              {/* ---------------------------------------------------- */}
+              {aiSubSection === 'approval-policy' && (
+                <div className="space-y-6 animate-fade-in">
+                  {/* Master Auto-Approval Toggle */}
+                  <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="text-base font-extrabold text-slate-950">
+                          AI Appointment Confirmation Authority
+                        </h3>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            localAutoApprove
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {localAutoApprove ? 'AI Confirmation: ENABLED' : 'AI Confirmation: DISABLED'}
+                        </span>
                       </div>
+                      <p className="text-xs text-slate-600 mt-1">
+                        If enabled, the AI has authority to automatically confirm bookings in approved categories. If disabled, all requests require doctor sign-off.
+                      </p>
+                    </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1">
-                            Clinic / Company Name
-                          </label>
-                          <input
-                            type="text"
-                            value={localCompany.clinicName}
-                            onChange={e => setLocalCompany({ ...localCompany, clinicName: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
-                          />
-                        </div>
+                    <button
+                      onClick={() => setLocalAutoApprove(!localAutoApprove)}
+                      className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 ${
+                        localAutoApprove
+                          ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                          : 'bg-slate-200 text-slate-800 hover:bg-slate-300'
+                      }`}
+                    >
+                      {localAutoApprove ? '✓ AI Can Auto-Confirm' : 'Require Doctor Review'}
+                    </button>
+                  </div>
 
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1">
-                            Working Hours & Schedule
-                          </label>
-                          <input
-                            type="text"
-                            value={localCompany.workingHours}
-                            onChange={e => setLocalCompany({ ...localCompany, workingHours: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
-                          />
-                        </div>
+                  {/* Which kinds of appointments AI is approved to confirm */}
+                  <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+                    <div>
+                      <h4 className="text-sm font-extrabold text-slate-950">
+                        Admin Authorized Treatment Categories for AI Approval
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        Select which kinds of appointments the AI is authorized to confirm immediately. Unselected categories will be marked as &quot;Pending Clinical Review&quot;.
+                      </p>
+                    </div>
 
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1">
-                            Helpline Phone Number (+44 UK)
-                          </label>
-                          <input
-                            type="text"
-                            value={localCompany.helplinePhone}
-                            onChange={e => setLocalCompany({ ...localCompany, helplinePhone: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
-                          />
-                        </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {allCategories.map(cat => {
+                        const isApproved = localApprovedCategories.includes(cat);
+                        return (
+                          <button
+                            key={cat}
+                            onClick={() => toggleCategoryApproval(cat)}
+                            className={`p-3.5 rounded-xl text-left border transition-all flex flex-col justify-between space-y-2 ${
+                              isApproved
+                                ? 'bg-emerald-50/70 border-emerald-300 text-emerald-950'
+                                : 'bg-slate-50 border-slate-200 text-slate-500'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-extrabold text-xs">{cat}</span>
+                              {isApproved ? (
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                              ) : (
+                                <span className="w-4 h-4 rounded-full border border-slate-300"></span>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-semibold">
+                              {isApproved ? 'Auto-Approved' : 'Needs Doctor Review'}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1">
-                            WhatsApp Contact (+44 UK)
-                          </label>
-                          <input
-                            type="text"
-                            value={localCompany.whatsappPhone}
-                            onChange={e => setLocalCompany({ ...localCompany, whatsappPhone: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
-                          />
-                        </div>
+                  {/* Admin Approval Directives Textarea */}
+                  <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-3">
+                    <h4 className="text-sm font-extrabold text-slate-950">
+                      Admin Clinical Directives & Approval Guidelines for AI
+                    </h4>
+                    <p className="text-xs text-slate-600">
+                      Give specific criteria to your AI regarding when it can confirm appointments versus when it must escalate to reception.
+                    </p>
+                    <textarea
+                      rows={4}
+                      value={localApprovalDirectives}
+                      onChange={e => setLocalApprovalDirectives(e.target.value)}
+                      className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 leading-relaxed focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ---------------------------------------------------- */}
+              {/* SUB-SECTION 3: GROUNDED KNOWLEDGE & REASONING SIMULATOR */}
+              {/* ---------------------------------------------------- */}
+              {aiSubSection === 'knowledge-simulator' && (
+                <div className="space-y-6 animate-fade-in">
+                  
+                  {/* Clinic Description & Opening Hours */}
+                  <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+                    <h3 className="text-base font-extrabold text-slate-950 flex items-center space-x-2">
+                      <Database className="w-4 h-4 text-sky-600" />
+                      <span>Clinic Description & Grounded Knowledge Base</span>
+                    </h3>
+                    <p className="text-xs text-slate-600">
+                      The AI reads this live clinical information to answer patient inquiries accurately without hallucinations.
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Clinic Name
+                        </label>
+                        <input
+                          type="text"
+                          value={localCompany.clinicName}
+                          onChange={e => setLocalCompany({ ...localCompany, clinicName: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-semibold text-slate-900"
+                        />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">
-                          Company Description (Seen by AI Reasoning Engine)
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Working Hours
+                        </label>
+                        <input
+                          type="text"
+                          value={localCompany.workingHours}
+                          onChange={e => setLocalCompany({ ...localCompany, workingHours: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-semibold text-slate-900"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Clinic Description & Laboratory Capabilities
                         </label>
                         <textarea
                           rows={3}
                           value={localCompany.companyDescription}
                           onChange={e => setLocalCompany({ ...localCompany, companyDescription: e.target.value })}
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-sky-500 leading-relaxed"
+                          className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-medium text-slate-900 leading-relaxed"
                         />
                       </div>
                     </div>
-
-                    {/* Dental Services & Verified Pricing */}
-                    <div className="rounded-3xl bg-[#111622] border border-[#1f293d] p-6 space-y-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center space-x-2 text-sky-400 text-xs font-bold uppercase tracking-wider">
-                          <Sparkles className="w-4 h-4" />
-                          <span>Dental Services & Verified Pricing ({services.length} Registered)</span>
-                        </div>
-
-                        <button
-                          onClick={() => setIsAddingService(!isAddingService)}
-                          className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold flex items-center space-x-1.5 transition-colors self-start sm:self-auto"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>+ Add Service</span>
-                        </button>
-                      </div>
-
-                      {isAddingService && (
-                        <form
-                          onSubmit={handleCreateService}
-                          className="p-5 rounded-2xl bg-[#0b0f17] border border-sky-500/40 space-y-4 animate-fade-in"
-                        >
-                          <h4 className="text-xs font-bold text-sky-300 uppercase tracking-wider">
-                            Register New Dental Service in Knowledge Base
-                          </h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div>
-                              <label className="block text-[11px] text-slate-300 mb-1">Service Name *</label>
-                              <input
-                                type="text"
-                                required
-                                value={newServiceForm.name}
-                                onChange={e => setNewServiceForm({ ...newServiceForm, name: e.target.value })}
-                                placeholder="Composite Bonding Makeover"
-                                className="w-full px-3 py-2 rounded-lg bg-[#161e2e] border border-slate-700 text-xs text-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[11px] text-slate-300 mb-1">Price Range (in GBP £) *</label>
-                              <input
-                                type="text"
-                                required
-                                value={newServiceForm.priceRange}
-                                onChange={e => setNewServiceForm({ ...newServiceForm, priceRange: e.target.value })}
-                                placeholder="From £250"
-                                className="w-full px-3 py-2 rounded-lg bg-[#161e2e] border border-slate-700 text-xs text-white"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[11px] text-slate-300 mb-1">Category</label>
-                              <select
-                                value={newServiceForm.category}
-                                onChange={e => setNewServiceForm({ ...newServiceForm, category: e.target.value as ServiceCategory })}
-                                className="w-full px-3 py-2 rounded-lg bg-[#161e2e] border border-slate-700 text-xs text-white"
-                              >
-                                {allCategories.map(c => (
-                                  <option key={c} value={c}>{c}</option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-
-                          <div className="flex space-x-2 pt-2">
-                            <button
-                              type="submit"
-                              className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs"
-                            >
-                              Save to Clinic Catalog
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setIsAddingService(false)}
-                              className="px-3 py-2 rounded-lg bg-[#161e2e] text-slate-300 text-xs"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </form>
-                      )}
-
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs text-slate-300">
-                          <thead className="bg-[#0b0f17] text-slate-400 text-[10px] uppercase font-semibold">
-                            <tr>
-                              <th className="py-2.5 px-3">Service Name</th>
-                              <th className="py-2.5 px-3">Category</th>
-                              <th className="py-2.5 px-3">Verified Price</th>
-                              <th className="py-2.5 px-3">Duration</th>
-                              <th className="py-2.5 px-3">Description</th>
-                              <th className="py-2.5 px-3 text-right">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-[#1f293d]">
-                            {services.map(srv => (
-                              <tr key={srv.id} className="hover:bg-[#161e2e]/50">
-                                <td className="py-3 px-3 font-bold text-white">{srv.name}</td>
-                                <td className="py-3 px-3">
-                                  <span className="px-2 py-0.5 rounded text-[10px] bg-[#161e2e] text-sky-300 border border-slate-700">
-                                    {srv.category}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-3 font-mono font-bold text-emerald-400">
-                                  {srv.priceRange}
-                                </td>
-                                <td className="py-3 px-3 text-slate-400">{srv.duration}</td>
-                                <td className="py-3 px-3 text-slate-400 max-w-xs truncate">
-                                  {srv.description}
-                                </td>
-                                <td className="py-3 px-3 text-right">
-                                  <button
-                                    onClick={() => deleteService(srv.id)}
-                                    className="p-1 rounded text-slate-500 hover:text-red-400 transition-colors"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    {/* Policies & FAQs */}
-                    <div className="rounded-3xl bg-[#111622] border border-[#1f293d] p-6 space-y-6">
-                      <div className="flex items-center space-x-2 text-sky-400 text-xs font-bold uppercase tracking-wider">
-                        <FileCheck className="w-4 h-4" />
-                        <span>Refund, Cancellation & Clinic Policies</span>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1">
-                            Refund Policy & Timelines
-                          </label>
-                          <textarea
-                            rows={2}
-                            value={localPolicies.refundPolicy}
-                            onChange={e => setLocalPolicies({ ...localPolicies, refundPolicy: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1">
-                            Appointment Cancellation Policy
-                          </label>
-                          <textarea
-                            rows={2}
-                            value={localPolicies.cancellationPolicy}
-                            onChange={e => setLocalPolicies({ ...localPolicies, cancellationPolicy: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-300 mb-1">
-                            Additional Business Policies (one policy per line)
-                          </label>
-                          <textarea
-                            rows={4}
-                            value={localPolicies.additionalPoliciesText}
-                            onChange={e => setLocalPolicies({ ...localPolicies, additionalPoliciesText: e.target.value })}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white font-mono text-[11px]"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* FAQs */}
-                    <div className="rounded-3xl bg-[#111622] border border-[#1f293d] p-6 space-y-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2 text-sky-400 text-xs font-bold uppercase tracking-wider">
-                          <HelpCircle className="w-4 h-4" />
-                          <span>Frequently Asked Questions ({faqs.length} FAQs)</span>
-                        </div>
-                        <button
-                          onClick={() => setIsAddingFAQ(!isAddingFAQ)}
-                          className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold"
-                        >
-                          + Add FAQ
-                        </button>
-                      </div>
-
-                      {isAddingFAQ && (
-                        <form onSubmit={handleCreateFAQ} className="p-4 rounded-2xl bg-[#0b0f17] border border-sky-500/40 space-y-3">
-                          <input
-                            type="text"
-                            required
-                            value={newFAQForm.question}
-                            onChange={e => setNewFAQForm({ ...newFAQForm, question: e.target.value })}
-                            placeholder="Question"
-                            className="w-full px-3 py-2 rounded-lg bg-[#161e2e] border border-slate-700 text-xs text-white"
-                          />
-                          <textarea
-                            rows={2}
-                            required
-                            value={newFAQForm.answer}
-                            onChange={e => setNewFAQForm({ ...newFAQForm, answer: e.target.value })}
-                            placeholder="Verified clinical answer"
-                            className="w-full px-3 py-2 rounded-lg bg-[#161e2e] border border-slate-700 text-xs text-white"
-                          />
-                          <div className="flex space-x-2">
-                            <button type="submit" className="px-3 py-1.5 bg-sky-500 text-slate-950 font-bold text-xs rounded-lg">Save FAQ</button>
-                            <button type="button" onClick={() => setIsAddingFAQ(false)} className="px-3 py-1.5 text-xs text-slate-400">Cancel</button>
-                          </div>
-                        </form>
-                      )}
-
-                      <div className="space-y-3">
-                        {faqs.map(faq => (
-                          <div key={faq.id} className="p-4 rounded-2xl bg-[#0b0f17] border border-slate-800 flex items-start justify-between gap-4">
-                            <div>
-                              <p className="text-xs font-bold text-white">{faq.question}</p>
-                              <p className="text-xs text-slate-400 mt-1">{faq.answer}</p>
-                            </div>
-                            <button onClick={() => deleteFAQ(faq.id)} className="text-slate-500 hover:text-red-400">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
                   </div>
-                )}
 
-                {/* ---------------------------------------------------- */}
-                {/* SUB-TAB 3: LIVE CHAT REASONING SIMULATOR */}
-                {/* ---------------------------------------------------- */}
-                {aiSubTab === 'simulator' && (
-                  <div className="rounded-3xl bg-[#111622] border border-[#1f293d] p-6 space-y-6 animate-fade-in">
-                    <div>
-                      <div className="flex items-center space-x-2 text-sky-400 text-xs font-bold uppercase tracking-wider mb-1">
-                        <Brain className="w-4 h-4" />
-                        <span>Live Chat Reasoning Simulator (Chain-of-Thought Engine)</span>
+                  {/* Interactive Live Reasoning Simulator Tool */}
+                  <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-base font-extrabold text-slate-950 flex items-center space-x-2">
+                          <Brain className="w-4 h-4 text-sky-600" />
+                          <span>Live Clinical Reasoning Simulator Tool</span>
+                        </h4>
+                        <p className="text-xs text-slate-600 mt-0.5">
+                          Test how the AI reasons step-by-step using website data, fee schedules, and admin approval rules.
+                        </p>
                       </div>
-                      <h3 className="text-lg font-bold text-white">Inspect How the AI Agent Reasons Before Answering</h3>
-                      <p className="text-xs text-slate-400">
-                        Active Agent: <strong>{localProvider}</strong>. Verifies website data, evaluates your Appointment Approval Directives, and strictly follows clinical guardrails.
-                      </p>
+
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200">
+                        Engine: {localProvider}
+                      </span>
                     </div>
 
-                    {/* Preset Test Chips */}
-                    <div className="space-y-2">
-                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                        Preset Test Queries:
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          'Can you book me for teeth whitening and is it auto-approved?',
-                          'How much are dental implants and does the doctor need to review?',
-                          'What is the cancellation timeline?',
-                          'I have extreme facial swelling and fever',
-                          'Can you prescribe amoxicillin?',
-                        ].map((preset, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => handleRunSimulator(preset)}
-                            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#161e2e] border border-[#242e44] hover:border-sky-400 hover:text-sky-300 text-slate-300 transition-colors"
-                          >
-                            {preset}
-                          </button>
-                        ))}
-                      </div>
+                    {/* Quick prompts */}
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <span className="text-[11px] font-bold text-slate-400 self-center">Try prompt:</span>
+                      <button
+                        onClick={() => handleRunSimulator('How much is Invisalign and what are your opening hours?')}
+                        className="px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold"
+                      >
+                        Invisalign pricing & hours
+                      </button>
+                      <button
+                        onClick={() => handleRunSimulator('Can I book an appointment for dental implants on Monday?')}
+                        className="px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold"
+                      >
+                        Book dental implants (Policy Check)
+                      </button>
+                      <button
+                        onClick={() => handleRunSimulator('I have extreme tooth pain and swelling. Can I see someone today?')}
+                        className="px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold"
+                      >
+                        Emergency pain triage
+                      </button>
                     </div>
 
-                    {/* Query Input Bar */}
-                    <div className="flex items-center space-x-2 pt-2">
+                    {/* Input box */}
+                    <div className="flex gap-2">
                       <input
                         type="text"
                         value={simulatorQuery}
                         onChange={e => setSimulatorQuery(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') handleRunSimulator();
-                        }}
-                        placeholder={`Test ${localProvider} reasoning on patient query or symptom...`}
-                        className="flex-1 px-4 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        onKeyDown={e => e.key === 'Enter' && handleRunSimulator()}
+                        placeholder="Type any patient inquiry to inspect AI reasoning..."
+                        className="flex-1 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
                       />
                       <button
                         onClick={() => handleRunSimulator()}
                         disabled={simulatorLoading || !simulatorQuery.trim()}
-                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:opacity-90 disabled:opacity-50 text-white font-bold text-xs flex items-center space-x-1.5 transition-all shadow-md"
+                        className="px-5 py-3 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white text-xs font-bold transition-colors flex items-center space-x-1.5"
                       >
-                        <Brain className="w-3.5 h-3.5" />
-                        <span>Run Reasoning</span>
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Reason</span>
                       </button>
                     </div>
 
-                    {/* Simulator Output Window */}
-                    <div className="space-y-4 pt-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          Reasoning & Output Logs ({simulatorHistory.length} Runs)
-                        </span>
-                        <button
-                          onClick={() => setSimulatorHistory([])}
-                          className="text-[11px] text-slate-500 hover:text-slate-300"
-                        >
-                          Clear Log
-                        </button>
+                    {/* Simulator Results & Chain of Thought */}
+                    {simulatorLoading && (
+                      <div className="p-4 rounded-xl bg-slate-50 text-center text-xs text-slate-500 flex items-center justify-center space-x-2">
+                        <RefreshCw className="w-4 h-4 animate-spin text-sky-600" />
+                        <span>AI Reasoning Engine processing grounded knowledge...</span>
                       </div>
+                    )}
 
-                      {simulatorLoading && (
-                        <div className="p-4 rounded-2xl bg-[#0b0f17] border border-slate-700 text-xs text-sky-400 flex items-center space-x-2">
-                          <Brain className="w-4 h-4 animate-spin text-sky-400" />
-                          <span>Simulating {localProvider} reasoning trace & appointment policy check...</span>
-                        </div>
-                      )}
+                    {simulatorHistory.length > 0 && !simulatorLoading && (
+                      <div className="space-y-4 pt-2 border-t border-slate-100">
+                        {simulatorHistory.map((item, idx) => (
+                          <div key={idx} className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-bold text-slate-900">Query: &ldquo;{item.query}&rdquo;</span>
+                              <span className="text-[11px] text-slate-400">{item.timestamp}</span>
+                            </div>
 
-                      <div className="space-y-4 max-h-[550px] overflow-y-auto pr-1">
-                        {simulatorHistory.map((item, idx) => {
-                          const isTraceOpen = expandedTraceIndex === idx;
-                          return (
-                            <div
-                              key={idx}
-                              className="rounded-2xl bg-[#0b0f17] border border-[#1f293d] p-4 space-y-3"
-                            >
-                              {/* Header */}
-                              <div className="flex items-start justify-between text-xs">
-                                <div className="flex items-center space-x-2 font-bold text-sky-300">
-                                  <span className="w-2 h-2 rounded-full bg-sky-400"></span>
-                                  <span>Patient Query: &ldquo;{item.query}&rdquo;</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <span className="text-[10px] font-mono text-slate-400">{item.timestamp}</span>
-                                  <span className="px-2 py-0.5 rounded text-[9px] font-mono bg-sky-950 text-sky-300 border border-sky-800">
-                                    {item.result.activeAgentEngine}
-                                  </span>
-                                </div>
-                              </div>
+                            {/* Response Bubble */}
+                            <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 leading-relaxed">
+                              {item.response.replyText}
+                            </div>
 
-                              {/* Reasoning Chain Dropdown */}
-                              {item.result.reasoningTrace && item.result.reasoningTrace.length > 0 && (
-                                <div className="rounded-xl bg-[#141b2a] border border-slate-700/80 overflow-hidden">
-                                  <button
-                                    type="button"
-                                    onClick={() => setExpandedTraceIndex(isTraceOpen ? null : idx)}
-                                    className="w-full px-3 py-2 text-left text-xs font-bold text-sky-300 bg-[#172033] hover:bg-[#1a253c] flex items-center justify-between transition-colors"
-                                  >
-                                    <span className="flex items-center space-x-1.5">
-                                      <Brain className="w-4 h-4 text-sky-400" />
-                                      <span>🧠 Chain-of-Thought Reasoning Trace ({item.result.reasoningTrace.length} Steps)</span>
-                                    </span>
-                                    {isTraceOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                  </button>
+                            {/* Chain of Thought Reasoning Trace */}
+                            <div className="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200 text-xs space-y-2">
+                              <p className="font-bold text-sky-950 flex items-center space-x-1.5 text-[11px]">
+                                <Brain className="w-3.5 h-3.5 text-sky-600" />
+                                <span>Chain-of-Thought Reasoning Log ({item.response.reasoningTrace.length} Steps)</span>
+                              </p>
 
-                                  {isTraceOpen && (
-                                    <div className="p-3 space-y-2.5 text-[11px] text-slate-300 font-mono border-t border-slate-800 bg-[#0d1320]">
-                                      {item.result.reasoningTrace.map(step => (
-                                        <div key={step.step} className="space-y-0.5">
-                                          <p className="font-bold text-sky-400">
-                                            Step {step.step}: {step.title}
-                                          </p>
-                                          <p className="text-slate-300 leading-relaxed pl-2 border-l border-sky-600/40">
-                                            {step.detail}
-                                          </p>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* AI Response Output */}
-                              <div className="p-3.5 rounded-xl bg-[#151c2c] border border-slate-700/80 text-xs text-slate-200 whitespace-pre-line leading-relaxed">
-                                {item.result.reply}
-                              </div>
-
-                              {/* Grounding Source & Approval Badges */}
-                              <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px]">
-                                {item.result.appointmentApprovalStatus && (
-                                  <span
-                                    className={`px-2 py-0.5 rounded font-bold ${
-                                      item.result.appointmentApprovalStatus === 'Auto-Approved'
-                                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                                        : 'bg-amber-950 text-amber-300 border border-amber-800'
-                                    }`}
-                                  >
-                                    Approval: {item.result.appointmentApprovalStatus}
-                                  </span>
-                                )}
-                                {item.result.sourceGrounded?.map((src, sIdx) => (
-                                  <span
-                                    key={sIdx}
-                                    className="px-2 py-0.5 rounded font-mono bg-[#161e2e] text-slate-300 border border-slate-700"
-                                  >
-                                    Grounded in: {src}
-                                  </span>
+                              <div className="space-y-1.5">
+                                {item.response.reasoningTrace.map((step, sIdx) => (
+                                  <div key={sIdx} className="text-[11px] text-slate-700">
+                                    <span className="font-bold text-sky-900">Step {step.step}: {step.title}</span> — {step.detail}
+                                  </div>
                                 ))}
                               </div>
+
+                              {/* Grounded Sources */}
+                              <div className="pt-2 border-t border-sky-200/60 text-[10px] text-sky-800 font-semibold">
+                                Grounded Sources: {item.response.groundedSources.join(' • ')}
+                              </div>
                             </div>
-                          );
-                        })}
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ======================================================== */}
-            {/* VIEW 2: APPOINTMENTS & CALENDAR */}
-            {/* ======================================================== */}
-            {activeMainTab === 'appointments' && (
-              <div className="space-y-6 animate-fade-in">
-                <div className="rounded-3xl bg-[#111622] border border-[#1f293d] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                    <input
-                      type="text"
-                      value={aptSearch}
-                      onChange={e => setAptSearch(e.target.value)}
-                      placeholder="Search patient, phone, or service..."
-                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                    />
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center space-x-1 bg-[#0b0f17] p-1 rounded-xl text-xs border border-slate-700">
-                      <span className="px-2 text-slate-400 text-[10px] uppercase font-bold">Date:</span>
-                      {(['All', 'Today', 'Tomorrow'] as const).map(df => (
-                        <button
-                          key={df}
-                          onClick={() => setAptDateFilter(df)}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                            aptDateFilter === df ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
-                          }`}
-                        >
-                          {df}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center space-x-1 bg-[#0b0f17] p-1 rounded-xl text-xs border border-slate-700">
-                      <span className="px-2 text-slate-400 text-[10px] uppercase font-bold">Status:</span>
-                      {(['All', 'Confirmed', 'Pending'] as const).map(sf => (
-                        <button
-                          key={sf}
-                          onClick={() => setAptStatusFilter(sf)}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                            aptStatusFilter === sf ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
-                          }`}
-                        >
-                          {sf}
-                        </button>
-                      ))}
-                    </div>
+                    )}
                   </div>
                 </div>
+              )}
 
-                <div className="rounded-3xl bg-[#111622] border border-[#1f293d] overflow-hidden shadow-lg">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs text-slate-300">
-                      <thead className="bg-[#0b0f17] text-slate-400 font-semibold uppercase tracking-wider text-[10px] border-b border-[#1f293d]">
-                        <tr>
-                          <th className="py-3.5 px-4">Ref #</th>
-                          <th className="py-3.5 px-4">Patient Name & Contact</th>
-                          <th className="py-3.5 px-4">Treatment</th>
-                          <th className="py-3.5 px-4">Date & Slot</th>
-                          <th className="py-3.5 px-4">AI Approval Status</th>
-                          <th className="py-3.5 px-4">Status</th>
-                          <th className="py-3.5 px-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#1f293d]">
-                        {filteredAppointments.length === 0 ? (
-                          <tr>
-                            <td colSpan={7} className="py-8 text-center text-slate-500">
-                              No appointments matching current filters.
-                            </td>
-                          </tr>
-                        ) : (
-                          filteredAppointments.map(apt => (
-                            <tr key={apt.id} className="hover:bg-[#161e2e]/50 transition-colors">
-                              <td className="py-4 px-4 font-mono font-bold text-sky-400">{apt.id}</td>
-                              <td className="py-4 px-4">
-                                <p className="font-bold text-white text-sm">{apt.patientName}</p>
-                                <p className="text-[11px] text-slate-400">{apt.patientPhone} • {apt.patientEmail}</p>
-                                {apt.notes && (
-                                  <p className="text-[10px] text-slate-500 italic mt-0.5 truncate max-w-xs">
-                                    Note: {apt.notes}
-                                  </p>
-                                )}
-                              </td>
-                              <td className="py-4 px-4">
-                                <span className="font-semibold text-slate-200">{apt.serviceName}</span>
-                              </td>
-                              <td className="py-4 px-4 whitespace-nowrap">
-                                <div className="flex items-center space-x-1 font-semibold text-white">
-                                  <Calendar className="w-3.5 h-3.5 text-sky-400 mr-1" />
-                                  <span>{apt.date}</span>
-                                </div>
-                                <div className="text-[11px] text-slate-400 flex items-center mt-0.5">
-                                  <Clock className="w-3 h-3 text-slate-500 mr-1" />
-                                  <span>{apt.timeSlot}</span>
-                                </div>
-                              </td>
-                              <td className="py-4 px-4">
-                                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#161e2e] text-slate-300 border border-slate-700">
-                                  {apt.aiApprovalReason || (apt.approvedByAI ? 'Auto-Approved' : 'Manual Sign-off')}
-                                </span>
-                              </td>
-                              <td className="py-4 px-4 whitespace-nowrap">
-                                <span
-                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    apt.status === 'Confirmed'
-                                      ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                                      : 'bg-amber-950 text-amber-300 border border-amber-800'
-                                  }`}
-                                >
-                                  {apt.status}
-                                </span>
-                              </td>
-                              <td className="py-4 px-4 text-right space-x-2 whitespace-nowrap">
-                                {apt.status === 'Pending' && (
-                                  <button
-                                    onClick={() => updateAppointmentStatus(apt.id, 'Confirmed')}
-                                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white"
-                                  >
-                                    Approve & Confirm
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => setDeletingAptId(apt.id)}
-                                  className="p-1 rounded-lg text-slate-500 hover:text-red-400"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* VIEW 3: OVERVIEW                                          */}
+          {/* ======================================================== */}
+          {activeNav === 'overview' && (
+            <div className="p-6 sm:p-8 space-y-7 max-w-7xl mx-auto w-full animate-fade-in">
+              <div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  CLINICAL ADMINISTRATION SUITE
+                </p>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight mt-0.5">
+                  Executive Clinic Overview
+                </h1>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+                  <span className="text-xs font-bold text-slate-500 uppercase">Total Active Patients</span>
+                  <p className="text-3xl font-black text-slate-950">384</p>
+                  <p className="text-xs text-emerald-600 font-semibold">+18 new this month</p>
                 </div>
 
-                {deletingAptId && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-                    <div className="bg-[#111622] border border-slate-700 p-6 rounded-3xl max-w-sm w-full space-y-4 shadow-2xl text-center">
-                      <div className="w-12 h-12 rounded-full bg-red-950 text-red-400 flex items-center justify-center mx-auto">
-                        <Trash2 className="w-6 h-6" />
-                      </div>
-                      <h4 className="text-base font-bold text-white">Delete Appointment?</h4>
-                      <p className="text-xs text-slate-300">
-                        Remove appointment <strong>#{deletingAptId}</strong> from the diary?
-                      </p>
-                      <div className="flex space-x-2 justify-center pt-2">
-                        <button
-                          onClick={() => setDeletingAptId(null)}
-                          className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => {
-                            deleteAppointment(deletingAptId);
-                            setDeletingAptId(null);
-                          }}
-                          className="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+                <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+                  <span className="text-xs font-bold text-slate-500 uppercase">AI Auto-Triage Accuracy</span>
+                  <p className="text-3xl font-black text-slate-950">98.4%</p>
+                  <p className="text-xs text-sky-600 font-semibold">Grounded on GDC standards</p>
+                </div>
 
-            {/* ======================================================== */}
-            {/* VIEW 3: WEB INQUIRIES */}
-            {/* ======================================================== */}
-            {activeMainTab === 'inquiries' && (
-              <div className="space-y-6 animate-fade-in">
+                <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2">
+                  <span className="text-xs font-bold text-slate-500 uppercase">Same-Day CAD/CAM Crowns</span>
+                  <p className="text-3xl font-black text-slate-950">42 Units</p>
+                  <p className="text-xs text-slate-600 font-semibold">Milled in Marylebone Lab</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* VIEW 4: SERVICES CATALOG                                  */}
+          {/* ======================================================== */}
+          {activeNav === 'services' && (
+            <div className="p-6 sm:p-8 space-y-7 max-w-7xl mx-auto w-full animate-fade-in">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-white">Incoming Patient Web Inquiries</h3>
-                  <p className="text-xs text-slate-400">
-                    Direct messages submitted through the public website with 1-click WhatsApp and Phone call CTAs.
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    CLINICAL ADMINISTRATION SUITE
                   </p>
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight mt-0.5">
+                    Services Catalog & Lab Pricing
+                  </h1>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {inquiries.map(inq => (
-                    <div
-                      key={inq.id}
-                      className="rounded-3xl bg-[#111622] border border-[#1f293d] p-6 space-y-4 shadow-md flex flex-col justify-between"
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs font-bold text-sky-400">{inq.id}</span>
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              inq.status === 'New'
-                                ? 'bg-purple-950 text-purple-300 border border-purple-800'
-                                : inq.status === 'Contacted'
-                                ? 'bg-sky-950 text-sky-300 border border-sky-800'
-                                : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                            }`}
-                          >
-                            {inq.status}
-                          </span>
+                <button
+                  onClick={() => {}}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-sm"
+                >
+                  + Add New Treatment
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {services.map(s => (
+                  <div key={s.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800">
+                        {s.category}
+                      </span>
+                      <span className="font-extrabold text-sm text-slate-950">{s.priceRange}</span>
+                    </div>
+                    <h3 className="font-extrabold text-base text-slate-950">{s.name}</h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">{s.description}</p>
+                    <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
+                      <span>Duration: {s.duration}</span>
+                      <button
+                        onClick={() => deleteService(s.id)}
+                        className="text-slate-400 hover:text-rose-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* VIEW 5: PATIENTS                                          */}
+          {/* ======================================================== */}
+          {activeNav === 'patients' && (
+            <div className="p-6 sm:p-8 space-y-7 max-w-7xl mx-auto w-full animate-fade-in">
+              <div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  CLINICAL ADMINISTRATION SUITE
+                </p>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight mt-0.5">
+                  Patient Records & Clinical Charts
+                </h1>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
+                <div className="divide-y divide-slate-100">
+                  {mockTriagePatients.map(p => (
+                    <div key={p.id} className="py-4 flex items-center justify-between">
+                      <div className="flex items-center space-x-3.5">
+                        <img src={p.avatar} alt={p.name} className="w-10 h-10 rounded-full object-cover" />
+                        <div>
+                          <p className="font-extrabold text-sm text-slate-950">{p.name}</p>
+                          <p className="text-xs text-slate-500">MRN {p.mrn} • Age {p.age} • Assigned: {p.doctor}</p>
                         </div>
-
-                        <h4 className="text-base font-bold text-white">{inq.patientName}</h4>
-                        <p className="text-xs text-sky-300 font-semibold">Interest: {inq.serviceInterest}</p>
-                        <p className="text-xs text-slate-300 leading-relaxed bg-[#0b0f17] p-3 rounded-xl border border-slate-800">
-                          &ldquo;{inq.message}&rdquo;
-                        </p>
-                        <p className="text-[10px] text-slate-500">
-                          Received: {new Date(inq.createdAt).toLocaleString()}
-                        </p>
                       </div>
-
-                      <div className="pt-3 border-t border-[#1f293d] flex flex-wrap items-center gap-2">
-                        <a
-                          href={`tel:${inq.phone.replace(/\s+/g, '')}`}
-                          className="px-3 py-1.5 rounded-xl bg-[#161e2e] hover:bg-slate-800 text-white text-xs font-semibold flex items-center space-x-1.5"
-                        >
-                          <Phone className="w-3.5 h-3.5 text-sky-400" />
-                          <span>Call {inq.phone}</span>
-                        </a>
-
-                        <a
-                          href={`https://wa.me/${inq.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(inq.patientName)},%20this%20is%20Vertex%20Dental%20Lab.`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-xl bg-emerald-950 border border-emerald-800 text-emerald-300 text-xs font-semibold flex items-center space-x-1.5"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>WhatsApp</span>
-                        </a>
-
-                        {inq.status !== 'Resolved' && (
-                          <button
-                            onClick={() => updateInquiryStatus(inq.id, 'Resolved')}
-                            className="ml-auto px-3 py-1.5 rounded-xl bg-[#0b0f17] text-slate-300 text-xs border border-slate-700 hover:bg-[#161e2e]"
-                          >
-                            Mark Resolved
-                          </button>
-                        )}
-                      </div>
+                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                        {p.type}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* ======================================================== */}
-            {/* VIEW 4: WALK-IN / PHONE BOOKING */}
-            {/* ======================================================== */}
-            {activeMainTab === 'walkin' && (
-              <div className="max-w-2xl mx-auto rounded-3xl bg-[#111622] border border-[#1f293d] p-6 sm:p-8 space-y-6 shadow-xl animate-fade-in">
-                <div>
-                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-950 text-sky-400 text-xs font-bold mb-2">
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Reception Desk & Telephone Reservations</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-white">Manual Patient Booking Entry</h3>
-                  <p className="text-xs text-slate-400">
-                    Immediately reserve clinical operatory time for walk-in patients or telephone callers.
-                  </p>
-                </div>
-
-                {walkInSuccess && (
-                  <div className="p-4 rounded-2xl bg-emerald-950 border border-emerald-800 text-emerald-300 text-xs flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    <span>{walkInSuccess}</span>
-                  </div>
-                )}
-
-                <form onSubmit={handleWalkInSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Patient Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={walkInForm.patientName}
-                      onChange={e => setWalkInForm({ ...walkInForm, patientName: e.target.value })}
-                      placeholder="e.g. Sir Arthur Sterling"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-sm text-white"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        UK Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={walkInForm.patientPhone}
-                        onChange={e => setWalkInForm({ ...walkInForm, patientPhone: e.target.value })}
-                        placeholder="+44 7700 900123"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-sm text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Patient Email (Optional)
-                      </label>
-                      <input
-                        type="email"
-                        value={walkInForm.patientEmail}
-                        onChange={e => setWalkInForm({ ...walkInForm, patientEmail: e.target.value })}
-                        placeholder="patient@example.co.uk"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-sm text-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Treatment / Procedure
-                    </label>
-                    <select
-                      value={walkInForm.serviceName}
-                      onChange={e => setWalkInForm({ ...walkInForm, serviceName: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-sm text-white"
-                    >
-                      {services.map(s => (
-                        <option key={s.id} value={s.name}>
-                          {s.name} ({s.priceRange})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Appointment Date
-                      </label>
-                      <input
-                        type="date"
-                        required
-                        value={walkInForm.date}
-                        onChange={e => setWalkInForm({ ...walkInForm, date: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-sm text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Time Slot
-                      </label>
-                      <select
-                        value={walkInForm.timeSlot}
-                        onChange={e => setWalkInForm({ ...walkInForm, timeSlot: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-sm text-white"
-                      >
-                        <option value="09:00 AM">09:00 AM</option>
-                        <option value="10:15 AM">10:15 AM</option>
-                        <option value="11:00 AM">11:00 AM</option>
-                        <option value="11:45 AM">11:45 AM</option>
-                        <option value="02:00 PM">02:00 PM</option>
-                        <option value="03:00 PM">03:00 PM</option>
-                        <option value="04:15 PM">04:15 PM</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-3 rounded-xl font-bold text-xs text-slate-950 bg-gradient-to-r from-sky-400 to-cyan-300 hover:opacity-90 transition-all shadow-md flex items-center justify-center space-x-2"
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-slate-950" />
-                    <span>Save Directly into Clinic Diary</span>
-                  </button>
-                </form>
-              </div>
-            )}
-          </div>
         </div>
       </div>
+
+      {/* Manual Booking Modal */}
+      {manualModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200">
+            <button
+              onClick={() => setManualModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-sm font-bold"
+            >
+              ✕
+            </button>
+            <h3 className="text-base font-extrabold text-slate-950 mb-4">
+              Add Manual / Phone Booking
+            </h3>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                addAppointment({
+                  patientName: manualForm.patientName,
+                  patientEmail: manualForm.patientEmail || 'reception@vertexdental.co.uk',
+                  patientPhone: manualForm.patientPhone,
+                  serviceId: services[0]?.id || 's1',
+                  serviceName: manualForm.serviceName,
+                  clinicianName: manualForm.clinicianName,
+                  date: manualForm.date,
+                  timeSlot: manualForm.timeSlot,
+                  status: 'Confirmed',
+                  notes: manualForm.chiefComplaint,
+                  source: 'Walk-In / Phone',
+                });
+                setManualModalOpen(false);
+              }}
+              className="space-y-3 text-xs"
+            >
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Patient Name</label>
+                <input
+                  type="text"
+                  required
+                  value={manualForm.patientName}
+                  onChange={e => setManualForm({ ...manualForm, patientName: e.target.value })}
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Phone Number</label>
+                <input
+                  type="text"
+                  required
+                  value={manualForm.patientPhone}
+                  onChange={e => setManualForm({ ...manualForm, patientPhone: e.target.value })}
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Treatment</label>
+                <select
+                  value={manualForm.serviceName}
+                  onChange={e => setManualForm({ ...manualForm, serviceName: e.target.value })}
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-medium"
+                >
+                  {services.map(s => (
+                    <option key={s.id} value={s.name}>{s.name} ({s.priceRange})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Clinical Notes / Chief Complaint</label>
+                <textarea
+                  rows={2}
+                  value={manualForm.chiefComplaint}
+                  onChange={e => setManualForm({ ...manualForm, chiefComplaint: e.target.value })}
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setManualModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-sky-600 text-white font-bold hover:bg-sky-700"
+                >
+                  Confirm Booking
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
