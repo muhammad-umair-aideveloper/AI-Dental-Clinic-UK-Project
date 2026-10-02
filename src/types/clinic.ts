@@ -19,6 +19,13 @@ export interface DentalService {
   features: string[];
   popular?: boolean;
   recoveryTime?: string;
+  depositGbp?: number;
+  onlineBookable?: boolean;
+  botRecommended?: boolean;
+  assignedProviders?: string[];
+  preOpInstructions?: string;
+  insuranceCoverage?: string;
+  requiresPreConsult?: boolean;
 }
 
 export interface Clinician {

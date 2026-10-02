@@ -47,6 +47,10 @@ import {
   HelpCircle,
   Settings,
   FileText,
+  Briefcase,
+  Layers,
+  Pencil,
+  RotateCcw,
 } from 'lucide-react';
 
 interface SimulatedMessage {
@@ -63,6 +67,7 @@ export default function AdminDashboardPage() {
   const {
     services,
     addService,
+    updateService,
     deleteService,
     appointments,
     updateAppointmentStatus,
@@ -95,6 +100,132 @@ export default function AdminDashboardPage() {
   const [selectedPractitioner, setSelectedPractitioner] = useState('All');
   const [flowTab, setFlowTab] = useState<'all' | 'in-chair' | 'upcoming' | 'completed'>('in-chair');
   const [overviewNotice, setOverviewNotice] = useState<string | null>(null);
+
+  // Service Catalog Tab States (matching user reference image)
+  const [serviceModalOpen, setServiceModalOpen] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [serviceSearch, setServiceSearch] = useState('');
+  const [serviceCategoryTab, setServiceCategoryTab] = useState<'All' | 'General' | 'Cosmetic' | 'Endodontics' | 'Orthodontics'>('All');
+  const [filterBotSyncedOnly, setFilterBotSyncedOnly] = useState(false);
+  const [filterOnlineBookableOnly, setFilterOnlineBookableOnly] = useState(false);
+
+  // Service Form State
+  const defaultServiceForm = {
+    name: '',
+    category: 'General' as ServiceCategory,
+    chairTime: '45 mins (Standard)',
+    basePriceGbp: 150,
+    depositGbp: 35,
+    description: '',
+    preOpInstructions: '',
+    assignedProviders: ['Dr. S. Jenkins', 'Dr. M. Zhao', 'Hygienist Pool'],
+    onlineBookable: true,
+    botRecommended: true,
+    insuranceCoverage: 'Full Insurance Coverage Eligible',
+  };
+  const [serviceForm, setServiceForm] = useState(defaultServiceForm);
+
+  const handleOpenAddService = () => {
+    setEditingServiceId(null);
+    setServiceForm(defaultServiceForm);
+    setServiceModalOpen(true);
+  };
+
+  const handleOpenEditService = (srv: any) => {
+    setEditingServiceId(srv.id);
+    setServiceForm({
+      name: srv.name,
+      category: srv.category,
+      chairTime: srv.duration ? `${srv.duration} (Standard)` : '45 mins (Standard)',
+      basePriceGbp: srv.basePriceGbp || 150,
+      depositGbp: srv.depositGbp || Math.round((srv.basePriceGbp || 150) * 0.25),
+      description: srv.description || '',
+      preOpInstructions: srv.preOpInstructions || '',
+      assignedProviders: srv.assignedProviders || ['Dr. S. Jenkins', 'Dr. M. Zhao'],
+      onlineBookable: srv.onlineBookable !== false,
+      botRecommended: srv.botRecommended !== false,
+      insuranceCoverage: srv.insuranceCoverage || 'Full Insurance Coverage Eligible',
+    });
+    setServiceModalOpen(true);
+  };
+
+  const handleSaveServiceSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!serviceForm.name.trim()) return;
+
+    if (editingServiceId) {
+      const existing = services.find(s => s.id === editingServiceId);
+      if (existing) {
+        updateService({
+          ...existing,
+          name: serviceForm.name,
+          category: serviceForm.category,
+          duration: serviceForm.chairTime.split(' ')[0] + ' min',
+          basePriceGbp: Number(serviceForm.basePriceGbp),
+          priceRange: `From £${serviceForm.basePriceGbp}`,
+          depositGbp: Number(serviceForm.depositGbp),
+          description: serviceForm.description,
+          preOpInstructions: serviceForm.preOpInstructions,
+          assignedProviders: serviceForm.assignedProviders,
+          onlineBookable: serviceForm.onlineBookable,
+          botRecommended: serviceForm.botRecommended,
+          insuranceCoverage: serviceForm.insuranceCoverage,
+        });
+        setOverviewNotice(`Updated "${serviceForm.name}" and synced with AI Chatbot registry.`);
+      }
+    } else {
+      addService({
+        name: serviceForm.name,
+        category: serviceForm.category,
+        duration: serviceForm.chairTime.split(' ')[0] + ' min',
+        basePriceGbp: Number(serviceForm.basePriceGbp),
+        priceRange: `From £${serviceForm.basePriceGbp}`,
+        depositGbp: Number(serviceForm.depositGbp),
+        description: serviceForm.description || 'Clinical dental treatment provided at Vertex Dental Lab.',
+        preOpInstructions: serviceForm.preOpInstructions,
+        assignedProviders: serviceForm.assignedProviders,
+        onlineBookable: serviceForm.onlineBookable,
+        botRecommended: serviceForm.botRecommended,
+        insuranceCoverage: serviceForm.insuranceCoverage,
+        features: ['Full clinical consultation', 'Digital intraoral imaging', 'Itemized treatment plan'],
+      });
+      setOverviewNotice(`Added "${serviceForm.name}" to treatment portfolio and active AI grounding.`);
+    }
+
+    setServiceModalOpen(false);
+  };
+
+  // Filtered Services computation
+  const filteredServices = services.filter(srv => {
+    if (serviceSearch.trim()) {
+      const q = serviceSearch.toLowerCase();
+      const match =
+        srv.name.toLowerCase().includes(q) ||
+        srv.category.toLowerCase().includes(q) ||
+        srv.description.toLowerCase().includes(q);
+      if (!match) return false;
+    }
+
+    if (serviceCategoryTab === 'General') {
+      if (srv.category !== 'General' && srv.category !== 'Preventive') return false;
+    } else if (serviceCategoryTab === 'Cosmetic') {
+      if (srv.category !== 'Cosmetic') return false;
+    } else if (serviceCategoryTab === 'Endodontics') {
+      if (srv.category !== 'Endodontics' && srv.category !== 'Surgical') return false;
+    } else if (serviceCategoryTab === 'Orthodontics') {
+      if (srv.category !== 'Orthodontics') return false;
+    }
+
+    if (filterBotSyncedOnly && srv.botRecommended === false) {
+      return false;
+    }
+
+    if (filterOnlineBookableOnly && srv.onlineBookable === false) {
+      return false;
+    }
+
+    return true;
+  });
 
   // Manual Booking Modal
   const [manualModalOpen, setManualModalOpen] = useState(false);
@@ -1907,17 +2038,541 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
+          {/* ======================================================== */}
+          {/* VIEW: CLINIC DENTAL SERVICES & PRICING (REFERENCE MATCH) */}
+          {/* ======================================================== */}
           {activeNav === 'services' && (
-            <div className="p-6 sm:p-8 space-y-6 max-w-7xl mx-auto w-full animate-fade-in">
-              <h1 className="text-2xl font-black text-slate-950">Services Catalog</h1>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {services.map(s => (
-                  <div key={s.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">{s.category}</span>
-                    <h3 className="font-extrabold text-base text-slate-950">{s.name}</h3>
-                    <p className="font-black text-sm text-sky-700">{s.priceRange}</p>
+            <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1550px] mx-auto w-full animate-fade-in">
+              
+              {/* Notice Toast */}
+              {overviewNotice && (
+                <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs font-semibold flex items-center justify-between shadow-lg">
+                  <span className="flex items-center space-x-2 min-w-0">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="truncate">{overviewNotice}</span>
+                  </span>
+                  <button onClick={() => setOverviewNotice(null)} className="text-slate-400 hover:text-white ml-2 shrink-0">
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {/* Header matching Reference Image exactly */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="inline-flex items-center space-x-1.5 text-[11px] font-bold text-sky-600 uppercase tracking-wider">
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Treatment Portfolio Configuration</span>
                   </div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
+                    Clinic Dental Services &amp; Pricing
+                  </h1>
+                  <p className="text-xs text-slate-500 max-w-3xl">
+                    Manage available treatments, chair times, pricing, insurance eligibility, and online booking availability for the patient portal and AI chatbot.
+                  </p>
+                </div>
+
+                {/* + Add New Service Action Button matching Reference Image */}
+                <button
+                  onClick={handleOpenAddService}
+                  className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs shadow-xs transition-all active:scale-95 shrink-0 self-start sm:self-center"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Service</span>
+                </button>
+              </div>
+
+              {/* 4 Metric Cards Row matching Reference Image */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* 1. ACTIVE SERVICES */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ACTIVE SERVICES</p>
+                    <p className="text-2xl sm:text-3xl font-black text-slate-950">{services.length}</p>
+                    <p className="text-xs font-semibold text-emerald-600 flex items-center space-x-1">
+                      <Check className="w-3 h-3 text-emerald-500" />
+                      <span>100% Verified</span>
+                    </p>
+                  </div>
+                  <div className="w-11 h-11 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                    <Briefcase className="w-5 h-5" />
+                  </div>
+                </div>
+
+                {/* 2. CORE DISCIPLINES */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CORE DISCIPLINES</p>
+                    <p className="text-2xl sm:text-3xl font-black text-slate-950">
+                      {new Set(services.map(s => s.category)).size}
+                    </p>
+                    <p className="text-xs font-semibold text-slate-500">General to Surgical</p>
+                  </div>
+                  <div className="w-11 h-11 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                </div>
+
+                {/* 3. AVG. CHAIR TIME */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AVG. CHAIR TIME</p>
+                    <div className="flex items-baseline space-x-1">
+                      <span className="text-2xl sm:text-3xl font-black text-slate-950">45</span>
+                      <span className="text-sm font-bold text-slate-500">min</span>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-500">Standard clinical slot</p>
+                  </div>
+                  <div className="w-11 h-11 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                </div>
+
+                {/* 4. ONLINE BOOKABLE */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ONLINE BOOKABLE</p>
+                    <p className="text-2xl sm:text-3xl font-black text-slate-950">
+                      {services.filter(s => s.onlineBookable !== false).length}/{services.length}
+                    </p>
+                    <p className="text-xs font-semibold text-emerald-600 flex items-center space-x-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>87.5% Live Stream</span>
+                    </p>
+                  </div>
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Bot className="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Tabs matching Reference Image */}
+              <div className="flex items-center space-x-2 border-b border-slate-200 pb-3 overflow-x-auto no-scrollbar">
+                {[
+                  { id: 'All', label: `All Services (${services.length})` },
+                  { id: 'General', label: `General & Preventive (${services.filter(s => s.category === 'General' || s.category === 'Preventive').length})` },
+                  { id: 'Cosmetic', label: `Cosmetic Dentistry (${services.filter(s => s.category === 'Cosmetic').length})` },
+                  { id: 'Endodontics', label: `Endodontics & Surgical (${services.filter(s => s.category === 'Endodontics' || s.category === 'Surgical').length})` },
+                  { id: 'Orthodontics', label: `Orthodontics (${services.filter(s => s.category === 'Orthodontics').length})` },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setServiceCategoryTab(tab.id as any)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                      serviceCategoryTab === tab.id
+                        ? 'bg-sky-700 text-white shadow-xs'
+                        : 'bg-white text-slate-600 hover:text-slate-950 hover:bg-slate-100 border border-slate-200/80'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
                 ))}
+              </div>
+
+              {/* Search & Option Toggles Bar matching Reference Image */}
+              <div className="p-3 bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+                {/* Search input */}
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={serviceSearch}
+                    onChange={e => setServiceSearch(e.target.value)}
+                    placeholder="Filter by treatment code or keyword..."
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                  />
+                </div>
+
+                {/* Filter Toggle Badges matching Reference Image */}
+                <div className="flex items-center space-x-2 shrink-0">
+                  <button
+                    onClick={() => setFilterBotSyncedOnly(!filterBotSyncedOnly)}
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                      filterBotSyncedOnly
+                        ? 'bg-sky-50 border-sky-300 text-sky-800 ring-1 ring-sky-300'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <Bot className="w-3.5 h-3.5 text-sky-600" />
+                    <span>Visible in AI Chatbot</span>
+                  </button>
+
+                  <button
+                    onClick={() => setFilterOnlineBookableOnly(!filterOnlineBookableOnly)}
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center space-x-1.5 transition-all ${
+                      filterOnlineBookableOnly
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800 ring-1 ring-emerald-300'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Online Bookable Only</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Service Cards List (Zero Text Overflow Design, Full Width) */}
+              <div className="space-y-3.5">
+                {filteredServices.length === 0 ? (
+                  <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-xs">
+                    No services found matching your search and filter criteria.
+                  </div>
+                ) : (
+                  filteredServices.map(srv => {
+                    const isCosmetic = srv.category === 'Cosmetic';
+                    const isSurg = srv.category === 'Surgical' || srv.category === 'Endodontics';
+
+                    return (
+                      <div
+                        key={srv.id}
+                        className="p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 hover:shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                      >
+                        <div className="flex items-start space-x-3.5 min-w-0">
+                          {/* Service Icon matching reference style */}
+                          <div className="w-11 h-11 rounded-2xl bg-cyan-50 text-cyan-700 flex items-center justify-center shrink-0 border border-cyan-100/80">
+                            {isCosmetic ? (
+                              <Sparkles className="w-5 h-5" />
+                            ) : isSurg ? (
+                              <Activity className="w-5 h-5" />
+                            ) : (
+                              <Stethoscope className="w-5 h-5" />
+                            )}
+                          </div>
+
+                          <div className="space-y-1 min-w-0">
+                            {/* Title & Badges */}
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="font-extrabold text-sm sm:text-base text-slate-950" title={srv.name}>
+                                {srv.name}
+                              </h3>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                Active
+                              </span>
+                              {srv.popular && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-800 border border-cyan-200">
+                                  AI Promoted
+                                </span>
+                              )}
+                              {srv.onlineBookable !== false && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200">
+                                  Online Portal
+                                </span>
+                              )}
+                              {srv.requiresPreConsult && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                  Requires Pre-consult
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Description */}
+                            <p className="text-xs text-slate-500 max-w-3xl leading-relaxed">
+                              {srv.description}
+                            </p>
+
+                            {/* Details row: Duration, Tier, Bot Synced */}
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 pt-1">
+                              <span className="flex items-center space-x-1">
+                                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                <span>{srv.duration}</span>
+                              </span>
+
+                              {srv.insuranceCoverage ? (
+                                <span className="flex items-center space-x-1 text-slate-600 font-medium">
+                                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>{srv.insuranceCoverage}</span>
+                                </span>
+                              ) : (
+                                <span className="text-slate-400">• {srv.category} Tier</span>
+                              )}
+
+                              <span className="flex items-center space-x-1 text-sky-700 font-semibold">
+                                <Bot className="w-3.5 h-3.5 text-sky-600" />
+                                <span>Bot Synced</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right side: Price, Deposit & Edit/Delete actions */}
+                        <div className="flex items-center justify-between md:justify-end space-x-4 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
+                          <div className="text-left md:text-right">
+                            <span className="text-lg sm:text-xl font-black text-slate-950">
+                              £{srv.basePriceGbp || 150}
+                            </span>
+                            <p className="text-[11px] text-slate-400 font-medium">
+                              Deposit: £{srv.depositGbp || Math.round((srv.basePriceGbp || 150) * 0.25)}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center space-x-1.5">
+                            {/* Edit Button */}
+                            <button
+                              onClick={() => handleOpenEditService(srv)}
+                              className="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors"
+                              title="Edit Service"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Delete Button */}
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to remove "${srv.name}"?`)) {
+                                  deleteService(srv.id);
+                                  setOverviewNotice(`Removed "${srv.name}" from catalog.`);
+                                }
+                              }}
+                              className="p-2 rounded-xl border border-slate-200 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
+                              title="Delete Service"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* MODAL: ADD / EDIT DENTAL SERVICE (WITH BLURRED BACKDROP) */}
+          {/* ======================================================== */}
+          {serviceModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md overflow-y-auto animate-fade-in">
+              {/* Background click overlay */}
+              <div
+                className="fixed inset-0"
+                onClick={() => setServiceModalOpen(false)}
+              ></div>
+
+              {/* Form Card (matching reference image right column, focused) */}
+              <div className="relative w-full max-w-xl bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 my-8 z-10 space-y-5 animate-scale-up">
+                {/* Header matching Reference */}
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                      <Plus className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-slate-950">
+                        {editingServiceId ? 'Edit Dental Service' : 'Add Dental Service'}
+                      </h3>
+                      <p className="text-xs text-slate-500">Portal &amp; Chatbot Registry</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setServiceForm(defaultServiceForm)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                      title="Reset Form"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setServiceModalOpen(false)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 text-sm font-bold transition-colors"
+                      title="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSaveServiceSubmit} className="space-y-4 text-xs">
+                  {/* Service Name * + CDT Standard label */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between font-bold text-slate-700">
+                      <label>Service Name *</label>
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider">CDT Standard</span>
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={serviceForm.name}
+                      onChange={e => setServiceForm({ ...serviceForm, name: e.target.value })}
+                      placeholder="e.g., Dental Implant & Porcelain Crown"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                    />
+                  </div>
+
+                  {/* 2-Column Grid: Category * & Chair Time * */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-slate-700">Category *</label>
+                      <select
+                        value={serviceForm.category}
+                        onChange={e => setServiceForm({ ...serviceForm, category: e.target.value as ServiceCategory })}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                      >
+                        <option value="General">General &amp; Preventive</option>
+                        <option value="Preventive">Preventive Hygiene</option>
+                        <option value="Cosmetic">Cosmetic Dentistry</option>
+                        <option value="Endodontics">Endodontics (Root Canal)</option>
+                        <option value="Orthodontics">Orthodontics &amp; Implants</option>
+                        <option value="Surgical">Oral Surgery &amp; Implants</option>
+                        <option value="Pediatric">Pediatric Dentistry</option>
+                        <option value="Emergency">24/7 Emergency Care</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-slate-700">Chair Time *</label>
+                      <select
+                        value={serviceForm.chairTime}
+                        onChange={e => setServiceForm({ ...serviceForm, chairTime: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                      >
+                        <option value="30 mins (Routine)">30 mins (Routine)</option>
+                        <option value="45 mins (Standard)">45 mins (Standard)</option>
+                        <option value="60 mins (Extended)">60 mins (Extended)</option>
+                        <option value="90 mins (Complex)">90 mins (Complex)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 2-Column Grid: Fee * & Online Deposit */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-slate-700">Fee (£ GBP) *</label>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">£</span>
+                        <input
+                          type="number"
+                          required
+                          min="0"
+                          value={serviceForm.basePriceGbp}
+                          onChange={e => setServiceForm({ ...serviceForm, basePriceGbp: Number(e.target.value) })}
+                          className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-slate-700">Online Deposit</label>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">£</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={serviceForm.depositGbp}
+                          onChange={e => setServiceForm({ ...serviceForm, depositGbp: Number(e.target.value) })}
+                          className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Treatment Summary for Portal */}
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-slate-700">Treatment Summary for Portal</label>
+                    <textarea
+                      rows={2}
+                      value={serviceForm.description}
+                      onChange={e => setServiceForm({ ...serviceForm, description: e.target.value })}
+                      placeholder="Full titanium post installation with custom color-matched porcelain crown..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                    ></textarea>
+                  </div>
+
+                  {/* Pre-Op Instructions */}
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-slate-700">Pre-Op Instructions</label>
+                    <input
+                      type="text"
+                      value={serviceForm.preOpInstructions}
+                      onChange={e => setServiceForm({ ...serviceForm, preOpInstructions: e.target.value })}
+                      placeholder="e.g., Fasting 2h prior if sedation requested"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                    />
+                  </div>
+
+                  {/* Assigned Care Providers */}
+                  <div className="space-y-2 pt-1">
+                    <label className="font-bold text-slate-700">Assigned Care Providers</label>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {['Dr. S. Jenkins', 'Dr. M. Zhao', 'Dr. A. Vance', 'Hygienist Pool'].map(provider => (
+                        <label
+                          key={provider}
+                          className="flex items-center space-x-2 p-2 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={serviceForm.assignedProviders.includes(provider)}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setServiceForm({
+                                  ...serviceForm,
+                                  assignedProviders: [...serviceForm.assignedProviders, provider],
+                                });
+                              } else {
+                                setServiceForm({
+                                  ...serviceForm,
+                                  assignedProviders: serviceForm.assignedProviders.filter(p => p !== provider),
+                                });
+                              }
+                            }}
+                            className="rounded text-sky-600 focus:ring-sky-500 w-4 h-4"
+                          />
+                          <span className="font-medium text-slate-800">{provider}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Feature Toggles */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100">
+                    <label className="flex items-start space-x-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100">
+                      <input
+                        type="checkbox"
+                        checked={serviceForm.onlineBookable}
+                        onChange={e => setServiceForm({ ...serviceForm, onlineBookable: e.target.checked })}
+                        className="mt-0.5 rounded text-sky-600 focus:ring-sky-500 w-4 h-4"
+                      />
+                      <div>
+                        <p className="font-bold text-slate-900">Patient Portal Online Booking</p>
+                        <p className="text-[11px] text-slate-500">Allows direct patient self-scheduling</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start space-x-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100">
+                      <input
+                        type="checkbox"
+                        checked={serviceForm.botRecommended}
+                        onChange={e => setServiceForm({ ...serviceForm, botRecommended: e.target.checked })}
+                        className="mt-0.5 rounded text-sky-600 focus:ring-sky-500 w-4 h-4"
+                      />
+                      <div>
+                        <p className="font-bold text-slate-900">AI Chatbot Recommended</p>
+                        <p className="text-[11px] text-slate-500">Included in conversational triage queries</p>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-end space-x-2.5 pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setServiceModalOpen(false)}
+                      className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold shadow-xs transition-all active:scale-95 flex items-center space-x-1.5"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>{editingServiceId ? 'Update & Sync Service' : 'Publish & Sync with AI Chatbot'}</span>
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           )}
