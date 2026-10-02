@@ -1537,14 +1537,14 @@ export default function AdminDashboardPage() {
                           />
                           <div className="min-w-0">
                             <div className="flex items-center space-x-2">
-                              <h4 className="font-extrabold text-sm text-slate-950 truncate" title="Marcus Reed">
+                              <h4 className="font-extrabold text-sm text-slate-950 whitespace-nowrap" title="Marcus Reed">
                                 Marcus Reed
                               </h4>
-                              <span className="px-2 py-0.2 rounded-md text-[10px] font-mono font-bold bg-slate-200 text-slate-700 shrink-0">
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-200 text-slate-700 shrink-0">
                                 MRN-84920
                               </span>
                             </div>
-                            <p className="text-xs text-slate-500 truncate" title="Dr. Jenkins • Root Canal Therapy">
+                            <p className="text-xs text-slate-500 whitespace-nowrap" title="Dr. Jenkins • Root Canal Therapy">
                               Dr. Jenkins • Root Canal Therapy
                             </p>
                           </div>
@@ -1596,14 +1596,14 @@ export default function AdminDashboardPage() {
                           />
                           <div className="min-w-0">
                             <div className="flex items-center space-x-2">
-                              <h4 className="font-extrabold text-sm text-slate-950 truncate" title="Elena Rostova">
+                              <h4 className="font-extrabold text-sm text-slate-950 whitespace-nowrap" title="Elena Rostova">
                                 Elena Rostova
                               </h4>
-                              <span className="px-2 py-0.2 rounded-md text-[10px] font-mono font-bold bg-slate-200 text-slate-700 shrink-0">
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-200 text-slate-700 shrink-0">
                                 MRN-91204
                               </span>
                             </div>
-                            <p className="text-xs text-slate-500 truncate" title="Dr. Vance • Clear Aligners">
+                            <p className="text-xs text-slate-500 whitespace-nowrap" title="Dr. Vance • Clear Aligners">
                               Dr. Vance • Clear Aligners
                             </p>
                           </div>
@@ -1655,14 +1655,14 @@ export default function AdminDashboardPage() {
                           />
                           <div className="min-w-0">
                             <div className="flex items-center space-x-2">
-                              <h4 className="font-extrabold text-sm text-slate-950 truncate" title="David Chen">
+                              <h4 className="font-extrabold text-sm text-slate-950 whitespace-nowrap" title="David Chen">
                                 David Chen
                               </h4>
-                              <span className="px-2 py-0.2 rounded-md text-[10px] font-mono font-bold bg-slate-200 text-slate-700 shrink-0">
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-200 text-slate-700 shrink-0">
                                 MRN-77312
                               </span>
                             </div>
-                            <p className="text-xs text-slate-500 truncate" title="Dr. Zhao • CEREC Crown Prep #3">
+                            <p className="text-xs text-slate-500 whitespace-nowrap" title="Dr. Zhao • CEREC Crown Prep #3">
                               Dr. Zhao • CEREC Crown Prep #3
                             </p>
                           </div>
@@ -1707,15 +1707,15 @@ export default function AdminDashboardPage() {
                         <Cpu className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-xs sm:text-sm font-extrabold text-slate-950 truncate">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="text-xs sm:text-sm font-extrabold text-slate-950 whitespace-nowrap">
                             Active Restorations in Chairs 1 & 3
                           </h4>
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-200/80 text-sky-900 shrink-0">
                             Mill #2 Milling
                           </span>
                         </div>
-                        <p className="text-xs text-slate-600 truncate mt-0.5" title="Glidewell Mill synced • Crown 3D scan generated via Pearl CAD">
+                        <p className="text-xs text-slate-600 mt-0.5" title="Glidewell Mill synced • Crown 3D scan generated via Pearl CAD">
                           Glidewell Mill synced • Crown 3D scan generated via Pearl CAD
                         </p>
                       </div>
@@ -1740,10 +1740,10 @@ export default function AdminDashboardPage() {
                         <AlertTriangle className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-extrabold text-rose-950 truncate">
+                        <p className="text-xs font-extrabold text-rose-950 whitespace-nowrap">
                           Urgent Requests Needing Review
                         </p>
-                        <p className="text-[11px] text-rose-800 truncate" title="Action required within 15 minutes to guarantee same-day slot">
+                        <p className="text-[11px] text-rose-800" title="Action required within 15 minutes to guarantee same-day slot">
                           Action required within 15 minutes to guarantee same-day slot
                         </p>
                       </div>
@@ -1766,8 +1766,8 @@ export default function AdminDashboardPage() {
                   <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4 min-w-0">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0">
-                        <h4 className="text-sm font-extrabold text-slate-950 truncate">Doctors On-Duty</h4>
-                        <p className="text-[11px] text-slate-500 truncate">Live operatory assignments</p>
+                        <h4 className="text-sm font-extrabold text-slate-950 whitespace-nowrap">Doctors On-Duty</h4>
+                        <p className="text-[11px] text-slate-500 whitespace-nowrap">Live operatory assignments</p>
                       </div>
                       <button
                         onClick={() => setOverviewNotice('Full clinic directory: 8 licensed UK dental surgeons.')}
@@ -1779,7 +1779,7 @@ export default function AdminDashboardPage() {
 
                     <div className="space-y-3">
                       {/* Doctor 1 */}
-                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-2 min-w-0">
+                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-3 min-w-0">
                         <div className="flex items-center space-x-3 min-w-0">
                           <img
                             src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=100&h=100&q=80"
@@ -1787,10 +1787,10 @@ export default function AdminDashboardPage() {
                             className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
                           />
                           <div className="min-w-0">
-                            <p className="text-xs font-extrabold text-slate-950 truncate" title="Dr. Sarah Jenkins">
+                            <p className="text-xs font-extrabold text-slate-950 whitespace-nowrap" title="Dr. Sarah Jenkins">
                               Dr. Sarah Jenkins
                             </p>
-                            <p className="text-[11px] text-slate-500 truncate" title="Lead Surgeon • Chair 1">
+                            <p className="text-[11px] text-slate-500 whitespace-nowrap" title="Lead Surgeon • Chair 1">
                               Lead Surgeon • Chair 1
                             </p>
                           </div>
@@ -1801,7 +1801,7 @@ export default function AdminDashboardPage() {
                       </div>
 
                       {/* Doctor 2 */}
-                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-2 min-w-0">
+                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-3 min-w-0">
                         <div className="flex items-center space-x-3 min-w-0">
                           <img
                             src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=100&h=100&q=80"
@@ -1809,10 +1809,10 @@ export default function AdminDashboardPage() {
                             className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
                           />
                           <div className="min-w-0">
-                            <p className="text-xs font-extrabold text-slate-950 truncate" title="Dr. Alex Vance">
+                            <p className="text-xs font-extrabold text-slate-950 whitespace-nowrap" title="Dr. Alex Vance">
                               Dr. Alex Vance
                             </p>
-                            <p className="text-[11px] text-slate-500 truncate" title="Orthodontics • Chair 2">
+                            <p className="text-[11px] text-slate-500 whitespace-nowrap" title="Orthodontics • Chair 2">
                               Orthodontics • Chair 2
                             </p>
                           </div>
@@ -1823,7 +1823,7 @@ export default function AdminDashboardPage() {
                       </div>
 
                       {/* Doctor 3 */}
-                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-2 min-w-0">
+                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-3 min-w-0">
                         <div className="flex items-center space-x-3 min-w-0">
                           <img
                             src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=100&h=100&q=80"
@@ -1831,10 +1831,10 @@ export default function AdminDashboardPage() {
                             className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
                           />
                           <div className="min-w-0">
-                            <p className="text-xs font-extrabold text-slate-950 truncate" title="Dr. Michael Zhao">
+                            <p className="text-xs font-extrabold text-slate-950 whitespace-nowrap" title="Dr. Michael Zhao">
                               Dr. Michael Zhao
                             </p>
-                            <p className="text-[11px] text-slate-500 truncate" title="Aesthetics • Chair 3">
+                            <p className="text-[11px] text-slate-500 whitespace-nowrap" title="Aesthetics • Chair 3">
                               Aesthetics • Chair 3
                             </p>
                           </div>
@@ -1845,7 +1845,7 @@ export default function AdminDashboardPage() {
                       </div>
 
                       {/* Doctor 4 */}
-                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-2 min-w-0">
+                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-3 min-w-0">
                         <div className="flex items-center space-x-3 min-w-0">
                           <img
                             src="https://images.unsplash.com/photo-1594824813576-2d93e1b12b59?auto=format&fit=crop&w=100&h=100&q=80"
@@ -1853,10 +1853,10 @@ export default function AdminDashboardPage() {
                             className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
                           />
                           <div className="min-w-0">
-                            <p className="text-xs font-extrabold text-slate-950 truncate" title="Dr. Emily Li">
+                            <p className="text-xs font-extrabold text-slate-950 whitespace-nowrap" title="Dr. Emily Li">
                               Dr. Emily Li
                             </p>
-                            <p className="text-[11px] text-slate-500 truncate" title="Pediatric • Chair 4">
+                            <p className="text-[11px] text-slate-500 whitespace-nowrap" title="Pediatric • Chair 4">
                               Pediatric • Chair 4
                             </p>
                           </div>
@@ -1885,16 +1885,18 @@ export default function AdminDashboardPage() {
                         <div className="w-[84%] h-full bg-sky-600 rounded-full"></div>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs text-slate-600 font-semibold pt-1">
-                        <div className="flex items-center space-x-1.5 truncate">
+                      <div className="grid grid-cols-3 gap-2 text-[11px] sm:text-xs font-semibold text-slate-600 pt-1">
+                        <div className="flex items-center space-x-1.5 whitespace-nowrap min-w-0">
                           <span className="w-2 h-2 rounded-full bg-sky-600 shrink-0"></span>
-                          <span className="truncate">Claims: £11,200</span>
+                          <span className="whitespace-nowrap">Claims: £11,200</span>
                         </div>
-                        <div className="flex items-center space-x-1.5 truncate">
+                        <div className="flex items-center space-x-1.5 whitespace-nowrap justify-center min-w-0">
                           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                          <span className="truncate">Copays: £7,250</span>
+                          <span className="whitespace-nowrap">Copays: £7,250</span>
                         </div>
-                        <span className="font-extrabold text-sky-700 shrink-0">84% Goal</span>
+                        <div className="text-right whitespace-nowrap min-w-0">
+                          <span className="font-extrabold text-sky-700">84% Goal</span>
+                        </div>
                       </div>
                     </div>
                   </div>

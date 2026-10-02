@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { useClinic } from '@/context/ClinicContext';
 import { generateGroundingResponse, AIResponseResult } from '@/lib/ai-engine';
 import { ReasoningStep } from '@/types/clinic';
@@ -33,6 +34,7 @@ interface ChatMessage {
 }
 
 export const ChatDrawer: React.FC = () => {
+  const pathname = usePathname();
   const {
     isChatDrawerOpen,
     closeChatDrawer,
@@ -147,6 +149,10 @@ export const ChatDrawer: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  if (pathname?.startsWith('/admin-dashboard')) {
+    return null;
+  }
 
   return (
     <>
