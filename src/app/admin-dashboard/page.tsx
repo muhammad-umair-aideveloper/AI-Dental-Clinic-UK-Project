@@ -262,7 +262,7 @@ export default function AdminDashboardPage() {
       const result = generateGroundingResponse(q, {
         services,
         companyDetails: localCompany,
-        clinicPolicies: {
+        policies: {
           refundPolicy: localPolicies.refundPolicy,
           cancellationPolicy: localPolicies.cancellationPolicy,
           additionalPolicies: localPolicies.additionalPoliciesText
@@ -271,7 +271,7 @@ export default function AdminDashboardPage() {
             .filter(Boolean),
         },
         faqs,
-        aiSettings,
+        guardrails: aiSettings,
         providerSettings: {
           activeProvider: localProvider,
           geminiApiKey: localGeminiKey,
