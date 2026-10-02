@@ -71,63 +71,69 @@ export const VertexDifference: React.FC = () => {
   ];
 
   return (
-    <section id="why-choose-us" className="py-20 lg:py-28 bg-white text-slate-900 border-b border-slate-200 scroll-mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="why-choose-us" className="py-20 lg:py-28 bg-[#F8F9FA] text-slate-900 border-b border-slate-200/80 scroll-mt-16 relative overflow-hidden">
+      {/* Ambient glass glows */}
+      <div className="absolute top-1/3 left-10 w-96 h-96 bg-sky-200/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-slate-200/40 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-bold mb-3 uppercase tracking-wider">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/90 shadow-2xs text-slate-800 text-xs font-bold mb-3 uppercase tracking-[0.18em]">
             <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
-            <span>The Vertex Clinical Difference</span>
+            <span>THE VERTEX CLINICAL DIFFERENCE</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Why Patients Across London and the UK Trust Us
+          <h2 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight leading-tight uppercase font-sans">
+            Why Patients Across The UK Choose Us
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-slate-600">
+          <p className="mt-4 text-base sm:text-lg text-slate-700 font-medium">
             Four foundational pillars that bridge clinical surgery, high-precision laboratory engineering, and patient comfort.
           </p>
         </div>
 
-        {/* 4-Pillar Grid */}
+        {/* 4-Pillar Grid with Frosted Glassmorphism & High-Contrast Visible Text */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {pillars.map((pillar, idx) => {
             const Icon = pillar.icon;
             return (
               <div
                 key={idx}
-                className="relative rounded-3xl bg-slate-50 border border-slate-200/90 p-8 transition-all duration-300 hover:shadow-xl hover:border-sky-300 hover:bg-white group"
+                className="relative rounded-[28px] bg-white/80 backdrop-blur-xl border border-white/95 p-8 transition-all duration-300 hover:shadow-[0_20px_45px_rgba(0,0,0,0.07)] hover:border-slate-300 hover:bg-white/95 group"
               >
+                {/* Specular Glare */}
+                <div className="absolute inset-0 rounded-[28px] bg-gradient-to-b from-white/40 via-transparent to-transparent pointer-events-none" />
+
                 {/* Header with Number and Icon */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-6 relative z-10">
                   <div className="flex items-center space-x-4">
-                    <span className="text-4xl font-black tracking-tighter text-slate-300 group-hover:text-sky-600 transition-colors">
+                    <span className="text-4xl sm:text-5xl font-black tracking-tighter text-slate-300 group-hover:text-slate-900 transition-colors">
                       {pillar.num}
                     </span>
-                    <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-900 group-hover:bg-sky-600 group-hover:text-white transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-900 group-hover:bg-slate-950 group-hover:text-white transition-all">
                       <Icon className="w-6 h-6" />
                     </div>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-white text-slate-700 border border-slate-200 group-hover:border-sky-200 group-hover:text-sky-700">
+                  <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-slate-900 text-white shadow-2xs">
                     {pillar.badge}
                   </span>
                 </div>
 
-                <h3 className="text-xl font-bold text-slate-900 group-hover:text-sky-700 transition-colors">
+                <h3 className="text-xl sm:text-2xl font-black text-slate-950 group-hover:text-sky-700 transition-colors relative z-10 font-sans">
                   {pillar.title}
                 </h3>
-                <p className="text-xs font-semibold text-sky-600 mt-1 uppercase tracking-wide">
+                <p className="text-xs font-bold text-sky-700 mt-1 uppercase tracking-wider relative z-10">
                   {pillar.subtitle}
                 </p>
 
-                <p className="mt-3.5 text-sm text-slate-600 leading-relaxed">
+                <p className="mt-4 text-xs sm:text-sm text-slate-700 font-medium leading-relaxed relative z-10">
                   {pillar.description}
                 </p>
 
-                {/* Checklist */}
-                <div className="mt-6 pt-5 border-t border-slate-200/80 space-y-2.5">
-                  {pillar.points.map((pt, ptIdx) => (
-                    <div key={ptIdx} className="flex items-center space-x-2.5 text-xs text-slate-700">
+                <div className="mt-6 pt-5 border-t border-slate-200/80 space-y-2.5 relative z-10">
+                  {pillar.points.map((pt, pIdx) => (
+                    <div key={pIdx} className="flex items-center space-x-2.5">
                       <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>{pt}</span>
+                      <span className="text-xs font-semibold text-slate-800">{pt}</span>
                     </div>
                   ))}
                 </div>
