@@ -371,8 +371,8 @@ We have dedicated private patient parking facilities available upon advance rese
   // 8. FAQ Exact / Semantic Matching
   for (const faq of faqs) {
     const faqQ = faq.question.toLowerCase();
-    const keywords = faqQ.replace(/[^a-z0-9 ]/g, '').split(' ').filter(w => w.length > 3);
-    const matches = keywords.filter(w => q.includes(w));
+    const keywords = faqQ.replace(/[^a-z0-9 ]/g, '').split(' ').filter((w: string) => w.length > 3);
+    const matches = keywords.filter((w: string) => q.includes(w));
     if (matches.length >= 2 || q.includes(faqQ)) {
       reasoningTrace.push({
         step: 3,

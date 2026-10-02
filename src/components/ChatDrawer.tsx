@@ -98,9 +98,9 @@ export const ChatDrawer: React.FC = () => {
         const result: AIResponseResult = generateGroundingResponse(text, {
           services,
           companyDetails,
-          clinicPolicies,
+          policies: clinicPolicies,
           faqs,
-          aiSettings,
+          guardrails: aiSettings,
           approvalPolicy,
           providerSettings: aiProviderSettings,
         });
@@ -110,10 +110,10 @@ export const ChatDrawer: React.FC = () => {
         const aiMsg: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: result.replyText,
+          text: result.reply,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           reasoningTrace: result.reasoningTrace,
-          groundedSources: result.groundedSources,
+          groundedSources: result.sourceGrounded,
           actionType: result.actionType,
           actionPayload: result.actionPayload,
           isEmergencyAlert: isPainQuery || result.isEmergencyAlert,
