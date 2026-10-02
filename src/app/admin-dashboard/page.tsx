@@ -1528,7 +1528,7 @@ export default function AdminDashboardPage() {
 
                             {/* Response Bubble */}
                             <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 leading-relaxed">
-                              {item.response.replyText}
+                              {item.response.reply}
                             </div>
 
                             {/* Chain of Thought Reasoning Trace */}
@@ -1548,7 +1548,7 @@ export default function AdminDashboardPage() {
 
                               {/* Grounded Sources */}
                               <div className="pt-2 border-t border-sky-200/60 text-[10px] text-sky-800 font-semibold">
-                                Grounded Sources: {item.response.groundedSources.join(' • ')}
+                                Grounded Sources: {item.response.sourceGrounded.join(' • ')}
                               </div>
                             </div>
                           </div>

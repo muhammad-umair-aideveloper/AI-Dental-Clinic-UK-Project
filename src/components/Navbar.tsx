@@ -324,7 +324,7 @@ export const Navbar: React.FC = () => {
               </p>
               <div className="p-3.5 rounded-xl bg-slate-950 text-white space-y-2">
                 <p className="text-xs font-bold text-slate-200">Central London Clinic</p>
-                <p className="text-[11px] text-slate-400 leading-snug">{companyDetails.address}</p>
+                <p className="text-[11px] text-slate-400 leading-snug">{companyDetails.clinicalAddress}</p>
                 <div className="pt-2 flex items-center justify-between border-t border-slate-800">
                   <span className="text-[11px] text-emerald-400 font-semibold">Triage Open</span>
                   <a
