@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useClinic } from '@/context/ClinicContext';
 import { generateGroundingResponse, AIResponseResult } from '@/lib/ai-engine';
 import { ServiceCategory, AIProvider } from '@/types/clinic';
@@ -51,6 +52,7 @@ import {
   Layers,
   Pencil,
   RotateCcw,
+  LogOut,
 } from 'lucide-react';
 
 interface SimulatedMessage {
@@ -85,7 +87,15 @@ export default function AdminDashboardPage() {
     approvalPolicy,
     updateApprovalPolicy,
     resetToDefaults,
+    logout,
   } = useClinic();
+
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
 
   // Navigation matching Image 2 & 3:
   // Overview | Appointments | Services Catalog | AI Chatbot Studio | Patients
@@ -644,6 +654,17 @@ export default function AdminDashboardPage() {
                   <p className="text-xs font-bold text-slate-900 leading-tight">Dr. Sarah Jenkins</p>
                   <p className="text-[10px] text-slate-500">Downtown Clinic</p>
                 </div>
+
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center space-x-1.5 ml-1.5 px-2.5 py-1.5 rounded-xl text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-all text-xs font-bold shrink-0"
+                  title="Sign Out / Log Out"
+                  aria-label="Logout"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
               </div>
             </div>
           </header>
@@ -2491,68 +2512,6 @@ export default function AdminDashboardPage() {
                       placeholder="e.g., Fasting 2h prior if sedation requested"
                       className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
                     />
-                  </div>
-
-                  {/* Assigned Care Providers */}
-                  <div className="space-y-2 pt-1">
-                    <label className="font-bold text-slate-700">Assigned Care Providers</label>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {['Dr. S. Jenkins', 'Dr. M. Zhao', 'Dr. A. Vance', 'Hygienist Pool'].map(provider => (
-                        <label
-                          key={provider}
-                          className="flex items-center space-x-2 p-2 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={serviceForm.assignedProviders.includes(provider)}
-                            onChange={e => {
-                              if (e.target.checked) {
-                                setServiceForm({
-                                  ...serviceForm,
-                                  assignedProviders: [...serviceForm.assignedProviders, provider],
-                                });
-                              } else {
-                                setServiceForm({
-                                  ...serviceForm,
-                                  assignedProviders: serviceForm.assignedProviders.filter(p => p !== provider),
-                                });
-                              }
-                            }}
-                            className="rounded text-sky-600 focus:ring-sky-500 w-4 h-4"
-                          />
-                          <span className="font-medium text-slate-800">{provider}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Feature Toggles */}
-                  <div className="space-y-2 pt-2 border-t border-slate-100">
-                    <label className="flex items-start space-x-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100">
-                      <input
-                        type="checkbox"
-                        checked={serviceForm.onlineBookable}
-                        onChange={e => setServiceForm({ ...serviceForm, onlineBookable: e.target.checked })}
-                        className="mt-0.5 rounded text-sky-600 focus:ring-sky-500 w-4 h-4"
-                      />
-                      <div>
-                        <p className="font-bold text-slate-900">Patient Portal Online Booking</p>
-                        <p className="text-[11px] text-slate-500">Allows direct patient self-scheduling</p>
-                      </div>
-                    </label>
-
-                    <label className="flex items-start space-x-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100">
-                      <input
-                        type="checkbox"
-                        checked={serviceForm.botRecommended}
-                        onChange={e => setServiceForm({ ...serviceForm, botRecommended: e.target.checked })}
-                        className="mt-0.5 rounded text-sky-600 focus:ring-sky-500 w-4 h-4"
-                      />
-                      <div>
-                        <p className="font-bold text-slate-900">AI Chatbot Recommended</p>
-                        <p className="text-[11px] text-slate-500">Included in conversational triage queries</p>
-                      </div>
-                    </label>
                   </div>
 
                   {/* Action Buttons */}
