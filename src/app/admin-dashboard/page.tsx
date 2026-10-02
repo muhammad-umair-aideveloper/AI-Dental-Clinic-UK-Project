@@ -91,6 +91,8 @@ export default function AdminDashboardPage() {
   const [aptSearch, setAptSearch] = useState('');
   const [aptFilterTab, setAptFilterTab] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('pending');
   const [selectedPractitioner, setSelectedPractitioner] = useState('All');
+  const [flowTab, setFlowTab] = useState<'all' | 'in-chair' | 'upcoming' | 'completed'>('in-chair');
+  const [overviewNotice, setOverviewNotice] = useState<string | null>(null);
 
   // Manual Booking Modal
   const [manualModalOpen, setManualModalOpen] = useState(false);
@@ -380,7 +382,7 @@ export default function AdminDashboardPage() {
                   <span>Services Catalog</span>
                 </button>
 
-                {/* 4. AI Chatbot Studio (matching reference image) */}
+                {/* 4. AI Chatbot Studio */}
                 <button
                   onClick={() => setActiveNav('ai-studio')}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all ${
@@ -396,7 +398,16 @@ export default function AdminDashboardPage() {
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 </button>
 
-                {/* 5. Patients */}
+                {/* 5. Doctors & Staff (matching reference image) */}
+                <button
+                  onClick={() => setActiveNav('overview')}
+                  className="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all text-slate-600 hover:text-slate-950 hover:bg-slate-50"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Doctors & Staff</span>
+                </button>
+
+                {/* 6. Patients */}
                 <button
                   onClick={() => setActiveNav('patients')}
                   className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all ${
@@ -407,6 +418,15 @@ export default function AdminDashboardPage() {
                 >
                   <Users className="w-4 h-4" />
                   <span>Patients</span>
+                </button>
+
+                {/* 7. Settings */}
+                <button
+                  onClick={() => setActiveNav('ai-studio')}
+                  className="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl transition-all text-slate-600 hover:text-slate-950 hover:bg-slate-50"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Settings</span>
                 </button>
               </nav>
             </div>
