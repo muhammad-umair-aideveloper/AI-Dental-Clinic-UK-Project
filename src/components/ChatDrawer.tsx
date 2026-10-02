@@ -5,20 +5,16 @@ import { useClinic } from '@/context/ClinicContext';
 import { generateGroundingResponse, AIResponseResult } from '@/lib/ai-engine';
 import { ReasoningStep } from '@/types/clinic';
 import {
-  Sparkles,
   X,
   Send,
-  MessageSquare,
-  Phone,
-  Calendar,
-  ShieldCheck,
   RefreshCw,
   Brain,
   ChevronDown,
-  ChevronUp,
-  Cpu,
-  CheckCircle2,
-  AlertCircle,
+  ChevronRight,
+  Stethoscope,
+  Sparkles,
+  Phone,
+  Calendar,
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -31,6 +27,7 @@ interface ChatMessage {
   actionType?: 'book' | 'emergency' | 'whatsapp' | 'call' | 'none';
   actionPayload?: string;
   isEmergencyAlert?: boolean;
+  alertText?: string;
   appointmentApprovalStatus?: 'Auto-Approved' | 'Held for Manual Clinical Review' | 'Not Applicable';
   activeAgentEngine?: string;
 }
@@ -38,7 +35,6 @@ interface ChatMessage {
 export const ChatDrawer: React.FC = () => {
   const {
     isChatDrawerOpen,
-    openChatDrawer,
     closeChatDrawer,
     chatInitialMessage,
     services,
@@ -56,13 +52,9 @@ export const ChatDrawer: React.FC = () => {
     {
       id: 'm-1',
       sender: 'ai',
-      text: `Hello! I am the **Vertex Dental Lab AI Reasoning & Clinical Triage Assistant** for our London clinic.
-
-I reason through patient inquiries in real time by evaluating our verified website treatments, British clinical standards, and custom directives set by our clinic director.
-
-How can I assist your smile today?`,
+      text: "Hello! I'm Pearl from DentPulse Advanced Dental & Orthodontics. How can I assist you with your dental health or scheduling today?",
       timestamp: 'Just now',
-      groundedSources: ['Vertex Dental Lab Official Website', 'GDC Practice Standards'],
+      groundedSources: ['DentPulse Grounded Clinic Knowledge', 'GDC Clinical Guidelines'],
       activeAgentEngine: `${aiProviderSettings.activeProvider}`,
     },
   ]);
@@ -73,11 +65,10 @@ How can I assist your smile today?`,
   const lastProcessedInitialRef = useRef<string>('');
 
   const quickChips = [
-    'Book an appointment',
-    'Invisalign pricing?',
-    'I have an emergency toothache',
-    'Check cancellation policy',
-    'Can AI auto-approve my booking?',
+    'Do you accept MetLife?',
+    'Parking advice?',
+    'How much is Invisalign?',
+    'Emergency tooth pain',
   ];
 
   const toggleReasoning = (msgId: string) => {
@@ -104,317 +95,271 @@ How can I assist your smile today?`,
       setIsTyping(true);
 
       setTimeout(() => {
-        const response: AIResponseResult = generateGroundingResponse(text, {
+        const result: AIResponseResult = generateGroundingResponse(text, {
           services,
           companyDetails,
-          policies: clinicPolicies,
+          clinicPolicies,
           faqs,
-          guardrails: aiSettings,
+          aiSettings,
           approvalPolicy,
           providerSettings: aiProviderSettings,
         });
 
-        const newAiId = `ai-${Date.now()}`;
+        const isPainQuery = /pain|hurt|swelling|broken|emergency|antibiotic/i.test(text);
+
         const aiMsg: ChatMessage = {
-          id: newAiId,
+          id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: response.reply,
+          text: result.replyText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          reasoningTrace: response.reasoningTrace,
-          groundedSources: response.sourceGrounded,
-          actionType: response.actionType,
-          actionPayload: response.actionPayload,
-          isEmergencyAlert: response.isEmergencyAlert,
-          appointmentApprovalStatus: response.appointmentApprovalStatus,
-          activeAgentEngine: response.activeAgentEngine,
+          reasoningTrace: result.reasoningTrace,
+          groundedSources: result.groundedSources,
+          actionType: result.actionType,
+          actionPayload: result.actionPayload,
+          isEmergencyAlert: isPainQuery || result.isEmergencyAlert,
+          alertText: isPainQuery
+            ? 'Severe dental pain requires an immediate clinical evaluation by Dr. Sarah Jenkins.'
+            : undefined,
+          appointmentApprovalStatus: result.appointmentApprovalStatus,
+          activeAgentEngine: result.activeAgentEngine,
         };
 
         setMessages(prev => [...prev, aiMsg]);
-        // By default, open reasoning trace on the new message so user sees the reasoning tool in action
-        setExpandedReasoningIds(prev => ({ ...prev, [newAiId]: true }));
         setIsTyping(false);
-      }, 700);
+
+        // Auto expand reasoning trace for immediate inspection
+        setExpandedReasoningIds(prev => ({
+          ...prev,
+          [aiMsg.id]: true,
+        }));
+      }, 400);
     },
     [input, services, companyDetails, clinicPolicies, faqs, aiSettings, approvalPolicy, aiProviderSettings]
   );
 
   useEffect(() => {
-    if (chatInitialMessage && chatInitialMessage !== lastProcessedInitialRef.current) {
+    if (isChatDrawerOpen && chatInitialMessage && chatInitialMessage !== lastProcessedInitialRef.current) {
       lastProcessedInitialRef.current = chatInitialMessage;
       handleUserSend(chatInitialMessage);
     }
-  }, [chatInitialMessage, handleUserSend]);
+  }, [isChatDrawerOpen, chatInitialMessage, handleUserSend]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleActionClick = (msg: ChatMessage) => {
-    if (msg.actionType === 'book') {
-      closeChatDrawer();
-      openBookingModal(msg.actionPayload);
-    } else if (msg.actionType === 'emergency' || msg.actionType === 'call') {
-      window.open(`tel:${companyDetails.helplinePhone.replace(/\s+/g, '')}`, '_self');
-    } else if (msg.actionType === 'whatsapp') {
-      window.open(
-        `https://wa.me/${companyDetails.whatsappPhone.replace(/[^0-9]/g, '')}`,
-        '_blank'
-      );
-    }
-  };
-
   return (
-    <div className="fixed bottom-5 right-5 z-40">
-      {/* Floating Collapsed Button */}
+    <>
+      {/* Floating Trigger Button (Bottom Right) */}
       {!isChatDrawerOpen && (
         <button
-          onClick={() => openChatDrawer()}
-          className="group relative flex items-center space-x-3 px-4 py-3 rounded-full bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white shadow-2xl hover:shadow-sky-500/20 hover:scale-105 transition-all duration-200 border border-sky-400/40"
-          aria-label="Open AI Dental Assistant"
+          onClick={() => {
+            const drawer = document.getElementById('chat-drawer-container');
+            if (drawer) drawer.classList.remove('hidden');
+          }}
+          className="fixed bottom-6 right-6 z-40 p-4 rounded-full bg-sky-700 hover:bg-sky-800 text-white shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center space-x-2.5 border-2 border-white"
+          title="Open AI Clinical Concierge"
+          aria-label="Open AI Assistant"
         >
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-          </span>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white">
-            <Brain className="w-4 h-4 text-white" />
+          <div className="relative">
+            <Stethoscope className="w-5 h-5 text-white" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 absolute -top-1 -right-1 border-2 border-sky-700"></span>
           </div>
-          <div className="text-left">
-            <p className="text-xs font-bold leading-none flex items-center space-x-1">
-              <span>Vertex AI Agent</span>
-              <span className="px-1.5 py-0.2 rounded text-[9px] bg-sky-900 text-sky-300 font-mono font-normal">
-                {aiProviderSettings.activeProvider}
-              </span>
-            </p>
-            <p className="text-[10px] text-sky-200">Reasoning Triage Tool</p>
-          </div>
+          <span className="text-xs font-bold hidden sm:inline">AI Dental Concierge</span>
         </button>
       )}
 
-      {/* Expanded Chat Drawer */}
-      {isChatDrawerOpen && (
-        <div className="relative w-[350px] sm:w-[440px] h-[600px] max-h-[88vh] rounded-3xl bg-[#0f1420] text-slate-100 shadow-2xl border border-slate-700/80 flex flex-col overflow-hidden animate-fade-in font-sans">
-          {/* Top Bar - Stitch Style */}
-          <div className="px-4 py-3 bg-[#141b2b] text-white flex items-center justify-between border-b border-slate-700/70">
-            <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
-                <Brain className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold flex items-center space-x-1.5">
-                  <span>Vertex AI Reasoning Tool</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                </h4>
-                <p className="text-[10px] text-sky-300 font-mono flex items-center space-x-1">
-                  <Cpu className="w-3 h-3" />
-                  <span>Powered by {aiProviderSettings.activeProvider} Engine</span>
-                </p>
-              </div>
+      {/* Slide-out / Modal Drawer container */}
+      <div
+        id="chat-drawer-container"
+        className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[460px] shadow-2xl transition-transform duration-300 flex flex-col bg-white border-l border-slate-200 ${
+          isChatDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {/* Header matching Reference Image */}
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full bg-sky-700 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+              <Stethoscope className="w-5 h-5" />
             </div>
-
-            <div className="flex items-center space-x-1">
-              <button
-                onClick={() => {
-                  setMessages([messages[0]]);
-                  setExpandedReasoningIds({});
-                }}
-                title="Reset conversation"
-                className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => closeChatDrawer()}
-                className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <div>
+              <h4 className="font-extrabold text-sm text-slate-950 leading-tight">
+                Live Chatbot Preview
+              </h4>
+              <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                Pearl Digital Concierge • <span className="text-emerald-600 font-semibold">Clinical Guardrails Active</span>
+              </p>
             </div>
           </div>
 
-          {/* Quick-Action Chips */}
-          <div className="px-3 py-2 bg-[#101623] border-b border-slate-800 flex gap-1.5 overflow-x-auto no-scrollbar">
-            {quickChips.map((chip, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleUserSend(chip)}
-                className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#1a2336] border border-slate-700 text-slate-300 hover:border-sky-400 hover:text-sky-300 hover:bg-[#202b42] transition-colors"
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
-
-          {/* Messages Feed */}
-          <div className="flex-1 p-3.5 overflow-y-auto space-y-4 text-xs bg-[#0b0f17]">
-            {messages.map(m => {
-              const isAi = m.sender === 'ai';
-              const showReasoning = expandedReasoningIds[m.id];
-              return (
-                <div
-                  key={m.id}
-                  className={`flex flex-col ${isAi ? 'items-start' : 'items-end'}`}
-                >
-                  <div
-                    className={`max-w-[92%] rounded-2xl p-3.5 shadow-md ${
-                      isAi
-                        ? m.isEmergencyAlert
-                          ? 'bg-red-950/80 text-red-100 border border-red-800'
-                          : 'bg-[#151c2c] text-slate-200 border border-slate-700/80'
-                        : 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white'
-                    }`}
-                  >
-                    {/* Header for AI response showing Engine */}
-                    {isAi && (
-                      <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-700/60 text-[10px] text-slate-400">
-                        <span className="flex items-center space-x-1 text-sky-400 font-mono">
-                          <Cpu className="w-3 h-3" />
-                          <span>{m.activeAgentEngine || aiProviderSettings.activeProvider}</span>
-                        </span>
-                        {m.appointmentApprovalStatus && (
-                          <span
-                            className={`px-1.5 py-0.2 rounded font-semibold ${
-                              m.appointmentApprovalStatus === 'Auto-Approved'
-                                ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                                : 'bg-amber-950 text-amber-300 border border-amber-800'
-                            }`}
-                          >
-                            {m.appointmentApprovalStatus}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* AI Clinical Reasoning Trace Dropdown (Chain-of-Thought) */}
-                    {isAi && m.reasoningTrace && m.reasoningTrace.length > 0 && (
-                      <div className="mb-3 rounded-xl bg-[#0d121c] border border-slate-700/80 overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={() => toggleReasoning(m.id)}
-                          className="w-full px-2.5 py-1.5 text-left text-[11px] font-bold text-sky-300 bg-[#121927] hover:bg-[#162032] flex items-center justify-between transition-colors"
-                        >
-                          <span className="flex items-center space-x-1.5">
-                            <Brain className="w-3.5 h-3.5 text-sky-400" />
-                            <span>🧠 AI Reasoning & Context Trace</span>
-                          </span>
-                          {showReasoning ? (
-                            <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
-                          ) : (
-                            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                          )}
-                        </button>
-
-                        {showReasoning && (
-                          <div className="p-2.5 space-y-2 text-[10px] text-slate-300 font-mono border-t border-slate-800 bg-[#0a0e17]">
-                            {m.reasoningTrace.map(step => (
-                              <div key={step.step} className="space-y-0.5">
-                                <p className="font-bold text-sky-400 flex items-center space-x-1">
-                                  <span>Step {step.step}: {step.title}</span>
-                                </p>
-                                <p className="text-slate-400 leading-relaxed pl-2 border-l border-slate-700">
-                                  {step.detail}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Primary Reply Text */}
-                    <div className="whitespace-pre-line leading-relaxed text-xs">
-                      {m.text}
-                    </div>
-
-                    {/* Grounded Source Tag */}
-                    {isAi && m.groundedSources && m.groundedSources.length > 0 && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-700/60 flex items-center space-x-1 text-[9px] text-slate-400 font-mono">
-                        <ShieldCheck className="w-3 h-3 text-sky-400 shrink-0" />
-                        <span className="truncate">Grounded in: {m.groundedSources.join(' • ')}</span>
-                      </div>
-                    )}
-
-                    {/* Dynamic Action Buttons */}
-                    {isAi && m.actionType && m.actionType !== 'none' && (
-                      <div className="mt-3 pt-2.5 border-t border-slate-700/60">
-                        {m.actionType === 'book' && (
-                          <button
-                            onClick={() => handleActionClick(m)}
-                            className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:opacity-95 text-white text-[11px] font-bold flex items-center justify-center space-x-1.5 transition-all shadow-md active:scale-95"
-                          >
-                            <Calendar className="w-3.5 h-3.5" />
-                            <span>Launch Instant Booking Calendar</span>
-                          </button>
-                        )}
-
-                        {m.actionType === 'emergency' && (
-                          <button
-                            onClick={() => handleActionClick(m)}
-                            className="w-full py-2 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold flex items-center justify-center space-x-1.5 transition-colors shadow-md"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                            <span>Call Emergency Hotline ({companyDetails.helplinePhone})</span>
-                          </button>
-                        )}
-
-                        {m.actionType === 'whatsapp' && (
-                          <button
-                            onClick={() => handleActionClick(m)}
-                            className="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold flex items-center justify-center space-x-1.5 transition-colors shadow-md"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            <span>Message on WhatsApp</span>
-                          </button>
-                        )}
-
-                        {m.actionType === 'call' && (
-                          <button
-                            onClick={() => handleActionClick(m)}
-                            className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold flex items-center justify-center space-x-1.5 transition-colors border border-slate-700"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                            <span>Call Clinic Reception ({companyDetails.helplinePhone})</span>
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-[9px] text-slate-500 mt-1 px-1">{m.timestamp}</span>
-                </div>
-              );
-            })}
-
-            {isTyping && (
-              <div className="flex items-center space-x-2 p-2.5 rounded-xl bg-[#151c2c] border border-slate-700 text-sky-400 text-xs w-44">
-                <Brain className="w-4 h-4 animate-spin text-sky-400" />
-                <span className="text-[11px] text-slate-300">Reasoning over website data...</span>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Bar */}
-          <div className="p-3 bg-[#141b2b] border-t border-slate-700/70 flex items-center space-x-2">
-            <input
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') handleUserSend();
-              }}
-              placeholder={`Ask ${aiProviderSettings.activeProvider} reasoning tool...`}
-              className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#0b0f17] border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
-            />
+          <div className="flex items-center space-x-1.5">
             <button
-              onClick={() => handleUserSend()}
-              disabled={!input.trim()}
-              className="p-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:opacity-90 disabled:opacity-50 text-white transition-all shadow-md"
+              onClick={() => {
+                setMessages([messages[0]]);
+                setExpandedReasoningIds({});
+              }}
+              title="Reset conversation"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
             >
-              <Send className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <button
+              onClick={closeChatDrawer}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Model & Latency Bar matching Reference Image */}
+        <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+          <span className="flex items-center space-x-1.5">
+            <span className="w-2 h-2 rounded-full bg-sky-600"></span>
+            <span>Model: DentPulse RAG Clinical ({aiProviderSettings.activeProvider})</span>
+          </span>
+          <span>Latency: 142ms</span>
+        </div>
+
+        {/* Messages Body */}
+        <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[#F8FAFC]">
+          {/* Centered Session Pill */}
+          <div className="flex justify-center">
+            <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-slate-200/70 text-slate-600">
+              Today • Clinical Session Initialized
+            </span>
+          </div>
+
+          {messages.map(m => {
+            if (m.sender === 'user') {
+              return (
+                <div key={m.id} className="flex items-end justify-end space-x-2">
+                  <div className="max-w-[85%] p-3.5 rounded-2xl rounded-br-xs bg-[#0A2540] text-white text-xs leading-relaxed shadow-sm">
+                    {m.text}
+                  </div>
+                  <span className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0">
+                    PT
+                  </span>
+                </div>
+              );
+            }
+
+            // AI Bot Message
+            const isTraceExpanded = expandedReasoningIds[m.id];
+            return (
+              <div key={m.id} className="flex items-start space-x-2.5">
+                <span className="w-8 h-8 rounded-full bg-sky-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                  P
+                </span>
+                <div className="max-w-[88%] space-y-2">
+                  {/* Message Bubble */}
+                  <div className="p-3.5 rounded-2xl rounded-tl-xs bg-white border border-slate-200 text-xs text-slate-800 leading-relaxed shadow-xs space-y-2.5">
+                    <p>{m.text}</p>
+
+                    {/* Red Clinical Guardrail Alert Callout (matching Reference Image) */}
+                    {m.isEmergencyAlert && (
+                      <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 flex items-start space-x-2">
+                        <span className="text-rose-600 font-bold text-sm leading-none mt-0.5">*</span>
+                        <p className="text-[11px] font-semibold leading-snug">
+                          {m.alertText || 'Severe dental pain requires an immediate clinical evaluation by Dr. Sarah Jenkins.'}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Action buttons if booking is recommended */}
+                    {m.actionType === 'book' && (
+                      <div className="pt-2">
+                        <button
+                          onClick={() => openBookingModal(m.actionPayload)}
+                          className="w-full py-2 px-3 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-xs"
+                        >
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>Reserve Slot Now</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Chain of Thought Reasoning Trace Accordion */}
+                  {m.reasoningTrace && m.reasoningTrace.length > 0 && (
+                    <div className="p-2.5 rounded-xl bg-sky-50/80 border border-sky-200/90 text-[11px] text-slate-700 space-y-1.5">
+                      <button
+                        type="button"
+                        onClick={() => toggleReasoning(m.id)}
+                        className="font-bold text-sky-950 flex items-center justify-between w-full"
+                      >
+                        <span className="flex items-center space-x-1.5">
+                          <Brain className="w-3.5 h-3.5 text-sky-600" />
+                          <span>🧠 Chain-of-Thought Reasoning Trace ({m.reasoningTrace.length} Steps)</span>
+                        </span>
+                        {isTraceExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                      </button>
+
+                      {isTraceExpanded && (
+                        <div className="pt-2 border-t border-sky-200/70 space-y-1.5 text-[10px]">
+                          {m.reasoningTrace.map((st, i) => (
+                            <p key={i}>
+                              <strong className="text-sky-950">Step {st.step} ({st.title}):</strong> {st.detail}
+                            </p>
+                          ))}
+                          {m.groundedSources && (
+                            <p className="text-slate-500 font-semibold pt-1 border-t border-sky-200/50">
+                              Grounded Sources: {m.groundedSources.join(' • ')}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {isTyping && (
+            <div className="flex items-center space-x-2 text-xs text-slate-500 pl-10">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-600" />
+              <span>Pearl is reasoning through clinical guidelines...</span>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Quick Prompts Row matching Reference Image */}
+        <div className="p-2.5 px-4 bg-white border-t border-slate-100 flex items-center space-x-2 overflow-x-auto no-scrollbar text-xs">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+            TEST PROMPTS:
+          </span>
+          {quickChips.map((chip, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleUserSend(chip)}
+              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium whitespace-nowrap"
+            >
+              &ldquo;{chip}&rdquo;
+            </button>
+          ))}
+        </div>
+
+        {/* Input Bar matching Reference Image */}
+        <div className="p-3 bg-white border-t border-slate-200 flex items-center space-x-2">
+          <input
+            type="text"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleUserSend()}
+            placeholder="Type a prompt to test bot safety guidelines..."
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+          />
+          <button
+            onClick={() => handleUserSend()}
+            disabled={isTyping || !input.trim()}
+            className="w-10 h-10 rounded-xl bg-sky-700 hover:bg-sky-800 disabled:opacity-50 text-white flex items-center justify-center transition-colors shadow-xs"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </>
   );
 };
