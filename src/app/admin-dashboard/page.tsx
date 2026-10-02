@@ -1237,22 +1237,668 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
+          {/* ======================================================== */}
+          {/* OVERVIEW SECTION (EXACT MATCH TO USER REFERENCE IMAGE)   */}
+          {/* CRITICAL: NO TEXT OVERFLOW! (truncate, min-w-0, shrink-0)*/}
+          {/* ======================================================== */}
           {activeNav === 'overview' && (
-            <div className="p-6 sm:p-8 space-y-6 max-w-7xl mx-auto w-full animate-fade-in">
-              <h1 className="text-2xl font-black text-slate-950">Executive Clinic Overview</h1>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                  <span className="text-xs font-bold text-slate-500 uppercase">Active Patients</span>
-                  <p className="text-3xl font-black text-slate-950 mt-1">384</p>
+            <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1550px] mx-auto w-full animate-fade-in">
+              
+              {/* Notice Toast */}
+              {overviewNotice && (
+                <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs font-semibold flex items-center justify-between shadow-lg">
+                  <span className="flex items-center space-x-2 min-w-0">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="truncate">{overviewNotice}</span>
+                  </span>
+                  <button onClick={() => setOverviewNotice(null)} className="text-slate-400 hover:text-white ml-2 shrink-0">
+                    ✕
+                  </button>
                 </div>
-                <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                  <span className="text-xs font-bold text-slate-500 uppercase">AI Auto-Triage Accuracy</span>
-                  <p className="text-3xl font-black text-slate-950 mt-1">98.4%</p>
+              )}
+
+              {/* Top Banner Card: Welcome, Clinic Sub-bar & Action Buttons */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+                <div className="space-y-2 min-w-0">
+                  {/* Top Badges */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center space-x-1.5 shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>Online Bookings Active</span>
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-800 border border-sky-200 flex items-center space-x-1.5 shrink-0">
+                      <ShieldCheck className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                      <span>Pearl AI Guardrails Operational</span>
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                      MRN HUB: V3.22
+                    </span>
+                  </div>
+
+                  {/* Main Welcome Heading */}
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight truncate" title="Good morning, Dr. Jenkins">
+                    Good morning, Dr. Jenkins
+                  </h1>
+
+                  {/* Sub-bar (Clinic, Date, Operatories) */}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 font-medium">
+                    <span className="flex items-center space-x-1.5 truncate">
+                      <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="truncate">{clinicProfile.clinicName}</span>
+                    </span>
+                    <span className="text-slate-300 hidden sm:inline">•</span>
+                    <span className="flex items-center space-x-1.5 shrink-0">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>Monday, October 24</span>
+                    </span>
+                    <span className="text-slate-300 hidden sm:inline">•</span>
+                    <span className="flex items-center space-x-1.5 text-emerald-700 font-bold shrink-0">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                      <span>6 Operatories Online</span>
+                    </span>
+                  </div>
                 </div>
-                <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                  <span className="text-xs font-bold text-slate-500 uppercase">CAD/CAM Restorations</span>
-                  <p className="text-3xl font-black text-slate-950 mt-1">42 Units</p>
+
+                {/* Right Action Buttons matching Reference Image */}
+                <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                  {/* Emergency Walk-In (Red Button) */}
+                  <button
+                    onClick={() => {
+                      setManualForm({
+                        ...manualForm,
+                        serviceName: '24/7 Emergency Dental Care',
+                        chiefComplaint: 'Acute pain / emergency walk-in patient.',
+                      });
+                      setManualModalOpen(true);
+                    }}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-rose-700 hover:bg-rose-800 shadow-xs flex items-center space-x-1.5 transition-all shrink-0 active:scale-95"
+                  >
+                    <span className="text-sm font-black leading-none">*</span>
+                    <span>Emergency Walk-In</span>
+                  </button>
+
+                  {/* Add Patient */}
+                  <button
+                    onClick={() => setManualModalOpen(true)}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 flex items-center space-x-1.5 transition-all shrink-0 active:scale-95"
+                  >
+                    <Users className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <span>Add Patient</span>
+                  </button>
+
+                  {/* New Appointment (Dark Blue Button) */}
+                  <button
+                    onClick={() => setManualModalOpen(true)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-700 hover:bg-sky-800 shadow-xs flex items-center space-x-1.5 transition-all shrink-0 active:scale-95"
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-white shrink-0" />
+                    <span>New Appointment</span>
+                  </button>
                 </div>
+              </div>
+
+              {/* 4 Metric Cards Row (matching reference image) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                {/* 1. Scheduled Today */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3 min-w-0">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <span className="truncate">SCHEDULED TODAY</span>
+                    <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                      <Calendar className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-950">32</span>
+                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded-md">
+                      +12%
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="w-1/4 h-full bg-sky-600 rounded-full"></div>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                      <span>8 Completed</span>
+                      <span>24 Remaining</span>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
+                    <span className="flex items-center space-x-1 text-rose-600 font-semibold truncate">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                      <span className="truncate">4 Emergency Reserved</span>
+                    </span>
+                    <span className="font-bold text-slate-700 shrink-0">Full Book</span>
+                  </div>
+                </div>
+
+                {/* 2. Urgent Triage & Intake */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3 min-w-0">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <span className="truncate">URGENT TRIAGE & INTAKE</span>
+                    <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                      <Activity className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-950">5</span>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-rose-100 text-rose-700">
+                      Priority
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-500 flex items-center space-x-1 truncate">
+                        <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className="truncate">Avg Response Time</span>
+                      </span>
+                      <span className="font-bold text-slate-900 shrink-0">1.8 mins</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-500 flex items-center space-x-1 truncate">
+                        <Bot className="w-3 h-3 text-sky-500 shrink-0" />
+                        <span className="truncate">AI Pre-Qualified</span>
+                      </span>
+                      <span className="font-bold text-slate-900 shrink-0">3 cases</span>
+                    </div>
+                  </div>
+                  <div className="w-full h-1 bg-rose-500/80 rounded-full"></div>
+                </div>
+
+                {/* 3. Chair Utilization */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3 min-w-0">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <span className="truncate">CHAIR UTILIZATION</span>
+                    <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                      <Stethoscope className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-950">83%</span>
+                    <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md">
+                      Peak Flow
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-300 shrink-0"></span>
+                      <span className="text-[11px] text-slate-600 font-semibold pl-1 truncate">5 of 6 active</span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-500 truncate pt-1 border-t border-slate-100" title="Chair 4 hygiene turnover in 15m">
+                    Chair 4 hygiene turnover in 15m
+                  </p>
+                </div>
+
+                {/* 4. Pearl AI Concierge */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3 min-w-0">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <span className="truncate">PEARL AI CONCIERGE</span>
+                    <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline space-x-1.5">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-950">148</span>
+                    <span className="text-xs text-slate-500">inquiries</span>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-500 truncate">Automated Resolution</span>
+                      <span className="font-bold text-slate-900 shrink-0">94.2%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-500 truncate">Escalated to Desk: 6</span>
+                      <span className="font-bold text-emerald-600 shrink-0">+12 Bookings</span>
+                    </div>
+                  </div>
+                  <div className="w-full h-1 bg-sky-600/80 rounded-full"></div>
+                </div>
+
+              </div>
+
+              {/* Main Two-Column Layout matching Reference Image: Left Flow (8 cols) + Right Doctors & Revenue (4 cols) */}
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                
+                {/* ---------------------------------------------------- */}
+                {/* LEFT COLUMN: Operatory & Patient Flow (approx 65%)   */}
+                {/* ---------------------------------------------------- */}
+                <div className="xl:col-span-8 space-y-5 min-w-0">
+                  
+                  {/* Operatory & Patient Flow Card */}
+                  <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-5 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <h3 className="text-base font-extrabold text-slate-950 truncate">
+                            Operatory & Patient Flow
+                          </h3>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5 truncate">
+                          Real-time chair synchronization & schedule tracking
+                        </p>
+                      </div>
+
+                      {/* Filter Tabs matching Reference: All (32) | In-Chair (5) | Upcoming (18) | Completed (9) */}
+                      <div className="flex items-center space-x-1 p-1 bg-slate-100 rounded-xl text-xs overflow-x-auto no-scrollbar shrink-0">
+                        <button
+                          onClick={() => setFlowTab('all')}
+                          className={`px-3 py-1 rounded-lg font-bold transition-all shrink-0 ${
+                            flowTab === 'all' ? 'bg-white text-slate-950 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          All (32)
+                        </button>
+                        <button
+                          onClick={() => setFlowTab('in-chair')}
+                          className={`px-3 py-1 rounded-lg font-bold transition-all shrink-0 ${
+                            flowTab === 'in-chair' ? 'bg-white text-slate-950 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          In-Chair (5)
+                        </button>
+                        <button
+                          onClick={() => setFlowTab('upcoming')}
+                          className={`px-3 py-1 rounded-lg font-bold transition-all shrink-0 ${
+                            flowTab === 'upcoming' ? 'bg-white text-slate-950 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          Upcoming (18)
+                        </button>
+                        <button
+                          onClick={() => setFlowTab('completed')}
+                          className={`px-3 py-1 rounded-lg font-bold transition-all shrink-0 ${
+                            flowTab === 'completed' ? 'bg-white text-slate-950 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          Completed (9)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Patient Flow Items List (Zero Text Overflow Design) */}
+                    <div className="space-y-3">
+                      
+                      {/* Patient 1: Marcus Reed */}
+                      <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 hover:bg-white hover:shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 min-w-0">
+                        <div className="flex items-center space-x-3 min-w-0">
+                          <img
+                            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80"
+                            alt="Marcus Reed"
+                            className="w-10 h-10 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <h4 className="font-extrabold text-sm text-slate-950 truncate" title="Marcus Reed">
+                                Marcus Reed
+                              </h4>
+                              <span className="px-2 py-0.2 rounded-md text-[10px] font-mono font-bold bg-slate-200 text-slate-700 shrink-0">
+                                MRN-84920
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 truncate" title="Dr. Jenkins • Root Canal Therapy">
+                              Dr. Jenkins • Root Canal Therapy
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                          {/* Status Badge */}
+                          <div className="text-left sm:text-right shrink-0">
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center space-x-1 shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                              <span>In Progress • 25m left</span>
+                            </span>
+                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">10:00 AM - 11:15 AM</p>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center space-x-1.5 shrink-0">
+                            <button
+                              onClick={() => setOverviewNotice('Marcus Reed clinical chart loaded.')}
+                              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600"
+                              title="View Chart"
+                            >
+                              <Activity className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setOverviewNotice('Marcus Reed notes opened.')}
+                              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600"
+                              title="Doctor Notes"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setOverviewNotice('Paging Chair 1 assistant for Marcus Reed.')}
+                              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors shrink-0"
+                            >
+                              Call Chair
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Patient 2: Elena Rostova */}
+                      <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 hover:bg-white hover:shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 min-w-0">
+                        <div className="flex items-center space-x-3 min-w-0">
+                          <img
+                            src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&h=100&q=80"
+                            alt="Elena Rostova"
+                            className="w-10 h-10 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <h4 className="font-extrabold text-sm text-slate-950 truncate" title="Elena Rostova">
+                                Elena Rostova
+                              </h4>
+                              <span className="px-2 py-0.2 rounded-md text-[10px] font-mono font-bold bg-slate-200 text-slate-700 shrink-0">
+                                MRN-91204
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 truncate" title="Dr. Vance • Clear Aligners">
+                              Dr. Vance • Clear Aligners
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                          {/* Status Badge */}
+                          <div className="text-left sm:text-right shrink-0">
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-sky-800 border border-sky-200 inline-flex items-center space-x-1 shrink-0">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" />
+                              <span>Checked In • X-Rays Ready</span>
+                            </span>
+                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">10:45 AM - 11:30 AM</p>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center space-x-1.5 shrink-0">
+                            <button
+                              onClick={() => setOverviewNotice('Elena Rostova chart loaded.')}
+                              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600"
+                              title="View Chart"
+                            >
+                              <Activity className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setOverviewNotice('Elena Rostova notes opened.')}
+                              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600"
+                              title="Doctor Notes"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setOverviewNotice('Elena Rostova seated in Chair 2.')}
+                              className="px-4 py-1.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs transition-colors shrink-0 shadow-xs"
+                            >
+                              Seat Now
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Patient 3: David Chen */}
+                      <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 hover:bg-white hover:shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 min-w-0">
+                        <div className="flex items-center space-x-3 min-w-0">
+                          <img
+                            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80"
+                            alt="David Chen"
+                            className="w-10 h-10 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center space-x-2">
+                              <h4 className="font-extrabold text-sm text-slate-950 truncate" title="David Chen">
+                                David Chen
+                              </h4>
+                              <span className="px-2 py-0.2 rounded-md text-[10px] font-mono font-bold bg-slate-200 text-slate-700 shrink-0">
+                                MRN-77312
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500 truncate" title="Dr. Zhao • CEREC Crown Prep #3">
+                              Dr. Zhao • CEREC Crown Prep #3
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                          {/* Status Badge */}
+                          <div className="text-left sm:text-right shrink-0">
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center space-x-1 shrink-0">
+                              <Clock className="w-3.5 h-3.5 text-slate-400" />
+                              <span>Arriving 11:30 AM</span>
+                            </span>
+                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">11:30 AM - 1:00 PM</p>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center space-x-1.5 shrink-0">
+                            <button
+                              onClick={() => setOverviewNotice('David Chen chart loaded.')}
+                              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600"
+                              title="View Chart"
+                            >
+                              <Activity className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setOverviewNotice('David Chen appointment details opened.')}
+                              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors shrink-0"
+                            >
+                              Details
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  {/* Active Restorations in Chairs 1 & 3 Strip (matching Reference Image) */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-sky-50/60 border border-sky-100 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+                    <div className="flex items-center space-x-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
+                        <Cpu className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="text-xs sm:text-sm font-extrabold text-slate-950 truncate">
+                            Active Restorations in Chairs 1 & 3
+                          </h4>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-200/80 text-sky-900 shrink-0">
+                            Mill #2 Milling
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 truncate mt-0.5" title="Glidewell Mill synced • Crown 3D scan generated via Pearl CAD">
+                          Glidewell Mill synced • Crown 3D scan generated via Pearl CAD
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setOverviewNotice('Direct 5-axis DMG MORI milling telemetry connected.')}
+                      className="text-xs font-bold text-sky-700 hover:text-sky-800 flex items-center space-x-1 shrink-0 self-start sm:self-center"
+                    >
+                      <span>View Lab Stream</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Urgent Requests Needing Review Banner (matching Reference Image) */}
+                  <div
+                    onClick={() => setActiveNav('appointments')}
+                    className="p-4 rounded-2xl bg-rose-50/70 border border-rose-200 shadow-2xs flex items-center justify-between gap-3 cursor-pointer hover:bg-rose-50 transition-colors min-w-0"
+                  >
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                        <AlertTriangle className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-extrabold text-rose-950 truncate">
+                          Urgent Requests Needing Review
+                        </p>
+                        <p className="text-[11px] text-rose-800 truncate" title="Action required within 15 minutes to guarantee same-day slot">
+                          Action required within 15 minutes to guarantee same-day slot
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="text-xs font-bold text-rose-700 flex items-center space-x-1 shrink-0">
+                      <span>View All (5)</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </span>
+                  </div>
+
+                </div>
+
+                {/* ---------------------------------------------------- */}
+                {/* RIGHT COLUMN: Doctors On-Duty & Revenue Pulse (35%)  */}
+                {/* ---------------------------------------------------- */}
+                <div className="xl:col-span-4 space-y-5 min-w-0">
+                  
+                  {/* Block 1: Doctors On-Duty (matching Reference Image) */}
+                  <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-extrabold text-slate-950 truncate">Doctors On-Duty</h4>
+                        <p className="text-[11px] text-slate-500 truncate">Live operatory assignments</p>
+                      </div>
+                      <button
+                        onClick={() => setOverviewNotice('Full clinic directory: 8 licensed UK dental surgeons.')}
+                        className="text-xs font-bold text-sky-600 hover:text-sky-700 shrink-0"
+                      >
+                        View All 8 Staff
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {/* Doctor 1 */}
+                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-2 min-w-0">
+                        <div className="flex items-center space-x-3 min-w-0">
+                          <img
+                            src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=100&h=100&q=80"
+                            alt="Dr. Sarah Jenkins"
+                            className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-extrabold text-slate-950 truncate" title="Dr. Sarah Jenkins">
+                              Dr. Sarah Jenkins
+                            </p>
+                            <p className="text-[11px] text-slate-500 truncate" title="Lead Surgeon • Chair 1">
+                              Lead Surgeon • Chair 1
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
+                          In Surgery
+                        </span>
+                      </div>
+
+                      {/* Doctor 2 */}
+                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-2 min-w-0">
+                        <div className="flex items-center space-x-3 min-w-0">
+                          <img
+                            src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=100&h=100&q=80"
+                            alt="Dr. Alex Vance"
+                            className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-extrabold text-slate-950 truncate" title="Dr. Alex Vance">
+                              Dr. Alex Vance
+                            </p>
+                            <p className="text-[11px] text-slate-500 truncate" title="Orthodontics • Chair 2">
+                              Orthodontics • Chair 2
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200 shrink-0">
+                          Consultation
+                        </span>
+                      </div>
+
+                      {/* Doctor 3 */}
+                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-2 min-w-0">
+                        <div className="flex items-center space-x-3 min-w-0">
+                          <img
+                            src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=100&h=100&q=80"
+                            alt="Dr. Michael Zhao"
+                            className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-extrabold text-slate-950 truncate" title="Dr. Michael Zhao">
+                              Dr. Michael Zhao
+                            </p>
+                            <p className="text-[11px] text-slate-500 truncate" title="Aesthetics • Chair 3">
+                              Aesthetics • Chair 3
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700 shrink-0">
+                          Ready for Next
+                        </span>
+                      </div>
+
+                      {/* Doctor 4 */}
+                      <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center justify-between gap-2 min-w-0">
+                        <div className="flex items-center space-x-3 min-w-0">
+                          <img
+                            src="https://images.unsplash.com/photo-1594824813576-2d93e1b12b59?auto=format&fit=crop&w=100&h=100&q=80"
+                            alt="Dr. Emily Li"
+                            className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-extrabold text-slate-950 truncate" title="Dr. Emily Li">
+                              Dr. Emily Li
+                            </p>
+                            <p className="text-[11px] text-slate-500 truncate" title="Pediatric • Chair 4">
+                              Pediatric • Chair 4
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 shrink-0">
+                          Break til 13:30
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Block 2: Clinic Revenue Pulse (matching Reference Image) */}
+                  <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4 min-w-0">
+                    <div>
+                      <h4 className="text-sm font-extrabold text-slate-950">Clinic Revenue Pulse</h4>
+                      <p className="text-[11px] text-slate-500">Daily billing performance against goal</p>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-3">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-2xl font-black text-slate-950">£18,450</span>
+                        <span className="text-xs font-bold text-slate-500">Target: £22,000</span>
+                      </div>
+
+                      <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div className="w-[84%] h-full bg-sky-600 rounded-full"></div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs text-slate-600 font-semibold pt-1">
+                        <div className="flex items-center space-x-1.5 truncate">
+                          <span className="w-2 h-2 rounded-full bg-sky-600 shrink-0"></span>
+                          <span className="truncate">Claims: £11,200</span>
+                        </div>
+                        <div className="flex items-center space-x-1.5 truncate">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                          <span className="truncate">Copays: £7,250</span>
+                        </div>
+                        <span className="font-extrabold text-sky-700 shrink-0">84% Goal</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
               </div>
             </div>
           )}
