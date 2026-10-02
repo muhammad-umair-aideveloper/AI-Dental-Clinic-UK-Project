@@ -36,20 +36,54 @@ export function generateGroundingResponse(
   const {
     services,
     companyDetails,
-    policies,
-    faqs,
-    guardrails,
-    approvalPolicy,
-    providerSettings,
   } = context;
 
+  // Safe fallbacks to handle aliased context keys (guardrails/aiSettings, policies/clinicPolicies)
+  const guardrails = context.guardrails || (context as any).aiSettings || {
+    identityRole: 'Clinical AI Concierge',
+    targetAudience: 'Patients seeking private dental care',
+    toneManner: 'Empathetic and professional',
+    responseLength: 'concise',
+    businessGoals: 'Help patients schedule appointments and provide clear fee information.',
+    shouldSay: ['Transparent UK fees', 'GDC safety protocols'],
+    mustNotSay: ['Prescribe medications without clinical consultation'],
+    informationUnavailableInstructions: 'Our clinical reception team will be delighted to answer any bespoke clinical queries directly.',
+    transferToHumanInstructions: 'Transferring to human clinical receptionist.',
+    languageBehaviorPolicy: 'British English',
+  };
+
+  const policies = context.policies || (context as any).clinicPolicies || {
+    refundPolicy: 'Full refund if cancelled with 24 hours notice.',
+    cancellationPolicy: 'Please give 24 hours notice to reschedule without deposit forfeiture.',
+    additionalPolicies: [],
+  };
+
+  const approvalPolicy = context.approvalPolicy || {
+    autoApproveEnabled: true,
+    approvedCategories: ['General', 'Preventive', 'Cosmetic'],
+    manualReviewCategories: ['Surgical', 'Orthodontics', 'Emergency'],
+    adminApprovalDirectives: 'Standard clinical confirmation.',
+    autoConfirmMessage: 'Your appointment is confirmed.',
+    manualReviewMessage: 'Your appointment request is awaiting clinical triage.',
+  };
+
+  const providerSettings = context.providerSettings || {
+    activeProvider: 'Gemini',
+    geminiApiKey: '',
+    geminiModel: 'gemini-1.5-flash',
+    claudeApiKey: '',
+    claudeModel: 'claude-3-5-sonnet',
+    chatgptApiKey: '',
+    chatgptModel: 'gpt-4o',
+  };
+
   const reasoningTrace: ReasoningStep[] = [];
-  const activeAgent = `${providerSettings.activeProvider} (${
+  const activeAgent = `${providerSettings.activeProvider || 'Gemini'} (${
     providerSettings.activeProvider === 'Gemini'
-      ? providerSettings.geminiModel
+      ? providerSettings.geminiModel || 'gemini-1.5-flash'
       : providerSettings.activeProvider === 'Claude'
-      ? providerSettings.claudeModel
-      : providerSettings.chatgptModel
+      ? providerSettings.claudeModel || 'claude-3-5-sonnet'
+      : providerSettings.chatgptModel || 'gpt-4o'
   })`;
 
   // -------------------------------------------------------------
