@@ -11,8 +11,10 @@ import {
 
 export interface AIResponseResult {
   reply: string;
+  replyText?: string;
   reasoningTrace: ReasoningStep[];
   sourceGrounded: string[];
+  groundedSources?: string[];
   actionType?: 'book' | 'emergency' | 'whatsapp' | 'call' | 'none';
   actionPayload?: string;
   isEmergencyAlert?: boolean;
@@ -25,11 +27,13 @@ export function generateGroundingResponse(
   context: {
     services: DentalService[];
     companyDetails: CompanyDetails;
-    policies: ClinicPolicies;
-    faqs: FAQItem[];
-    guardrails: AIGuardrails;
-    approvalPolicy: AppointmentApprovalPolicy;
-    providerSettings: AIProviderSettings;
+    policies?: ClinicPolicies;
+    clinicPolicies?: ClinicPolicies;
+    faqs?: FAQItem[];
+    guardrails?: AIGuardrails;
+    aiSettings?: AIGuardrails;
+    approvalPolicy?: AppointmentApprovalPolicy;
+    providerSettings?: AIProviderSettings;
   }
 ): AIResponseResult {
   const q = query.toLowerCase().trim();
@@ -37,6 +41,7 @@ export function generateGroundingResponse(
     services,
     companyDetails,
   } = context;
+  const faqs = context.faqs || [];
 
   // Safe fallbacks to handle aliased context keys (guardrails/aiSettings, policies/clinicPolicies)
   const guardrails = context.guardrails || (context as any).aiSettings || {
