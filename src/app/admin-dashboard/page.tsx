@@ -887,7 +887,7 @@ export default function AdminDashboardPage() {
               <span>Active Patient Queue & Treatments</span>
             </h2>
 
-            {/* Tabs: All Patients | In-Chair 3 | Upcoming 5 */}
+            {/* Tabs: All Patients | In-Chair | Active Queue */}
             <div className="bg-[#1D2138] p-1 rounded-full flex items-center space-x-1 border border-slate-700/50 text-xs">
               <button
                 onClick={() => setSubFilterTab('all')}
@@ -897,7 +897,7 @@ export default function AdminDashboardPage() {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                All Invoices
+                All Patients
               </button>
 
               <button
@@ -908,8 +908,8 @@ export default function AdminDashboardPage() {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <span>Draft</span>
-                <span className="text-[10px] opacity-80">3</span>
+                <span>In-Chair</span>
+                <span className="text-[10px] opacity-80">1</span>
               </button>
 
               <button
@@ -920,7 +920,7 @@ export default function AdminDashboardPage() {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <span>Unpaid</span>
+                <span>Active Queue</span>
                 <span className="w-4 h-4 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px]">
                   5
                 </span>
@@ -944,7 +944,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Two-Column Layout: Left Invoices/Queue List (5 cols) + Right Active Treatment Dossier (7 cols) */}
+          {/* Two-Column Layout: Left Patients List (5 cols) + Right Active Treatment Dossier (7 cols) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
             
             {/* ---------------- LEFT: PATIENT QUEUE (5 Cols) ---------------- */}
@@ -990,10 +990,12 @@ export default function AdminDashboardPage() {
                             ? 'bg-white text-slate-900 shadow-xs'
                             : pt.status === 'In-Chair'
                             ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : pt.status === 'Pending Review'
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                             : 'bg-[#1D2138] text-slate-400 border border-slate-700/50'
                         }`}
                       >
-                        {pt.status === 'In-Chair' ? 'In-Chair' : pt.status === 'Pending Review' ? 'Unsent' : 'Viewed'}
+                        {pt.status}
                       </span>
                     </div>
 
@@ -1009,39 +1011,34 @@ export default function AdminDashboardPage() {
             {/* ---------------- RIGHT: TREATMENT DETAILS PANEL (7 Cols) ---------------- */}
             <div className="lg:col-span-7 bg-gradient-to-br from-[#4D45BD] via-[#3E379F] to-[#342D8E] rounded-3xl p-6 sm:p-7 border border-indigo-400/20 shadow-2xl flex flex-col justify-between space-y-6">
               
-              {/* Row 1: Invoice details | Company / Lead Clinician | Customer / Patient */}
+              {/* Row 1: Treatment details | Lead Clinician & Suite | Patient Profile */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start border-b border-white/10 pb-5">
-                {/* Col 1: Invoice / Appointment details */}
+                {/* Col 1: Treatment / Appointment details */}
                 <div>
-                  <p className="text-[11px] text-indigo-200 font-medium">Invoice details</p>
+                  <p className="text-[11px] text-indigo-200 font-medium">Treatment details</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <h3 className="text-2xl font-black text-white tracking-tight">{currentPatient.id}</h3>
                     <span className="px-2.5 py-0.5 rounded-full bg-white/15 text-white text-[10px] font-semibold backdrop-blur-xs border border-white/10">
-                      Unsent
+                      {currentPatient.status}
                     </span>
                   </div>
                 </div>
 
-                {/* Col 2: Company / Clinic Practice */}
+                {/* Col 2: Lead Clinician & Suite */}
                 <div>
-                  <p className="text-[11px] text-indigo-200 font-medium">Company</p>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <span className="text-lg font-bold text-white">BrightWave</span>
-                    {/* Stylized wave logo */}
-                    <svg width="22" height="16" viewBox="0 0 24 16" fill="none" className="text-indigo-200">
-                      <path
-                        d="M2 12C5 12 7 8 10 8C13 8 15 12 18 12C20 12 21 10 22 9M2 7C5 7 7 3 10 3C13 3 15 7 18 7C20 7 21 5 22 4"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
+                  <p className="text-[11px] text-indigo-200 font-medium">Clinician & Suite</p>
+                  <div className="mt-1">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-sm font-bold text-white leading-tight">{currentPatient.leadClinician}</span>
+                      <Stethoscope className="w-3.5 h-3.5 text-indigo-200" />
+                    </div>
+                    <p className="text-[10px] text-indigo-200 mt-0.5">{currentPatient.roomSuite}</p>
                   </div>
                 </div>
 
-                {/* Col 3: Customer / Patient */}
+                {/* Col 3: Patient Profile */}
                 <div>
-                  <p className="text-[11px] text-indigo-200 font-medium">Customer</p>
+                  <p className="text-[11px] text-indigo-200 font-medium">Patient</p>
                   <div className="flex items-center space-x-2.5 mt-1">
                     <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-white/30 shrink-0">
                       <img
@@ -1052,15 +1049,15 @@ export default function AdminDashboardPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white leading-tight">{currentPatient.patientName}</p>
-                      <p className="text-[10px] text-indigo-200">Marketing Director</p>
+                      <p className="text-[10px] text-indigo-200 truncate max-w-[150px]">{currentPatient.patientRole}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Row 2: Line Items Cards Grid (3 item cards + 1 Add item card) */}
+              {/* Row 2: Procedure Breakdown Cards (3 procedure cards + 1 Add procedure card) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {currentPatient.procedures.map((proc, idx) => {
+                {currentPatient.procedures.map((proc) => {
                   const procFormatted = `£ ${proc.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                   return (
                     <div
@@ -1072,9 +1069,12 @@ export default function AdminDashboardPage() {
                         <span className="text-sm sm:text-base font-extrabold text-white">{procFormatted}</span>
                         <ArrowUpRight className="w-3.5 h-3.5 text-indigo-200" />
                       </div>
-                      <p className="text-[11px] text-indigo-200 font-medium mt-3 leading-tight">
-                        {idx === 0 ? 'UI/UX Design' : idx === 1 ? 'Development' : 'QA & Testing'}
-                      </p>
+                      <div className="mt-3">
+                        <p className="text-xs font-bold text-white leading-tight line-clamp-2">
+                          {proc.name}
+                        </p>
+                        <p className="text-[10px] text-indigo-200 mt-0.5 font-medium">{proc.category}</p>
+                      </div>
                     </div>
                   );
                 })}
@@ -1087,7 +1087,7 @@ export default function AdminDashboardPage() {
                   <div className="w-6 h-6 rounded-full bg-white/15 flex items-center justify-center">
                     <Plus className="w-3.5 h-3.5 text-white" />
                   </div>
-                  <span className="text-xs font-bold text-white">Add item</span>
+                  <span className="text-xs font-bold text-white">+ Add item</span>
                 </button>
               </div>
 
@@ -1101,17 +1101,17 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <div>
-                    <p className="text-[10px] text-indigo-200 uppercase font-semibold tracking-wider">Total</p>
-                    <p className="text-sm sm:text-base font-extrabold text-white mt-0.5">{formattedTotal}</p>
+                    <p className="text-[10px] text-indigo-200 uppercase font-semibold tracking-wider">Insurance</p>
+                    <p className="text-sm sm:text-base font-extrabold text-white mt-0.5">{formattedInsurance}</p>
                   </div>
 
                   <div>
                     <p className="text-[10px] text-indigo-200 uppercase font-semibold tracking-wider">Balance Due</p>
-                    <p className="text-sm sm:text-base font-extrabold text-white mt-0.5">{formattedTotal}</p>
+                    <p className="text-sm sm:text-base font-extrabold text-white mt-0.5">{formattedBalance}</p>
                   </div>
                 </div>
 
-                {/* Right Tools & Payout Now CTA */}
+                {/* Right Tools & Discharge / Payout CTA */}
                 <div className="flex items-center space-x-2.5 self-end sm:self-auto">
                   {/* Copy Share Link */}
                   <button
