@@ -26,6 +26,7 @@ export interface DentalService {
   preOpInstructions?: string;
   insuranceCoverage?: string;
   requiresPreConsult?: boolean;
+  financeMonthlyFrom?: number;
 }
 
 export interface Clinician {
@@ -59,10 +60,13 @@ export interface Appointment {
   notes?: string;
   isEmergency?: boolean;
   createdAt: string;
-  source: 'Online Booking' | 'AI Assistant' | 'Walk-In / Phone' | 'Reception';
+  source: 'Online Booking' | 'AI Assistant' | 'Walk-In / Phone' | 'Reception' | 'Guest Triage Modal';
   approvedByAI?: boolean;
   aiApprovalReason?: string;
 }
+
+export type LeadStatus = 'New Lead' | 'Contacted' | 'Consultation Booked' | 'Lost / Archived' | 'New' | 'Resolved';
+export type LeadSource = 'Web Form' | 'AI Bot' | 'Guest Triage Modal' | 'Emergency Fast-Track' | 'Reception' | 'Online Booking';
 
 export interface WebInquiry {
   id: string;
@@ -72,7 +76,24 @@ export interface WebInquiry {
   serviceInterest: string;
   message: string;
   createdAt: string;
-  status: 'New' | 'Contacted' | 'Resolved';
+  status: LeadStatus;
+  source?: LeadSource;
+  preferredDate?: string;
+  preferredTime?: string;
+  treatmentCategory?: 'General' | 'Cosmetic' | 'Emergency' | 'Specialist';
+}
+
+export interface SmileGalleryCase {
+  id: string;
+  title: string;
+  category: 'Cosmetic' | 'Restorative' | 'Orthodontics' | 'Implants';
+  beforeImage: string;
+  afterImage: string;
+  procedureNotes: string;
+  duration: string;
+  clinicianName: string;
+  clinicianGdc: string;
+  tags?: string[];
 }
 
 export interface CompanyDetails {
@@ -85,6 +106,8 @@ export interface CompanyDetails {
   clinicalAddress: string;
   cqcRegistration: string;
   bdaMember: string;
+  cqcProviderId?: string;
+  icoRegistration?: string;
 }
 
 export interface ClinicPolicies {
@@ -113,7 +136,7 @@ export interface AIGuardrails {
   languageBehaviorPolicy: string;
 }
 
-// Exactly 3 AI Agent Provider Options as requested: Gemini, Claude, ChatGPT
+// Exactly 3 AI Agent Provider Options: Gemini, Claude, ChatGPT
 export type AIProvider = 'Gemini' | 'Claude' | 'ChatGPT';
 
 export interface AIProviderSettings {
