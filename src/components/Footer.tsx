@@ -194,14 +194,6 @@ export const Footer: React.FC = () => {
                   <FileText className="w-3.5 h-3.5" />
                   <span>GDPR Privacy & Data Policy</span>
                 </button>
-
-                <Link
-                  href="/admin-dashboard"
-                  className="text-left text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center space-x-1.5 font-semibold"
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>Admin Lead Hub & CMS</span>
-                </Link>
               </div>
             </div>
           </div>
@@ -223,6 +215,13 @@ export const Footer: React.FC = () => {
             <a href="#services" className="hover:text-white underline">
               Fee Schedule
             </a>
+            <span>•</span>
+            <Link
+              href="/admin-login"
+              className="text-slate-500 hover:text-slate-300 transition-colors text-[10px]"
+            >
+              Staff Access
+            </Link>
           </div>
         </div>
       </div>
