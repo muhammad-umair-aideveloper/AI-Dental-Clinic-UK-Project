@@ -118,7 +118,7 @@ const STORAGE_KEYS = {
   AI_SETTINGS: 'vdl_ai_settings_v4',
   AI_PROVIDER: 'vdl_ai_provider_v4',
   APPROVAL_POLICY: 'vdl_approval_policy_v4',
-  USER: 'vdl_user_v4',
+  USER: 'vdl_user_v5',
   CURRENCY: 'vdl_currency_v4',
 };
 
@@ -172,11 +172,11 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   });
   const [currentUser, setCurrentUser] = useState<UserAuth>(() =>
     getStoredItem(STORAGE_KEYS.USER, {
-      isLoggedIn: true,
-      role: 'admin',
-      name: 'Dr. Alistair Vance',
-      email: 'admin@vertexdental.co.uk',
-      phone: '+44 20 7946 0888',
+      isLoggedIn: false,
+      role: 'guest',
+      name: 'Guest Patient',
+      email: '',
+      phone: '',
     })
   );
 
