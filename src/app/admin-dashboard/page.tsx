@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useClinic } from '@/context/ClinicContext';
 import { generateGroundingResponse, AIResponseResult } from '@/lib/ai-engine';
 import {
@@ -48,10 +49,14 @@ import {
   Lock,
   RefreshCw,
   Zap,
+  LogOut,
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const {
+    currentUser,
+    logout,
     services,
     clinicians,
     galleryCases,
@@ -82,6 +87,17 @@ export default function AdminDashboardPage() {
     updateAIProviderSettings,
     triggerToast,
   } = useClinic();
+
+  // Authentication Guard: unauthenticated staff or visitors are redirected to /admin-login
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    if (!currentUser.isLoggedIn || currentUser.role !== 'admin') {
+      router.replace('/admin-login');
+    } else {
+      setIsCheckingAuth(false);
+    }
+  }, [currentUser, router]);
 
   // Top Main Tabs
   type MainTab = 'leads' | 'cms' | 'ai';
@@ -263,6 +279,23 @@ export default function AdminDashboardPage() {
     }, 400);
   };
 
+  // Auth Guard Fallback
+  if (isCheckingAuth || !currentUser.isLoggedIn || currentUser.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-[#0F172A] text-white flex items-center justify-center p-4 font-sans">
+        <div className="flex flex-col items-center space-y-3 text-center max-w-sm">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+            <Lock className="w-5 h-5 animate-pulse" />
+          </div>
+          <p className="text-sm font-bold text-slate-100">Verifying Staff Authorization...</p>
+          <p className="text-xs text-slate-400">
+            Redirecting to staff authentication portal...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-900 flex flex-col font-sans">
       
@@ -287,10 +320,10 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center space-x-2.5 sm:space-x-4">
-          <div className="hidden md:flex items-center space-x-2 text-xs text-slate-300">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="hidden lg:flex items-center space-x-2 text-xs text-slate-300">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>GDC Reg: 248912 • Marylebone Central</span>
+            <span>GDC Reg: 248912 • Marylebone</span>
           </div>
 
           <button
@@ -307,6 +340,19 @@ export default function AdminDashboardPage() {
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={() => {
+              logout();
+              triggerToast('Staff session ended. Signed out.');
+              router.push('/admin-login');
+            }}
+            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-300 text-xs font-bold border border-slate-700 hover:border-rose-700/60 transition-colors"
+            title="Sign out of staff session"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sign Out</span>
           </button>
         </div>
       </header>
