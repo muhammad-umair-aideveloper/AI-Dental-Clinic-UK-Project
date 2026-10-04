@@ -10,221 +10,214 @@ import {
   ArrowUpRight,
   BadgePercent,
   Layers,
+  Calendar,
+  HelpCircle,
 } from 'lucide-react';
 
 export const ServicesSection: React.FC = () => {
   const { services, openBookingModal, formatPrice, currency } = useClinic();
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [activeTab, setActiveTab] = useState<'All' | 'General' | 'Cosmetic'>('Cosmetic');
+  const [activeFinanceTooltip, setActiveFinanceTooltip] = useState<string | null>(null);
 
-  const categories = [
-    'All',
-    'General',
-    'Preventive',
-    'Endodontics',
-    'Cosmetic',
-    'Surgical',
-    'Orthodontics',
-    'Emergency',
-  ];
+  // Group services
+  const generalServices = services.filter(
+    s => s.category === 'General' || s.category === 'Preventive' || s.category === 'Endodontics' || s.category === 'Surgical' || s.category === 'Emergency'
+  );
 
-  const filteredServices =
-    selectedCategory === 'All'
+  const cosmeticServices = services.filter(
+    s => s.category === 'Cosmetic' || s.category === 'Orthodontics'
+  );
+
+  const displayedServices =
+    activeTab === 'All'
       ? services
-      : services.filter(s => s.category.toLowerCase() === selectedCategory.toLowerCase());
+      : activeTab === 'General'
+      ? generalServices
+      : cosmeticServices;
 
   return (
-    <section id="services" className="relative py-20 lg:py-28 bg-[#F4F5F8] text-slate-900 scroll-mt-16 overflow-hidden">
-      {/* Ambient background light spheres to accentuate glassmorphism refraction */}
-      <div className="absolute top-10 left-1/4 w-96 h-96 bg-sky-200/40 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-1/4 w-[480px] h-[480px] bg-slate-200/60 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-3/4 w-80 h-80 bg-cyan-100/50 rounded-full blur-3xl pointer-events-none" />
-
+    <section id="services" className="relative py-20 lg:py-28 bg-[#FAF9F6] text-slate-900 scroll-mt-16 overflow-hidden border-b border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-slate-200/80 shadow-2xs text-slate-800 text-xs font-bold mb-4 uppercase tracking-[0.18em]">
-            <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-            <span>CLINICAL TREATMENTS & VERIFIED FEES</span>
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-slate-900 text-white text-[11px] font-bold mb-4 uppercase tracking-[0.18em]">
+            <Sparkles className="w-3 h-3 text-emerald-400" />
+            <span>TRANSPARENT UK PRIVATE DENTAL CARE</span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight leading-tight uppercase font-sans">
-            In-House Precision.
-            <br />
-            <span className="text-slate-800">Transparent UK Pricing.</span>
+          <h2 className="text-3xl sm:text-5xl font-black text-[#0F172A] tracking-tight leading-tight font-sans">
+            Specialist Treatments &{' '}
+            <span className="font-editorial italic font-normal text-slate-800">
+              Clear Pricing.
+            </span>
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-slate-700 font-medium">
-            Every restoration is digitally scanned with 3D intraoral optical cameras and milled directly in our Marylebone 5-axis laboratory. Zero guesswork, zero hidden fees.
+          <p className="mt-4 text-base sm:text-lg text-slate-600 font-normal">
+            Precision clinical dentistry crafted in our Marylebone 5-axis CAD/CAM laboratory. Split between daily general health and transformative cosmetic aesthetics.
           </p>
         </div>
 
-        {/* Emergency Fast-Track Glass Banner */}
-        <div className="mb-12 p-4 sm:p-5 rounded-3xl bg-amber-50/80 backdrop-blur-xl border border-amber-200/90 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center space-x-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-amber-100/90 text-amber-900 flex items-center justify-center shrink-0 shadow-2xs">
-              <AlertTriangle className="w-5 h-5 text-amber-700" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-amber-950">
-                Experiencing Acute Pain, Severe Swelling, or a Fractured Tooth?
-              </p>
-              <p className="text-xs text-amber-900 font-medium mt-0.5">
-                We reserve daily emergency triage slots for fast clinical relief. Priority booking is currently open.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => openBookingModal('24/7 Emergency Dental Care')}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-full font-bold text-xs text-white bg-amber-700 hover:bg-amber-800 transition-all shadow-sm shrink-0 whitespace-nowrap active:scale-95"
-          >
-            Emergency Appointment
-          </button>
-        </div>
-
-        {/* Category Filter Pills (Minimalist styling) */}
-        <div className="flex items-center justify-start sm:justify-center overflow-x-auto pb-4 mb-10 gap-2 no-scrollbar">
-          {categories.map(cat => (
+        {/* Category Split Toggle: General vs Cosmetic Dentistry */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex p-1.5 rounded-full bg-slate-200/80 border border-slate-300/60 shadow-inner">
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 sm:px-5 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
-                selectedCategory === cat
-                  ? 'bg-slate-950 text-white shadow-md shadow-slate-950/20 scale-[1.02]'
-                  : 'bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80 shadow-2xs'
+              onClick={() => setActiveTab('Cosmetic')}
+              className={`px-6 py-2.5 rounded-full text-xs font-bold transition-all ${
+                activeTab === 'Cosmetic'
+                  ? 'bg-[#0F172A] text-white shadow-md'
+                  : 'text-slate-700 hover:text-slate-950'
               }`}
             >
-              {cat}
+              ✨ Cosmetic & Orthodontics
             </button>
-          ))}
+            <button
+              onClick={() => setActiveTab('General')}
+              className={`px-6 py-2.5 rounded-full text-xs font-bold transition-all ${
+                activeTab === 'General'
+                  ? 'bg-[#0F172A] text-white shadow-md'
+                  : 'text-slate-700 hover:text-slate-950'
+              }`}
+            >
+              🦷 General & Specialist Dentistry
+            </button>
+            <button
+              onClick={() => setActiveTab('All')}
+              className={`hidden sm:inline-block px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+                activeTab === 'All'
+                  ? 'bg-[#0F172A] text-white shadow-md'
+                  : 'text-slate-700 hover:text-slate-950'
+              }`}
+            >
+              All Treatments ({services.length})
+            </button>
+          </div>
         </div>
 
-        {/* Services Grid with Luxury Glassmorphism and Ultra-Visible High-Contrast Text */}
+        {/* Treatments Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {filteredServices.map(service => {
+          {displayedServices.map(service => {
+            const isCosmetic = service.category === 'Cosmetic' || service.category === 'Orthodontics';
             const isEmergency = service.category === 'Emergency';
             const displayPrice =
               currency === 'GBP'
                 ? service.priceRange
                 : `From ${formatPrice(service.basePriceGbp)}`;
 
+            // Calculate 0% finance monthly (12 months on amount > £1,000)
+            const monthlyFinance = service.financeMonthlyFrom
+              ? `£${service.financeMonthlyFrom}/mo`
+              : service.basePriceGbp >= 1000
+              ? `£${Math.round(service.basePriceGbp / 24)}/mo`
+              : null;
+
             return (
               <div
                 key={service.id}
-                className={`relative rounded-[28px] p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 group ${
-                  isEmergency
-                    ? 'bg-rose-50/75 backdrop-blur-xl border border-rose-200/90 shadow-[0_8px_30px_rgb(225,29,72,0.06)] hover:shadow-[0_16px_40px_rgb(225,29,72,0.12)]'
-                    : service.popular
-                    ? 'bg-white/80 backdrop-blur-xl border border-white/95 shadow-[0_10px_35px_rgba(0,0,0,0.05)] ring-1 ring-sky-500/20 hover:border-sky-300 hover:bg-white/95 hover:shadow-[0_20px_45px_rgba(2,132,199,0.1)] hover:-translate-y-1'
-                    : 'bg-white/75 backdrop-blur-xl border border-white/90 shadow-[0_8px_30px_rgba(0,0,0,0.04)] ring-1 ring-slate-900/5 hover:border-slate-300 hover:bg-white/95 hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1'
-                }`}
+                className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 relative"
               >
-                {/* Specular Inner Glare Overlay */}
-                <div className="absolute inset-0 rounded-[28px] bg-gradient-to-b from-white/50 via-transparent to-transparent pointer-events-none" />
-
                 <div>
-                  {/* Top Badges: Category & Popularity */}
-                  <div className="flex items-center justify-between mb-4 relative z-10">
+                  {/* Category Pill & Popular Badge */}
+                  <div className="flex items-center justify-between mb-4">
                     <span
                       className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
                         isEmergency
-                          ? 'bg-rose-900 text-white shadow-2xs'
-                          : 'bg-slate-900 text-white shadow-2xs'
+                          ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                          : isCosmetic
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          : 'bg-slate-100 text-slate-800 border border-slate-200'
                       }`}
                     >
-                      {service.category}
+                      {service.category} Dentistry
                     </span>
 
                     {service.popular && (
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-sky-100 text-sky-900 border border-sky-200 flex items-center space-x-1 shadow-2xs">
-                        <Sparkles className="w-3 h-3 text-sky-600" />
-                        <span>Most Popular</span>
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-200 flex items-center space-x-1">
+                        <Sparkles className="w-3 h-3 text-amber-600" />
+                        <span>Most Requested</span>
                       </span>
                     )}
                   </div>
 
-                  {/* Service Name - High contrast bold dark obsidian text */}
-                  <h3 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight leading-snug group-hover:text-sky-700 transition-colors relative z-10 font-sans">
+                  {/* Treatment Name */}
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight leading-snug group-hover:text-emerald-800 transition-colors font-sans">
                     {service.name}
                   </h3>
 
-                  {/* Pricing Display - Bold, crisp, legible */}
-                  <div className="mt-3 flex items-baseline space-x-2 relative z-10">
-                    <span className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-                      {displayPrice}
-                    </span>
-                    <span className="text-xs font-bold text-slate-600 uppercase">
-                      ({currency})
-                    </span>
-                  </div>
-
-                  {/* Clinical Specs: Duration & 0% Finance */}
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold relative z-10">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100/90 text-slate-800 border border-slate-200/80">
-                      <Clock className="w-3.5 h-3.5 mr-1 text-slate-600" />
-                      {service.duration}
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-900 border border-emerald-200/80 font-bold">
-                      <BadgePercent className="w-3.5 h-3.5 mr-1 text-emerald-700" />
-                      0% Finance Eligible
-                    </span>
-                  </div>
-
-                  {/* Description - High contrast dark slate (text-slate-700) */}
-                  <p className="mt-4 text-xs sm:text-sm text-slate-700 font-medium leading-relaxed relative z-10">
+                  {/* Treatment Summary */}
+                  <p className="mt-2.5 text-xs text-slate-600 leading-relaxed">
                     {service.description}
                   </p>
 
-                  {/* Features Bullet List - Crisp dark text with checkmarks */}
-                  {service.features && service.features.length > 0 && (
-                    <div className="mt-5 pt-4 border-t border-slate-200/80 space-y-2 relative z-10">
+                  {/* "What to Expect" & Timeline Box */}
+                  <div className="mt-5 p-3.5 rounded-2xl bg-[#FAF9F6] border border-slate-200/80 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+                      <span className="flex items-center space-x-1.5">
+                        <Clock className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>Typical Timeline:</span>
+                      </span>
+                      <span className="text-emerald-800 bg-emerald-100/60 px-2 py-0.5 rounded-md text-[11px]">
+                        {service.duration}
+                      </span>
+                    </div>
+
+                    <div className="pt-1.5 border-t border-slate-200/60 space-y-1.5">
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">What to expect:</p>
                       {service.features.slice(0, 3).map((feat, idx) => (
-                        <div key={idx} className="flex items-start space-x-2">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                          <span className="text-xs font-semibold text-slate-800 leading-snug">
-                            {feat}
-                          </span>
+                        <div key={idx} className="flex items-start space-x-2 text-xs text-slate-700">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                          <span className="leading-snug">{feat}</span>
                         </div>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                {/* Bottom Action Pill Button */}
-                <div className="mt-6 pt-4 border-t border-slate-200/70 flex items-center justify-between gap-3 relative z-10">
-                  <div className="flex items-center space-x-1.5 text-slate-700 text-[11px] font-bold">
-                    <Layers className="w-3.5 h-3.5 text-slate-500" />
-                    <span>In-House Lab Warranty</span>
+                {/* Bottom Pricing & Interactive 0% Finance Widget */}
+                <div className="mt-6 pt-5 border-t border-slate-100">
+                  {/* Transparent Fee */}
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Transparent Fee</p>
+                      <p className="text-2xl font-black text-[#0F172A] tracking-tight">{displayPrice}</p>
+                    </div>
+
+                    {/* Interactive 0% Finance Widget */}
+                    {monthlyFinance && (
+                      <div className="text-right">
+                        <div
+                          className="relative inline-block"
+                          onMouseEnter={() => setActiveFinanceTooltip(service.id)}
+                          onMouseLeave={() => setActiveFinanceTooltip(null)}
+                        >
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold cursor-pointer hover:bg-emerald-100 transition-colors">
+                            <BadgePercent className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>From {monthlyFinance}</span>
+                            <span className="text-[9px] bg-emerald-200/80 px-1 rounded text-emerald-900 ml-0.5">0% APR</span>
+                          </span>
+
+                          {/* Hover Tooltip */}
+                          {activeFinanceTooltip === service.id && (
+                            <div className="absolute right-0 bottom-full mb-2 w-56 p-3 bg-slate-950 text-white text-[11px] rounded-xl shadow-xl z-30 space-y-1">
+                              <p className="font-bold text-white">0% APR via Tabeo / Chrysalis</p>
+                              <p className="text-slate-300">Spread costs interest-free over 12 or 24 months. Subject to status.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
+                  {/* Action CTA: Book Consultation */}
                   <button
-                    onClick={() => openBookingModal(service.name)}
-                    className="inline-flex items-center space-x-1.5 px-4 sm:px-5 py-2.5 rounded-full text-xs font-bold text-white bg-slate-950 hover:bg-slate-800 shadow-sm shadow-slate-950/20 transition-all hover:scale-105 active:scale-95 shrink-0"
+                    onClick={() => openBookingModal(service.name, isCosmetic ? 'Cosmetic' : 'General')}
+                    className="mt-4 w-full py-3 rounded-2xl font-bold text-xs text-white bg-[#0F172A] hover:bg-slate-800 shadow-md transition-all active:scale-95 flex items-center justify-center space-x-1.5"
                   >
-                    <span>Book Now</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
+                    <span>Book Consultation</span>
+                    <ArrowUpRight className="w-4 h-4" />
                   </button>
                 </div>
-
               </div>
             );
           })}
-        </div>
-
-        {/* Bottom Clinical Guarantee Dock */}
-        <div className="mt-14 p-6 sm:p-8 rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/95 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-1 text-center md:text-left">
-            <h4 className="text-base sm:text-lg font-black text-slate-950 uppercase tracking-tight">
-              Vertex Dental Lab Precision Guarantee
-            </h4>
-            <p className="text-xs sm:text-sm text-slate-700 font-medium max-w-2xl">
-              All ceramic and zirconia restorations come with a 5-year structural warranty against chipping or breakage, backed by our in-house ISO certified 3D CAD/CAM laboratory in Marylebone.
-            </p>
-          </div>
-          <button
-            onClick={() => openBookingModal()}
-            className="px-6 py-3 rounded-full text-xs font-bold text-white bg-slate-950 hover:bg-slate-800 shadow-md shadow-slate-950/20 transition-all hover:scale-105 active:scale-95 shrink-0"
-          >
-            Schedule Consultation
-          </button>
         </div>
 
       </div>
