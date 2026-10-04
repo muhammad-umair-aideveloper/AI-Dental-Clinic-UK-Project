@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useClinic } from '@/context/ClinicContext';
-import { LEAD_CLINICIAN } from '@/lib/default-data';
 import {
   ShieldCheck,
   Star,
@@ -12,187 +11,229 @@ import {
   Sparkles,
   ArrowRight,
   UserCheck,
+  Award,
 } from 'lucide-react';
 
 export const ClinicianSpotlight: React.FC = () => {
-  const { openBookingModal } = useClinic();
+  const { clinicians, openBookingModal } = useClinic();
+  const [selectedClinicianId, setSelectedClinicianId] = useState(clinicians[0]?.id || 'clin-alistair-vance');
 
-  // Embedded instant slot picker state
+  const activeClinician = clinicians.find(c => c.id === selectedClinicianId) || clinicians[0];
+
   const availableDays = [
-    { day: 'Today', date: '2026-10-01', active: true },
-    { day: 'Tomorrow', date: '2026-10-02', active: false },
-    { day: 'Friday', date: '2026-10-03', active: false },
-    { day: 'Saturday', date: '2026-10-04', active: false },
+    { day: 'Today', date: '2026-10-04' },
+    { day: 'Tomorrow', date: '2026-10-05' },
+    { day: 'Tuesday', date: '2026-10-06' },
+    { day: 'Wednesday', date: '2026-10-07' },
   ];
   const [selectedDay, setSelectedDay] = useState(availableDays[0]);
 
-  const slots = [
-    { time: '10:30 AM', period: 'Morning', status: 'Available' },
-    { time: '11:45 AM', period: 'Morning', status: 'Available' },
-    { time: '02:00 PM', period: 'Afternoon', status: 'Available' },
-    { time: '04:15 PM', period: 'Afternoon', status: 'Available' },
-  ];
-  const [selectedSlot, setSelectedSlot] = useState(slots[2].time);
-
-  const handleBookWithClinician = () => {
-    openBookingModal();
-  };
+  const slots = ['10:30 AM', '11:45 AM', '02:15 PM', '04:00 PM'];
+  const [selectedSlot, setSelectedSlot] = useState(slots[1]);
 
   return (
-    <section id="clinicians" className="py-20 lg:py-28 bg-slate-900 text-white scroll-mt-16 relative overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-sky-600/10 rounded-full blur-3xl pointer-events-none" />
+    <section id="clinical-team" className="py-20 lg:py-28 bg-[#0F172A] text-white scroll-mt-16 relative overflow-hidden">
+      {/* Background ambient lighting */}
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 right-0 w-80 h-80 bg-slate-700/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-950 border border-sky-800 text-sky-400 text-xs font-bold mb-3 uppercase tracking-wider">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-emerald-400 text-xs font-bold mb-3 uppercase tracking-wider">
             <UserCheck className="w-3.5 h-3.5" />
-            <span>Clinical Leadership</span>
+            <span>MANDATORY GDC REGISTERED CLINICIANS</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Meet Our Clinical Director & Lead Dental Surgeon
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight font-sans">
+            Leading British Dental Surgeons &{' '}
+            <span className="font-editorial italic font-normal text-emerald-300">
+              Aesthetic Specialists.
+            </span>
           </h2>
           <p className="mt-4 text-base sm:text-lg text-slate-300">
-            Dedicated to gentle surgical precision, CAD/CAM aesthetic mastery, and personalized patient care.
+            Every clinician at Vertex Dental Lab is registered with the General Dental Council (GDC), ensuring the highest standard of UK clinical safety, continuous education, and ethical patient care.
           </p>
         </div>
 
-        {/* Spotlight Card */}
-        <div className="rounded-3xl bg-slate-800/80 border border-slate-700/80 p-6 sm:p-10 shadow-2xl backdrop-blur-sm grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          {/* Clinician Portrait & Verification Badges */}
-          <div className="lg:col-span-5 flex flex-col items-center">
-            <div className="relative w-64 sm:w-72 aspect-square rounded-3xl overflow-hidden border-4 border-slate-700 shadow-2xl group">
-              <Image
-                src={LEAD_CLINICIAN.photo}
-                alt={LEAD_CLINICIAN.name}
-                width={500}
-                height={500}
-                className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-              <div className="absolute bottom-3 left-3 right-3 text-center">
-                <span className="inline-block px-3 py-1 rounded-full bg-sky-900/90 text-sky-200 text-xs font-semibold border border-sky-600">
-                  {LEAD_CLINICIAN.gdcNumber}
+        {/* 4 Clinician Profile Cards Grid (Mandatory GDC Credentials on each card) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
+          {clinicians.map(clinician => {
+            const isSelected = clinician.id === activeClinician.id;
+
+            return (
+              <div
+                key={clinician.id}
+                onClick={() => setSelectedClinicianId(clinician.id)}
+                className={`rounded-3xl p-5 border transition-all cursor-pointer flex flex-col justify-between group ${
+                  isSelected
+                    ? 'bg-slate-800/90 border-emerald-400/80 shadow-2xl ring-2 ring-emerald-500/30 -translate-y-1'
+                    : 'bg-slate-800/50 border-slate-700/60 hover:bg-slate-800 hover:border-slate-600'
+                }`}
+              >
+                <div>
+                  {/* Portrait with GDC Overlay Badge */}
+                  <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-4 bg-slate-900 border border-slate-700">
+                    <Image
+                      src={clinician.photo}
+                      alt={clinician.name}
+                      fill
+                      className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                    
+                    {/* Mandatory GDC Registration Badge */}
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5">
+                      <span className="inline-block w-full text-center px-2 py-1 rounded-lg bg-[#0F172A]/90 backdrop-blur-md text-emerald-300 text-[11px] font-bold border border-emerald-500/40">
+                        {clinician.gdcNumber}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Clinician Name & Title */}
+                  <h3 className="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors">
+                    {clinician.name}
+                  </h3>
+                  <p className="text-xs font-semibold text-emerald-400 mt-0.5">
+                    {clinician.title}
+                  </p>
+
+                  {/* Qualifications */}
+                  <p className="text-[11px] text-slate-300 font-medium mt-1 leading-snug">
+                    {clinician.credentials}
+                  </p>
+
+                  {/* Bio snippet */}
+                  <p className="text-xs text-slate-400 mt-2.5 line-clamp-3 leading-relaxed">
+                    {clinician.bio}
+                  </p>
+                </div>
+
+                {/* Specialties tags */}
+                <div className="mt-4 pt-3 border-t border-slate-700/60">
+                  <div className="flex flex-wrap gap-1">
+                    {clinician.specialties.slice(0, 2).map((sp, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-900/80 text-slate-300 border border-slate-700"
+                      >
+                        {sp}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between text-xs font-bold text-slate-300">
+                    <span className="flex items-center text-amber-400">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 mr-1" />
+                      {clinician.rating} ({clinician.reviewsCount})
+                    </span>
+                    <span className="text-[11px] text-slate-400">{clinician.experienceYears}+ Yrs Exp</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Selected Clinician Deep-Dive & Embedded Interactive Booking Slot Picker */}
+        <div className="rounded-3xl bg-slate-800/80 border border-slate-700 p-6 sm:p-10 shadow-2xl backdrop-blur-md">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* Clinician Overview */}
+            <div className="lg:col-span-6 space-y-4">
+              <div className="inline-flex items-center space-x-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Selected Lead Clinician</span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
+                {activeClinician.name}
+              </h3>
+              <p className="text-sm text-slate-300 font-semibold">
+                {activeClinician.title} • {activeClinician.credentials}
+              </p>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                {activeClinician.bio}
+              </p>
+
+              <div className="pt-2 flex flex-wrap gap-2 text-xs">
+                <span className="px-3 py-1 rounded-full bg-slate-900 text-emerald-300 font-bold border border-slate-700">
+                  {activeClinician.gdcNumber}
+                </span>
+                <span className="px-3 py-1 rounded-full bg-slate-900 text-slate-300 font-medium border border-slate-700">
+                  {activeClinician.verifiedProcedures}+ Verified Procedures
+                </span>
+                <span className="px-3 py-1 rounded-full bg-slate-900 text-slate-300 font-medium border border-slate-700">
+                  Harley St & London Practice
                 </span>
               </div>
             </div>
 
-            <div className="mt-5 flex items-center space-x-2">
-              <div className="flex text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-amber-400" />
-                ))}
-              </div>
-              <span className="text-sm font-bold text-white">
-                {LEAD_CLINICIAN.rating}
-              </span>
-              <span className="text-xs text-slate-400">
-                ({LEAD_CLINICIAN.reviewsCount} Verified UK Reviews)
-              </span>
-            </div>
-          </div>
-
-          {/* Clinician Credentials & Embedded Interactive Slot Picker */}
-          <div className="lg:col-span-7 space-y-6">
-            <div>
-              <div className="inline-flex items-center space-x-2 text-xs font-bold text-sky-400 uppercase tracking-wider mb-1">
-                <ShieldCheck className="w-4 h-4" />
-                <span>Royal College of Surgeons of England Affiliate</span>
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
-                {LEAD_CLINICIAN.name}
-              </h3>
-              <p className="text-sm font-medium text-slate-300 mt-1">
-                {LEAD_CLINICIAN.title} • {LEAD_CLINICIAN.credentials}
-              </p>
-            </div>
-
-            <p className="text-sm text-slate-300 leading-relaxed">
-              {LEAD_CLINICIAN.bio}
-            </p>
-
-            {/* Key Clinical Metric Badges */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-700/60">
-                <p className="text-xs text-slate-400">Clinical Practice</p>
-                <p className="text-lg font-bold text-white">{LEAD_CLINICIAN.experienceYears}+ Years</p>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-700/60">
-                <p className="text-xs text-slate-400">Implants Placed</p>
-                <p className="text-lg font-bold text-white">{LEAD_CLINICIAN.verifiedProcedures}+</p>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-700/60 col-span-2 sm:col-span-1">
-                <p className="text-xs text-slate-400">Success Rate</p>
-                <p className="text-lg font-bold text-emerald-400">99.4%</p>
-              </div>
-            </div>
-
-            {/* Interactive Embedded Date & Time Slot Picker */}
-            <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-700 space-y-4">
+            {/* Interactive Embedded Diary Slot Picker */}
+            <div className="lg:col-span-6 p-6 rounded-2xl bg-slate-900 border border-slate-700 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-sky-400" />
+                  <Calendar className="w-4 h-4 text-emerald-400" />
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
-                    Book Directly into Dr. Vance&apos;s Diary
+                    Book Directly with {activeClinician.name.split(' ')[1] || activeClinician.name}
                   </span>
                 </div>
                 <span className="text-[11px] text-emerald-400 font-semibold flex items-center">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span>
-                  Slots Open This Week
+                  Diary Open
                 </span>
               </div>
 
               {/* Day Pills */}
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {availableDays.map(d => (
                   <button
                     key={d.day}
                     onClick={() => setSelectedDay(d)}
-                    className={`py-2 px-2 text-center rounded-xl text-xs font-semibold transition-all ${
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all text-center ${
                       selectedDay.day === d.day
-                        ? 'bg-sky-600 text-white shadow-md'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                        ? 'bg-emerald-500 text-slate-950 shadow-md scale-[1.02]'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
                     }`}
                   >
-                    <p className="font-bold">{d.day}</p>
-                    <p className="text-[10px] text-slate-300 opacity-80">{d.date.slice(5)}</p>
+                    <div>{d.day}</div>
+                    <div className="text-[10px] font-normal opacity-80">{d.date.slice(5)}</div>
                   </button>
                 ))}
               </div>
 
-              {/* Slot Pills */}
+              {/* Time Slots */}
               <div className="space-y-1.5">
-                <p className="text-[11px] font-medium text-slate-400">Select consultation time slot:</p>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Available Timeslots:</p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {slots.map(s => (
+                  {slots.map(t => (
                     <button
-                      key={s.time}
-                      onClick={() => setSelectedSlot(s.time)}
-                      className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1 transition-all ${
-                        selectedSlot === s.time
-                          ? 'bg-emerald-600 text-white shadow-md'
-                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                      key={t}
+                      onClick={() => setSelectedSlot(t)}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition-all ${
+                        selectedSlot === t
+                          ? 'bg-white text-slate-950 shadow-md'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
                       }`}
                     >
-                      <Clock className="w-3 h-3 mr-1" />
-                      <span>{s.time}</span>
+                      {t}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Action Button */}
+              {/* Confirm Consultation CTA */}
               <button
-                onClick={handleBookWithClinician}
-                className="w-full py-3 rounded-xl font-bold text-xs text-slate-950 bg-gradient-to-r from-sky-400 via-cyan-300 to-teal-300 hover:opacity-90 transition-all flex items-center justify-center space-x-2 shadow-lg shadow-sky-500/10 active:scale-95"
+                onClick={() => openBookingModal(`Consultation with ${activeClinician.name}`)}
+                className="w-full py-3.5 rounded-xl font-bold text-xs text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition-all shadow-md active:scale-95 flex items-center justify-center space-x-1.5"
               >
-                <Sparkles className="w-4 h-4 text-slate-950" />
-                <span>Confirm {selectedDay.day} at {selectedSlot} with Dr. Vance</span>
-                <ArrowRight className="w-4 h-4 text-slate-950" />
+                <span>Reserve Consultation for {selectedDay.day} at {selectedSlot}</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
+
           </div>
         </div>
+
       </div>
     </section>
   );

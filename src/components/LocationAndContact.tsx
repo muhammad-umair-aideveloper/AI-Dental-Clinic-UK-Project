@@ -41,6 +41,8 @@ export const LocationAndContact: React.FC = () => {
       phone: formData.phone,
       serviceInterest: formData.serviceInterest,
       message: formData.message || 'Interested in booking a clinical consultation.',
+      status: 'New Lead',
+      source: 'Web Form',
     });
 
     setSubmitted(true);
