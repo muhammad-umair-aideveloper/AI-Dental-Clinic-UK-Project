@@ -12,7 +12,6 @@ import {
   Globe,
   Sparkles,
   ChevronDown,
-  LayoutDashboard,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
