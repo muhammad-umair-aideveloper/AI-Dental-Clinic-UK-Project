@@ -234,15 +234,6 @@ export const Navbar: React.FC = () => {
               >
                 Book Guest Consultation
               </button>
-
-              <Link
-                href="/admin-dashboard"
-                onClick={() => setMenuOpen(false)}
-                className="w-full py-2 rounded-xl text-center text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors flex items-center justify-center space-x-1"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                <span>Admin Lead Hub</span>
-              </Link>
             </div>
           </div>
         </div>
