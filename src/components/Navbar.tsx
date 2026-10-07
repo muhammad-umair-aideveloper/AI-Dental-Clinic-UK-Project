@@ -58,6 +58,14 @@ export const Navbar: React.FC = () => {
               <span>{companyDetails.helplinePhone}</span>
             </a>
 
+            <Link
+              href="/admin/appointments"
+              className="hidden lg:inline-flex items-center space-x-1 text-[10px] font-bold text-emerald-400 bg-emerald-950/80 hover:bg-emerald-900 px-2.5 py-0.5 rounded-full border border-emerald-500/40 transition-colors whitespace-nowrap"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1"></span>
+              <span>Reception Desk & Automations ↗</span>
+            </Link>
+
             {/* Currency Selector */}
             <div className="relative shrink-0">
               <button
