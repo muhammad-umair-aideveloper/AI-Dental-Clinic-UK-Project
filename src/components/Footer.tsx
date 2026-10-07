@@ -217,10 +217,17 @@ export const Footer: React.FC = () => {
             </a>
             <span>•</span>
             <Link
+              href="/admin/appointments"
+              className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors text-[10px] whitespace-nowrap"
+            >
+              Reception Desk & Automations
+            </Link>
+            <span>•</span>
+            <Link
               href="/admin-login"
               className="text-slate-500 hover:text-slate-300 transition-colors text-[10px] whitespace-nowrap"
             >
-              Staff Access
+              Staff CMS
             </Link>
           </div>
         </div>
