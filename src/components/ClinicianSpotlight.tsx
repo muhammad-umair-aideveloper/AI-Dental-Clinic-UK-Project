@@ -84,7 +84,7 @@ export const ClinicianSpotlight: React.FC = () => {
                     
                     {/* Mandatory GDC Registration Badge */}
                     <div className="absolute bottom-2.5 left-2.5 right-2.5">
-                      <span className="inline-block w-full text-center px-2 py-1 rounded-lg bg-[#0F172A]/90 backdrop-blur-md text-emerald-300 text-[11px] font-bold border border-emerald-500/40">
+                      <span className="inline-block w-full text-center px-2 py-1 rounded-lg bg-[#0F172A]/90 backdrop-blur-md text-emerald-300 text-[11px] font-bold border border-emerald-500/40 truncate whitespace-nowrap">
                         {clinician.gdcNumber}
                       </span>
                     </div>
@@ -170,14 +170,14 @@ export const ClinicianSpotlight: React.FC = () => {
 
             {/* Interactive Embedded Diary Slot Picker */}
             <div className="lg:col-span-6 p-6 rounded-2xl bg-slate-900 border border-slate-700 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center space-x-2 min-w-0">
+                  <Calendar className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-200 truncate">
                     Book Directly with {activeClinician.name.split(' ')[1] || activeClinician.name}
                   </span>
                 </div>
-                <span className="text-[11px] text-emerald-400 font-semibold flex items-center">
+                <span className="text-[11px] text-emerald-400 font-semibold flex items-center shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span>
                   Diary Open
                 </span>
@@ -224,10 +224,10 @@ export const ClinicianSpotlight: React.FC = () => {
               {/* Confirm Consultation CTA */}
               <button
                 onClick={() => openBookingModal(`Consultation with ${activeClinician.name}`)}
-                className="w-full py-3.5 rounded-xl font-bold text-xs text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition-all shadow-md active:scale-95 flex items-center justify-center space-x-1.5"
+                className="w-full py-3.5 px-3 rounded-xl font-bold text-xs text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition-all shadow-md active:scale-95 flex items-center justify-center space-x-1.5 text-center"
               >
-                <span>Reserve Consultation for {selectedDay.day} at {selectedSlot}</span>
-                <ArrowRight className="w-4 h-4" />
+                <span className="truncate sm:whitespace-normal">Reserve Consultation for {selectedDay.day} at {selectedSlot}</span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
               </button>
             </div>
 

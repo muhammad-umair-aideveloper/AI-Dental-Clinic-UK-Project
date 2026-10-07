@@ -57,11 +57,11 @@ export const ServicesSection: React.FC = () => {
         </div>
 
         {/* Category Split Toggle: General vs Cosmetic Dentistry */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex p-1.5 rounded-full bg-slate-200/80 border border-slate-300/60 shadow-inner">
+        <div className="flex justify-center mb-12 px-2">
+          <div className="flex flex-wrap sm:inline-flex justify-center gap-1 p-1 sm:p-1.5 rounded-2xl sm:rounded-full bg-slate-200/80 border border-slate-300/60 shadow-inner max-w-full">
             <button
               onClick={() => setActiveTab('Cosmetic')}
-              className={`px-6 py-2.5 rounded-full text-xs font-bold transition-all ${
+              className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === 'Cosmetic'
                   ? 'bg-[#0F172A] text-white shadow-md'
                   : 'text-slate-700 hover:text-slate-950'
@@ -71,17 +71,17 @@ export const ServicesSection: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('General')}
-              className={`px-6 py-2.5 rounded-full text-xs font-bold transition-all ${
+              className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === 'General'
                   ? 'bg-[#0F172A] text-white shadow-md'
                   : 'text-slate-700 hover:text-slate-950'
               }`}
             >
-              🦷 General & Specialist Dentistry
+              🦷 General & Specialist
             </button>
             <button
               onClick={() => setActiveTab('All')}
-              className={`hidden sm:inline-block px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+              className={`px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === 'All'
                   ? 'bg-[#0F172A] text-white shadow-md'
                   : 'text-slate-700 hover:text-slate-950'
@@ -174,7 +174,7 @@ export const ServicesSection: React.FC = () => {
                 {/* Bottom Pricing & Interactive 0% Finance Widget */}
                 <div className="mt-6 pt-5 border-t border-slate-100">
                   {/* Transparent Fee */}
-                  <div className="flex items-baseline justify-between">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <div>
                       <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Transparent Fee</p>
                       <p className="text-2xl font-black text-[#0F172A] tracking-tight">{displayPrice}</p>
@@ -182,7 +182,7 @@ export const ServicesSection: React.FC = () => {
 
                     {/* Interactive 0% Finance Widget */}
                     {monthlyFinance && (
-                      <div className="text-right">
+                      <div className="text-right shrink-0">
                         <div
                           className="relative inline-block"
                           onMouseEnter={() => setActiveFinanceTooltip(service.id)}

@@ -125,13 +125,13 @@ export const FinanceCalculator: React.FC = () => {
                       <td className="py-3 text-slate-900 font-semibold">
                         {item.item}
                         {item.finance && (
-                          <span className="block text-[10px] text-emerald-700 font-bold">
+                          <span className="block text-[10px] text-emerald-700 font-bold whitespace-nowrap">
                             or {item.finance} (0% APR)
                           </span>
                         )}
                       </td>
-                      <td className="py-3 text-slate-500">{item.timeline}</td>
-                      <td className="py-3 text-slate-950 font-black text-right">{item.price}</td>
+                      <td className="py-3 text-slate-500 whitespace-nowrap">{item.timeline}</td>
+                      <td className="py-3 text-slate-950 font-black text-right whitespace-nowrap">{item.price}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -239,19 +239,19 @@ export const FinanceCalculator: React.FC = () => {
 
             {/* Calculation Output Card */}
             <div className="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-3">
-              <div className="flex justify-between items-baseline">
+              <div className="flex flex-wrap justify-between items-baseline gap-2">
                 <div>
                   <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Monthly Direct Debit</p>
                   <p className="text-3xl font-black text-slate-950">£{monthlyPayment} <span className="text-xs font-medium text-slate-600">/ month</span></p>
                 </div>
-                <div className="text-right">
-                  <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-600 text-white">
+                <div className="text-right shrink-0">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-600 text-white whitespace-nowrap">
                     {isInterestFree ? '0% Interest Free' : '9.9% APR'}
                   </span>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-emerald-200/80 grid grid-cols-3 gap-2 text-[11px] text-slate-700">
+              <div className="pt-3 border-t border-emerald-200/80 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-slate-700">
                 <div>
                   <span className="text-slate-500 block">Deposit:</span>
                   <span className="font-bold">£{depositAmount}</span>

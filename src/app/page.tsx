@@ -15,7 +15,7 @@ import { Footer } from '@/components/Footer';
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen flex flex-col bg-[#FAF9F6]">
+    <main className="min-h-screen flex flex-col bg-[#FAF9F6] overflow-x-hidden w-full max-w-full">
       <UrgentCareStickyBanner />
       <Navbar />
       <HeroSection />

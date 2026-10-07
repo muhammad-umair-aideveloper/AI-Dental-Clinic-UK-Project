@@ -183,12 +183,12 @@ export const SmileGallery: React.FC = () => {
                 <span className="font-bold text-slate-900">{currentCase.duration}</span>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200/80">
-                <span className="text-slate-500 flex items-center space-x-1.5 font-medium">
+              <div className="flex flex-wrap items-center justify-between p-3 rounded-xl bg-white border border-slate-200/80 gap-2">
+                <span className="text-slate-500 flex items-center space-x-1.5 font-medium shrink-0">
                   <UserCheck className="w-4 h-4 text-slate-700" />
                   <span>Lead Clinician:</span>
                 </span>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <p className="font-bold text-slate-900">{currentCase.clinicianName}</p>
                   <p className="text-[10px] text-emerald-700 font-semibold">{currentCase.clinicianGdc}</p>
                 </div>

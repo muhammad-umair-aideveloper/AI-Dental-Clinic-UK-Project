@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en-GB" data-scroll-behavior="smooth" className="h-full antialiased scroll-smooth">
+    <html lang="en-GB" data-scroll-behavior="smooth" className="h-full antialiased scroll-smooth overflow-x-hidden w-full max-w-full">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -35,7 +35,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col font-sans bg-[#FAF9F6] text-slate-900 selection:bg-slate-900 selection:text-white">
+      <body className="min-h-full flex flex-col font-sans bg-[#FAF9F6] text-slate-900 selection:bg-slate-900 selection:text-white overflow-x-hidden w-full max-w-full">
         <ClinicProvider>
           {children}
           <BookingModal />

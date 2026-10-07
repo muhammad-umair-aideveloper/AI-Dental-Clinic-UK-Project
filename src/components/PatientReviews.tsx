@@ -79,14 +79,14 @@ export const PatientReviews: React.FC = () => {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Trusted by Over 4,200 London & UK Patients
           </h2>
-          <div className="mt-4 flex items-center justify-center space-x-2">
-            <div className="flex text-amber-400">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <div className="flex text-amber-400 shrink-0">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="w-5 h-5 fill-amber-400" />
               ))}
             </div>
-            <span className="text-base font-extrabold text-slate-900">4.9 / 5.0</span>
-            <span className="text-sm text-slate-500">• Google Verified Patient Reviews</span>
+            <span className="text-base font-extrabold text-slate-900 shrink-0">4.9 / 5.0</span>
+            <span className="text-sm text-slate-500 whitespace-nowrap">• Google Verified Patient Reviews</span>
           </div>
         </div>
 

@@ -104,16 +104,16 @@ export const VertexDifference: React.FC = () => {
                 <div className="absolute inset-0 rounded-[28px] bg-gradient-to-b from-white/40 via-transparent to-transparent pointer-events-none" />
 
                 {/* Header with Number and Icon */}
-                <div className="flex items-center justify-between mb-6 relative z-10">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-6 relative z-10">
                   <div className="flex items-center space-x-4">
                     <span className="text-4xl sm:text-5xl font-black tracking-tighter text-slate-300 group-hover:text-slate-900 transition-colors">
                       {pillar.num}
                     </span>
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-900 group-hover:bg-slate-950 group-hover:text-white transition-all">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-900 group-hover:bg-slate-950 group-hover:text-white transition-all shrink-0">
                       <Icon className="w-6 h-6" />
                     </div>
                   </div>
-                  <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-slate-900 text-white shadow-2xs">
+                  <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-slate-900 text-white shadow-2xs shrink-0 whitespace-nowrap">
                     {pillar.badge}
                   </span>
                 </div>

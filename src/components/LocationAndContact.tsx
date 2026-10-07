@@ -84,9 +84,9 @@ export const LocationAndContact: React.FC = () => {
                 <div className="w-10 h-10 rounded-xl bg-sky-900/60 text-sky-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                   <Phone className="w-5 h-5" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-xs text-slate-400">Direct Telephone</p>
-                  <p className="text-sm font-bold text-white group-hover:text-sky-300 transition-colors">
+                  <p className="text-sm font-bold text-white group-hover:text-sky-300 transition-colors break-words">
                     {companyDetails.helplinePhone}
                   </p>
                   <p className="text-[10px] text-slate-400">Lines open 08:30 - 19:00</p>
@@ -102,9 +102,9 @@ export const LocationAndContact: React.FC = () => {
                 <div className="w-10 h-10 rounded-xl bg-emerald-900/60 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                   <MessageSquare className="w-5 h-5" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-xs text-slate-400">WhatsApp Triage</p>
-                  <p className="text-sm font-bold text-white group-hover:text-emerald-300 transition-colors">
+                  <p className="text-sm font-bold text-white group-hover:text-emerald-300 transition-colors break-words">
                     {companyDetails.whatsappPhone}
                   </p>
                   <p className="text-[10px] text-slate-400">Instant patient messaging</p>

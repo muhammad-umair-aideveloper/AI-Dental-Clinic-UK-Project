@@ -201,24 +201,24 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Legal Copyright Strip */}
-        <div className="mt-12 pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-4">
-          <p>© {new Date().getFullYear()} Vertex Dental Lab Ltd. Company Reg No. 12948210. Registered in England & Wales.</p>
-          <div className="flex items-center space-x-4">
-            <button onClick={() => setPrivacyModalOpen(true)} className="hover:text-white underline">
+        <div className="mt-12 pt-8 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between text-[11px] text-slate-400 gap-4 text-center md:text-left">
+          <p className="break-words">© {new Date().getFullYear()} Vertex Dental Lab Ltd. Company Reg No. 12948210. Registered in England & Wales.</p>
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-3 gap-y-2">
+            <button onClick={() => setPrivacyModalOpen(true)} className="hover:text-white underline whitespace-nowrap">
               Privacy Policy (GDPR)
             </button>
             <span>•</span>
-            <button onClick={() => setPrivacyModalOpen(true)} className="hover:text-white underline">
+            <button onClick={() => setPrivacyModalOpen(true)} className="hover:text-white underline whitespace-nowrap">
               Cookie Preferences
             </button>
             <span>•</span>
-            <a href="#services" className="hover:text-white underline">
+            <a href="#services" className="hover:text-white underline whitespace-nowrap">
               Fee Schedule
             </a>
             <span>•</span>
             <Link
               href="/admin-login"
-              className="text-slate-500 hover:text-slate-300 transition-colors text-[10px]"
+              className="text-slate-500 hover:text-slate-300 transition-colors text-[10px] whitespace-nowrap"
             >
               Staff Access
             </Link>
