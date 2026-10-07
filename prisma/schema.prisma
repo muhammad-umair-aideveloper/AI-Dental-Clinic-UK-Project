@@ -1,0 +1,106 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum MessageType {
+  T24_REMINDER
+  T2_FINAL_ALERT
+  POST_OP_CARE
+  RECALL_6_MONTH
+  TRIAGE_RESPONSE
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+model Patient {
+  id            String        @id @default(cuid())
+  name          String
+  phoneNumber   String        @unique
+  email         String?
+  lastVisitDate DateTime?
+  treatmentType String?
+  recallSent    Boolean       @default(false)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  appointments  Appointment[]
+
+  @@index([phoneNumber])
+  @@index([lastVisitDate, recallSent])
+}
+
+model Appointment {
+  id                 String            @id @default(cuid())
+  patientId          String?
+  patientName        String
+  phoneNumber        String
+  treatmentType      String
+  slotTime           DateTime
+  status             AppointmentStatus @default(PENDING)
+  clinicianName      String            @default("Dr. Alistair Vance")
+  notes              String?
+  isEmergency        Boolean           @default(false)
+  source             String            @default("Website Widget")
+  postOpDispatchedAt DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  patient            Patient?          @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  messages           MessageLog[]
+
+  @@index([phoneNumber])
+  @@index([slotTime])
+  @@index([status])
+}
+
+model MessageLog {
+  id                String        @id @default(cuid())
+  appointmentId     String?
+  patientPhone      String
+  messageType       MessageType
+  templateName      String
+  content           String
+  status            MessageStatus @default(SENT)
+  whatsappMessageId String?
+  sentAt            DateTime      @default(now())
+  deliveredAt       DateTime?
+  readAt            DateTime?
+
+  appointment       Appointment?  @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([appointmentId])
+  @@index([patientPhone])
+  @@index([messageType])
+}
+
+model Waitlist {
+  id            String   @id @default(cuid())
+  patientName   String
+  phoneNumber   String
+  treatmentType String
+  preferredDate DateTime?
+  notes         String?
+  alerted       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([alerted])
+}
