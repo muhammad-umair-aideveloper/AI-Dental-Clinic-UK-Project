@@ -3,6 +3,7 @@ import './globals.css';
 import { ClinicProvider } from '@/context/ClinicContext';
 import { BookingModal } from '@/components/BookingModal';
 import { ChatDrawer } from '@/components/ChatDrawer';
+import { DentalAgentWidget } from '@/components/DentalAgentWidget';
 
 export const metadata: Metadata = {
   title: 'Vertex Dental Lab | Award-Winning Central London Private & Cosmetic Dentistry',
@@ -39,7 +40,7 @@ export default function RootLayout({
         <ClinicProvider>
           {children}
           <BookingModal />
-          <ChatDrawer />
+          <DentalAgentWidget />
         </ClinicProvider>
       </body>
     </html>
