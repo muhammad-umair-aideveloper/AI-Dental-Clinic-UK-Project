@@ -26,7 +26,7 @@ export function validateAndNormaliseMobile(input: string): PhoneValidationResult
   try {
     // Normalise to E.164
     const phone = parsePhoneNumber(cleaned, 'GB');
-    if (!isValidPhoneNumber(cleaned, 'GB')) {
+    if (!phone.isPossible()) {
       return {
         valid: false,
         error: 'That doesn\'t look like a valid UK mobile. Please check and try again (e.g. 07700 900000).',

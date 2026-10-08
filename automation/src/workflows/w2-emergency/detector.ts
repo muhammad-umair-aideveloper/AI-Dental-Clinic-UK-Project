@@ -31,7 +31,7 @@ const RED_FLAG_PATTERNS: RegExp[] = [
   /throat\s+swelling/i,
   /swollen\s+(throat|airway|neck)/i,
   /face\s+(is\s+)?(very\s+)?swollen/i,
-  /swelling\s+spread(ing)?\s+to\s+(my\s+)?(face|eye|neck|cheek)/i,
+  /swelling\s+(is\s+)?spread(ing)?\s+to\s+(my\s+)?(face|eye|neck|cheek)/i,
 
   // Uncontrolled bleeding
   /uncontrolled\s+bleeding/i,
@@ -71,16 +71,16 @@ const STANDARD_PATTERNS: RegExp[] = [
   /\b(killing|agony)\b.{0,20}\b(tooth|dental|mouth|jaw)\b/i,
 
   // Broken / chipped / cracked tooth
-  /\b(broken|chipped|cracked|fractured|snapped|shattered)\b.{0,20}\b(tooth|teeth|molar|incisor|crown|filling|veneer)\b/i,
-  /\b(tooth|teeth|molar|incisor)\b.{0,20}\b(broken|chipped|cracked|fractured|snapped|fell off)\b/i,
-  /my\s+(tooth|teeth)\s+(broke|snapped|cracked|chipped|fell\s+out)/i,
-  /lost\s+(a\s+)?(tooth|filling|crown|cap)/i,
+  /\b(broke|broken|chipped|cracked|fractured|snapped|shattered)\b.{0,25}\b(tooth|teeth|molar|incisor|crown|filling|veneer)\b/i,
+  /\b(tooth|teeth|molar|incisor)\b.{0,25}\b(broke|broken|chipped|cracked|fractured|snapped|fell\s+off)\b/i,
+  /my\s+(tooth|teeth)[\s!.,?:;]+(broke|snapped|cracked|chipped|fell\s+out)/i,
+  /lost\s+(a\s+|my\s+|the\s+)?(tooth|teeth|filling|crown|cap)/i,
   /filling\s+(fell|came|has\s+come)\s+out/i,
   /crown\s+(fell|came|has\s+come)\s+out/i,
 
   // Knocked-out tooth
   /knocked[\s-]out\s+(tooth|teeth)/i,
-  /tooth\s+(knocked|fallen|fell|come|came)\s+out/i,
+  /tooth\s+(got\s+|was\s+|is\s+|has\s+been\s+)?(knocked|fallen|fell|come|came)\s+out/i,
   /avulsion/i,
   /my\s+tooth\s+came\s+out/i,
   /tooth\s+(has\s+)?been\s+knocked\s+out/i,
@@ -99,7 +99,7 @@ const STANDARD_PATTERNS: RegExp[] = [
   // Fever / infection with toothache
   /\b(fever|temperature)\b.{0,30}\b(tooth|dental|mouth|jaw)/i,
   /\b(tooth|dental|mouth|jaw)\b.{0,30}\b(fever|temperature)\b/i,
-  /\b(infection|infected)\b.{0,20}\b(tooth|teeth|gum|jaw|mouth)/i,
+  /\b(infection|infected)\b.{0,50}\b(tooth|teeth|gum|jaw|mouth)/i,
 
   // Misspellings ─────────────────────────────────────────────────────────────
   /toth(ache)?/i,           // toth, tothache
@@ -114,7 +114,7 @@ const STANDARD_PATTERNS: RegExp[] = [
   /cracke[dt]/i,            // cracked misspelling
   /chiped/i,                // chipped misspelling
   /brocken/i,               // broken misspelling
-  /\bnockd?\s+out\b/i,      // knockd out
+  /\bk?nockd?\s+out\b/i,    // knockd out
   /falen\s+out/i,           // falen out (fallen)
   /infecshun/i,             // misspelling of infection
   /tootache/i,              // tootache

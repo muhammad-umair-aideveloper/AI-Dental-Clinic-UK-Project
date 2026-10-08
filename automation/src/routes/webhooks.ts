@@ -2,7 +2,7 @@
  * routes/webhooks.ts
  * Inbound webhooks: Twilio (WhatsApp + SMS) + Stripe + Cloud Tasks
  */
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { verifyTwilioSignature, verifyTaskSecret } from '../core/signature-verifier.js';
 import { handleStripeWebhook } from '../workflows/w3-deposit/stripe.js';
 import { routeTask } from '../jobs/task-router.js';
@@ -15,7 +15,7 @@ import { newId } from '../core/firestore.js';
 export async function registerWebhookRoutes(app: FastifyInstance): Promise<void> {
 
   // ── Twilio WhatsApp / SMS inbound ──────────────────────────────────────────
-  const twilioHandler = async (req: Parameters<Parameters<typeof app.post>[2]>[0], reply: Parameters<Parameters<typeof app.post>[2]>[1]) => {
+  const twilioHandler = async (req: FastifyRequest, reply: FastifyReply) => {
     await verifyTwilioSignature(req, reply);
     if (reply.sent) return;
 
@@ -57,11 +57,11 @@ export async function registerWebhookRoutes(app: FastifyInstance): Promise<void>
 
   // ── Stripe webhook ──────────────────────────────────────────────────────────
   // Stripe requires the RAW body — Fastify must not parse it
-  app.addContentTypeParser('application/json', { parseAs: 'buffer' }, (req, body, done) => {
+  app.addContentTypeParser('application/json', { parseAs: 'buffer' }, (_req, body, done) => {
     done(null, body);
   });
 
-  app.post('/webhooks/stripe', async (req, reply) => {
+  app.post('/webhooks/stripe', async (req: FastifyRequest, reply: FastifyReply) => {
     const signature = req.headers['stripe-signature'] as string | undefined;
     if (!signature) return reply.code(400).send({ error: 'Missing signature' });
 
@@ -75,7 +75,7 @@ export async function registerWebhookRoutes(app: FastifyInstance): Promise<void>
   });
 
   // ── Cloud Tasks jobs ───────────────────────────────────────────────────────
-  app.post('/webhooks/tasks', async (req, reply) => {
+  app.post('/webhooks/tasks', async (req: FastifyRequest, reply: FastifyReply) => {
     await verifyTaskSecret(req, reply);
     if (reply.sent) return;
 

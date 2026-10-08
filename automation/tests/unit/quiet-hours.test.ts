@@ -83,8 +83,8 @@ describe('DST transition day — clocks spring forward (last Sunday March 2024 =
 });
 
 describe('DST transition day — clocks fall back (last Sunday Oct 2024 = Oct 27)', () => {
-  it('21:00 BST (20:00 UTC) on Oct 27 is quiet', () => {
-    expect(isQuietHours(new Date('2024-10-27T20:00:00Z'))).toBe(true);
+  it('21:00 BST (20:00 UTC) on Oct 26 is quiet', () => {
+    expect(isQuietHours(new Date('2024-10-26T20:00:00Z'))).toBe(true);
   });
 
   it('21:00 GMT (21:00 UTC) on Oct 27 is quiet', () => {

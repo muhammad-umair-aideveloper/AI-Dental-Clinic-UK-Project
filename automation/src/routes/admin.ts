@@ -3,7 +3,7 @@
  * Secured admin API routes — Google OAuth required (allow-list checked server-side).
  * Implements the PracticeSystemAdapter status update endpoint.
  */
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { OAuth2Client } from 'google-auth-library';
 import { clinicConfig } from '../clinic.config.js';
@@ -28,7 +28,7 @@ const oauthClient = new OAuth2Client(process.env['GOOGLE_OAUTH_CLIENT_ID']!);
 
 // ─── Auth Middleware ──────────────────────────────────────────────────────────
 
-async function verifyGoogleToken(req: Parameters<Parameters<typeof FastifyInstance.prototype.get>[2]>[0], reply: Parameters<Parameters<typeof FastifyInstance.prototype.get>[2]>[1]): Promise<string | null> {
+async function verifyGoogleToken(req: FastifyRequest, reply: FastifyReply): Promise<string | null> {
   const authHeader = req.headers['authorization'] as string | undefined;
   const token      = authHeader?.replace('Bearer ', '');
 
