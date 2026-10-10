@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   DentalService,
   Clinician,
@@ -122,63 +122,59 @@ const STORAGE_KEYS = {
   CURRENCY: 'vdl_currency_v4',
 };
 
-function getStoredItem<T>(key: string, fallback: T): T {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [services, setServices] = useState<DentalService[]>(() =>
-    getStoredItem(STORAGE_KEYS.SERVICES, DEFAULT_SERVICES)
-  );
-  const [clinicians, setClinicians] = useState<Clinician[]>(() =>
-    getStoredItem(STORAGE_KEYS.CLINICIANS, DEFAULT_CLINICIANS)
-  );
-  const [galleryCases, setGalleryCases] = useState<SmileGalleryCase[]>(() =>
-    getStoredItem(STORAGE_KEYS.GALLERY, DEFAULT_GALLERY_CASES)
-  );
-  const [appointments, setAppointments] = useState<Appointment[]>(() =>
-    getStoredItem(STORAGE_KEYS.APPOINTMENTS, INITIAL_APPOINTMENTS)
-  );
-  const [inquiries, setInquiries] = useState<WebInquiry[]>(() =>
-    getStoredItem(STORAGE_KEYS.INQUIRIES, INITIAL_INQUIRIES)
-  );
-  const [companyDetails, setCompanyDetails] = useState<CompanyDetails>(() =>
-    getStoredItem(STORAGE_KEYS.COMPANY, DEFAULT_COMPANY_DETAILS)
-  );
-  const [clinicPolicies, setClinicPolicies] = useState<ClinicPolicies>(() =>
-    getStoredItem(STORAGE_KEYS.POLICIES, DEFAULT_POLICIES)
-  );
-  const [faqs, setFaqs] = useState<FAQItem[]>(() =>
-    getStoredItem(STORAGE_KEYS.FAQS, DEFAULT_FAQS)
-  );
-  const [aiSettings, setAiSettings] = useState<AIGuardrails>(() =>
-    getStoredItem(STORAGE_KEYS.AI_SETTINGS, DEFAULT_AI_GUARDRAILS)
-  );
-  const [aiProviderSettings, setAiProviderSettings] = useState<AIProviderSettings>(() =>
-    getStoredItem(STORAGE_KEYS.AI_PROVIDER, DEFAULT_AI_PROVIDER_SETTINGS)
-  );
-  const [approvalPolicy, setApprovalPolicy] = useState<AppointmentApprovalPolicy>(() =>
-    getStoredItem(STORAGE_KEYS.APPROVAL_POLICY, DEFAULT_APPROVAL_POLICY)
-  );
-  const [currency, setCurrencyState] = useState<Currency>(() => {
-    if (typeof window === 'undefined') return 'GBP';
-    return (localStorage.getItem(STORAGE_KEYS.CURRENCY) as Currency) || 'GBP';
+  const [services, setServices] = useState<DentalService[]>(DEFAULT_SERVICES);
+  const [clinicians, setClinicians] = useState<Clinician[]>(DEFAULT_CLINICIANS);
+  const [galleryCases, setGalleryCases] = useState<SmileGalleryCase[]>(DEFAULT_GALLERY_CASES);
+  const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
+  const [inquiries, setInquiries] = useState<WebInquiry[]>(INITIAL_INQUIRIES);
+  const [companyDetails, setCompanyDetails] = useState<CompanyDetails>(DEFAULT_COMPANY_DETAILS);
+  const [clinicPolicies, setClinicPolicies] = useState<ClinicPolicies>(DEFAULT_POLICIES);
+  const [faqs, setFaqs] = useState<FAQItem[]>(DEFAULT_FAQS);
+  const [aiSettings, setAiSettings] = useState<AIGuardrails>(DEFAULT_AI_GUARDRAILS);
+  const [aiProviderSettings, setAiProviderSettings] = useState<AIProviderSettings>(DEFAULT_AI_PROVIDER_SETTINGS);
+  const [approvalPolicy, setApprovalPolicy] = useState<AppointmentApprovalPolicy>(DEFAULT_APPROVAL_POLICY);
+  const [currency, setCurrencyState] = useState<Currency>('GBP');
+  const [currentUser, setCurrentUser] = useState<UserAuth>({
+    isLoggedIn: false,
+    role: 'guest',
+    name: 'Guest Patient',
+    email: '',
+    phone: '',
   });
-  const [currentUser, setCurrentUser] = useState<UserAuth>(() =>
-    getStoredItem(STORAGE_KEYS.USER, {
-      isLoggedIn: false,
-      role: 'guest',
-      name: 'Guest Patient',
-      email: '',
-      phone: '',
-    })
-  );
+
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem(STORAGE_KEYS.SERVICES);
+      if (s) setServices(JSON.parse(s));
+      const c = localStorage.getItem(STORAGE_KEYS.CLINICIANS);
+      if (c) setClinicians(JSON.parse(c));
+      const g = localStorage.getItem(STORAGE_KEYS.GALLERY);
+      if (g) setGalleryCases(JSON.parse(g));
+      const a = localStorage.getItem(STORAGE_KEYS.APPOINTMENTS);
+      if (a) setAppointments(JSON.parse(a));
+      const inq = localStorage.getItem(STORAGE_KEYS.INQUIRIES);
+      if (inq) setInquiries(JSON.parse(inq));
+      const comp = localStorage.getItem(STORAGE_KEYS.COMPANY);
+      if (comp) setCompanyDetails(JSON.parse(comp));
+      const pol = localStorage.getItem(STORAGE_KEYS.POLICIES);
+      if (pol) setClinicPolicies(JSON.parse(pol));
+      const f = localStorage.getItem(STORAGE_KEYS.FAQS);
+      if (f) setFaqs(JSON.parse(f));
+      const ai = localStorage.getItem(STORAGE_KEYS.AI_SETTINGS);
+      if (ai) setAiSettings(JSON.parse(ai));
+      const aip = localStorage.getItem(STORAGE_KEYS.AI_PROVIDER);
+      if (aip) setAiProviderSettings(JSON.parse(aip));
+      const appPol = localStorage.getItem(STORAGE_KEYS.APPROVAL_POLICY);
+      if (appPol) setApprovalPolicy(JSON.parse(appPol));
+      const cur = localStorage.getItem(STORAGE_KEYS.CURRENCY) as Currency;
+      if (cur) setCurrencyState(cur);
+      const u = localStorage.getItem(STORAGE_KEYS.USER);
+      if (u) setCurrentUser(JSON.parse(u));
+    } catch {
+      // Ignore JSON parse errors or localStorage restrictions
+    }
+  }, []);
 
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState('');
