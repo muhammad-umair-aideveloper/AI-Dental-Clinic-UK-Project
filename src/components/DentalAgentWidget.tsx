@@ -48,6 +48,7 @@ export const DentalAgentWidget: React.FC = () => {
   const [selectedSlot, setSelectedSlot] = useState('09:30 AM');
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
+  const [reminderConsent, setReminderConsent] = useState(true);
   const [bookingSuccess, setBookingSuccess] = useState<any | null>(null);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
 
@@ -182,7 +183,7 @@ export const DentalAgentWidget: React.FC = () => {
           time: selectedSlot,
           clinicianName: 'Dr. Alistair Vance',
           notes: `Booked via DentalAgentWidget (${language.toUpperCase()})`,
-          reminderConsent: true,
+          reminderConsent,
           source: `DentalAgentWidget (${language})`,
         }),
       });
@@ -507,6 +508,21 @@ export const DentalAgentWidget: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* UK GDPR 1-Hour Reminder Consent Checkbox */}
+                  <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-[10px] space-y-1">
+                    <label className="flex items-start space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={reminderConsent}
+                        onChange={e => setReminderConsent(e.target.checked)}
+                        className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 shrink-0"
+                      />
+                      <span className="text-slate-700 leading-snug">
+                        <strong>1-Hour Reminder:</strong> I consent to receive an automated appointment reminder 1 hour prior to my consultation (UK GDPR compliant).
+                      </span>
+                    </label>
+                  </div>
+
                   {/* Submit Button */}
                   <button
                     type="submit"
@@ -566,6 +582,7 @@ export const DentalAgentWidget: React.FC = () => {
                   ? 'Apna sawal likhein (e.g. dant dard, kharcha, booking)...'
                   : 'Ask about fees, emergency toothache, or booking...'
               }
+              maxLength={1000}
               className="flex-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900"
             />
             <button
