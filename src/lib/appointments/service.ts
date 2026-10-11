@@ -18,16 +18,16 @@ import {
   isClinicOpenOnDate,
   londonTimeToUtcIso,
   utcToLondon,
-} from '../../config/clinic.config.ts';
-import { normalizeUkPhone } from './phone.ts';
+} from '@/config/clinic.config';
+import { normalizeUkPhone } from './phone';
 import type {
   AppointmentRecord,
   AppointmentServiceResponse,
   AppointmentStatus,
   CreateAppointmentInput,
   SlotAvailability,
-} from './types.ts';
-import { getSupabaseServerClient, isSupabaseConfigured } from '../supabase/server.ts';
+} from './types';
+import { getSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
 
 // =========================================================================
 // IN-MEMORY CONCURRENT SIMULATOR
