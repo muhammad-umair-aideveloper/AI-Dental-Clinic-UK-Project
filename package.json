@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx --test tests/phase1-booking.test.ts",
-    "test:phase1": "npx tsx --test tests/phase1-booking.test.ts"
+    "test": "npx tsx --test tests/*.test.ts",
+    "test:phase1": "npx tsx --test tests/phase1-booking.test.ts",
+    "test:phase2": "npx tsx --test tests/phase2-admin-rls.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
