@@ -6,7 +6,7 @@
  * when environment variables are being initialized.
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 let serverClient: SupabaseClient | null = null;
 
