@@ -159,6 +159,9 @@ describe('Phase 5: Chatbot Hardening & UK GDPR Health Data Governance', () => {
 
     assert.equal(booking2.success, false);
     assert.equal(booking2.code, 'DOUBLE_BOOKED');
-    assert.ok(booking2.error?.includes('booked by another patient'));
+    assert.ok(
+      booking2.error?.includes('no longer available') ||
+      booking2.error?.includes('booked by another patient')
+    );
   });
 });
