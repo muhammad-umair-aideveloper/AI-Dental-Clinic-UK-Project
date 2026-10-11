@@ -26,6 +26,7 @@ import {
   getAppointmentsDueForReminder,
   updateAppointmentStatus,
 } from '../src/lib/appointments/service';
+import { londonTimeToUtcIso } from '../src/config/clinic.config';
 import type { AppointmentRecord } from '../src/lib/appointments/types';
 
 describe('Phase 4: Automatic Patient Reminders System', () => {
@@ -146,7 +147,7 @@ describe('Phase 4: Automatic Patient Reminders System', () => {
   // 3. Atomic Dispatch and Double-Send Prevention
   // -----------------------------------------------------------------------
   it('sends reminder and atomically updates reminder_sent flag preventing double-reminders', async () => {
-    const referenceNow = new Date('2026-10-16T14:00:00.000Z');
+    const referenceNow = new Date(londonTimeToUtcIso('2026-10-16', '14:00'));
 
     // Create an eligible appointment 40 minutes away
     const aptRes = await createAppointment({
