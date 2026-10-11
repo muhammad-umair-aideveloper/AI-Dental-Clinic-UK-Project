@@ -137,19 +137,19 @@ describe('Phase 5: Chatbot Hardening & UK GDPR Health Data Governance', () => {
     // 1. Initial chatbot booking
     const booking1 = await createAppointment({
       patientName: 'Sophia Loren',
-      phoneNumber: '07999888111',
+      phoneNumber: '07123456789',
       reason: 'Invisalign Consultation',
       date: testDate,
       time: testSlot,
       reminderConsent: true,
       source: 'Chatbot',
     });
-    assert.equal(booking1.success, true);
+    assert.equal(booking1.success, true, booking1.error || 'Failed to book initial appointment');
 
     // 2. Simultaneous duplicate chatbot booking attempt on identical slot
     const booking2 = await createAppointment({
       patientName: 'George Clooney',
-      phoneNumber: '07999888222',
+      phoneNumber: '07123456788',
       reason: 'Emergency Toothache',
       date: testDate,
       time: testSlot,

@@ -76,8 +76,8 @@ export function scrubSensitiveHealthPii(text: string): {
   const redactedTypes: string[] = [];
 
   // 1. UK National Insurance (NI) Number
-  // Format: 2 prefix letters, 6 digits, 1 suffix letter (A-D)
-  const niPattern = /\b[A-CEGHJ-PR-TW-Z]{2}\s*\d{2}\s*\d{2}\s*\d{2}\s*[A-D]\b/gi;
+  // Format: 2 letters, 6 digits, optional suffix letter
+  const niPattern = /\b[A-Z]{2}\s*\d{2}\s*\d{2}\s*\d{2}\s*[A-Z]?\b/gi;
   if (niPattern.test(result)) {
     result = result.replace(niPattern, '[REDACTED_UK_NI_NUMBER]');
     redactedTypes.push('UK_NATIONAL_INSURANCE_NUMBER');
