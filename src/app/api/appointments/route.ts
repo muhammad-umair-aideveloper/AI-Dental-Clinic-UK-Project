@@ -6,6 +6,7 @@ import {
   updateAppointmentStatus,
 } from '@/lib/appointments/service';
 import { AppointmentStatus, CreateAppointmentInput } from '@/lib/appointments/types';
+import { verifyAdminRequest } from '@/lib/auth/admin';
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,7 +16,8 @@ export async function GET(req: NextRequest) {
     const status = (searchParams.get('status') as AppointmentStatus) || undefined;
     const checkAvailability = searchParams.get('checkAvailability') === 'true';
 
-    // 1. Slot availability check (used by Booking modal and Chatbot)
+    // 1. PUBLIC ENDPOINT: Slot availability check (ZERO PII returned)
+    // Used by the public website booking modal and the AI chatbot
     if (checkAvailability && date) {
       const availability = await getSlotAvailability(date, clinician);
       return NextResponse.json({
@@ -26,7 +28,19 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // 2. Query appointments (for admin or reception views)
+    // 2. PROTECTED ADMIN ENDPOINT: Query full appointment list
+    // Public users must NEVER see appointment data (names, phones, health reasons)
+    const adminUser = await verifyAdminRequest(req);
+    if (!adminUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized: Admin credentials or session token required to view appointment records.',
+        },
+        { status: 401 }
+      );
+    }
+
     const appointments = await getAllAppointments({ date, clinicianName: clinician, status });
     return NextResponse.json({
       success: true,
@@ -90,6 +104,18 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    // Protected admin action: only authenticated staff may update appointment status
+    const adminUser = await verifyAdminRequest(req);
+    if (!adminUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized: Admin authentication required to update appointments.',
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const { id, status } = body;
 
