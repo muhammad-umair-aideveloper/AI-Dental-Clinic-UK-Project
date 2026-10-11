@@ -99,3 +99,8 @@ export async function verifyAdminRequest(req: NextRequest): Promise<AdminUser | 
 
   return null;
 }
+
+export async function verifyAdminSession(req: NextRequest): Promise<{ authenticated: boolean; user?: AdminUser }> {
+  const user = await verifyAdminRequest(req);
+  return { authenticated: !!user, user: user || undefined };
+}

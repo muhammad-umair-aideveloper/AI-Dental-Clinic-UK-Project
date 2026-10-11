@@ -157,6 +157,30 @@ export default function AdminAppointmentsPage() {
     }
   };
 
+  const handleSendReport = async () => {
+    setIsSendingReport(true);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('admin_session_token') : null;
+    try {
+      const res = await fetch('/api/cron/daily-report?force=true', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showNotification(`✅ Daily Report dispatched to clinic owner with ${data.appointmentCount} appointments.`);
+      } else {
+        showNotification(`Failed to dispatch report: ${data.reason || data.error || 'Unknown error'}`);
+      }
+    } catch {
+      showNotification('Network error while dispatching daily report.');
+    } finally {
+      setIsSendingReport(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await fetch('/api/admin/logout', { method: 'POST' });
@@ -311,6 +335,16 @@ export default function AdminAppointmentsPage() {
             </div>
 
             <div className="flex items-center space-x-2 shrink-0">
+              <button
+                onClick={handleSendReport}
+                disabled={isSendingReport}
+                className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors disabled:opacity-50 shadow-2xs"
+                title="Send today's schedule summary to clinic owner"
+              >
+                <Send className={`w-3.5 h-3.5 ${isSendingReport ? 'animate-pulse' : ''}`} />
+                <span>{isSendingReport ? 'Sending...' : 'Send Daily Report'}</span>
+              </button>
+
               <button
                 onClick={() => fetchAppointments()}
                 disabled={isRefreshing}
