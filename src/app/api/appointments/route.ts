@@ -1,23 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AppointmentRepository, DBAppointmentStatus } from '@/lib/db';
-import { WhatsAppService } from '@/lib/whatsapp';
+import {
+  createAppointment,
+  getAllAppointments,
+  getSlotAvailability,
+  updateAppointmentStatus,
+} from '@/lib/appointments/service';
+import { AppointmentStatus, CreateAppointmentInput } from '@/lib/appointments/types';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const date = searchParams.get('date') || undefined;
     const clinician = searchParams.get('clinician') || undefined;
-    const status = (searchParams.get('status') as DBAppointmentStatus) || undefined;
+    const status = (searchParams.get('status') as AppointmentStatus) || undefined;
     const checkAvailability = searchParams.get('checkAvailability') === 'true';
 
-    // Slot availability check for interactive calendar
+    // 1. Slot availability check (used by Booking modal and Chatbot)
     if (checkAvailability && date) {
-      const availability = await AppointmentRepository.getAvailability(date, clinician);
-      return NextResponse.json({ success: true, date, clinician, availability });
+      const availability = await getSlotAvailability(date, clinician);
+      return NextResponse.json({
+        success: true,
+        date,
+        clinician: clinician || 'Dr. Alistair Vance',
+        availability,
+      });
     }
 
-    const appointments = await AppointmentRepository.getAll({ date, clinician, status });
-    return NextResponse.json({ success: true, count: appointments.length, appointments });
+    // 2. Query appointments (for admin or reception views)
+    const appointments = await getAllAppointments({ date, clinicianName: clinician, status });
+    return NextResponse.json({
+      success: true,
+      count: appointments.length,
+      appointments,
+    });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
@@ -27,30 +42,47 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (!body.patientName || !body.phoneNumber || !body.treatmentType || !body.slotTime) {
+    // Map incoming payload flexibly to CreateAppointmentInput
+    const appointmentInput: CreateAppointmentInput = {
+      patientName: body.patientName || body.name || '',
+      phoneNumber: body.phoneNumber || body.phone || '',
+      email: body.email || body.patientEmail || undefined,
+      reason: body.reason || body.treatmentType || body.serviceName || 'General Consultation',
+      date: body.date || (body.slotTime ? body.slotTime.slice(0, 10) : ''),
+      time: body.time || body.timeSlot || (body.slotTime ? body.slotTime.slice(11, 16) : ''),
+      reminderConsent: !!(body.reminderConsent ?? body.consent ?? true),
+      clinicianName: body.clinicianName,
+      notes: body.notes,
+      source: body.source || 'Website',
+    };
+
+    const result = await createAppointment(appointmentInput);
+
+    if (!result.success) {
+      const statusCode =
+        result.code === 'DOUBLE_BOOKED'
+          ? 409
+          : result.code === 'INVALID_INPUT' || result.code === 'CLINIC_CLOSED' || result.code === 'SLOT_UNAVAILABLE'
+          ? 400
+          : 500;
+
       return NextResponse.json(
-        { success: false, error: 'patientName, phoneNumber, treatmentType, and slotTime are required.' },
-        { status: 400 }
+        {
+          success: false,
+          code: result.code,
+          error: result.error,
+        },
+        { status: statusCode }
       );
     }
 
-    const newAppointment = await AppointmentRepository.create({
-      patientName: body.patientName,
-      phoneNumber: body.phoneNumber,
-      treatmentType: body.treatmentType,
-      slotTime: body.slotTime,
-      clinicianName: body.clinicianName,
-      notes: body.notes,
-      isEmergency: body.isEmergency,
-      source: body.source,
-    });
-
-    // Automatically send T-24h reminder interactive template if requested or for future slots
-    if (body.sendImmediateConfirmation !== false) {
-      await WhatsAppService.sendT24Reminder(newAppointment);
-    }
-
-    return NextResponse.json({ success: true, appointment: newAppointment }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        appointment: result.data,
+      },
+      { status: 201 }
+    );
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
@@ -59,36 +91,29 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, status, triggerAutomations } = body;
+    const { id, status } = body;
 
     if (!id || !status) {
-      return NextResponse.json({ success: false, error: 'id and status are required.' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'id and status are required.' },
+        { status: 400 }
+      );
     }
 
-    const result = await AppointmentRepository.updateStatus(id, status, { triggerAutomations: !!triggerAutomations });
+    const result = await updateAppointmentStatus(id, status as AppointmentStatus);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      appointment: result.appointment,
-      reclaimedSlot: result.reclaimedSlot,
-      waitlistAlerted: result.waitlistAlerted,
+      appointment: result.data,
+      slotReclaimed: status === 'CANCELLED',
     });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
-  }
-}
-
-export async function DELETE(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json({ success: false, error: 'id is required.' }, { status: 400 });
-    }
-
-    const deleted = await AppointmentRepository.delete(id);
-    return NextResponse.json({ success: deleted });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
