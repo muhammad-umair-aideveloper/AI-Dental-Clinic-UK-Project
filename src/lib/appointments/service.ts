@@ -498,3 +498,113 @@ export async function updateAppointmentStatus(
     },
   };
 }
+
+// =========================================================================
+// REMINDER POLLING & ATOMIC UPDATE
+// =========================================================================
+
+/**
+ * Queries appointments that are due for a reminder.
+ * Conditions:
+ *  - status != 'CANCELLED'
+ *  - reminder_consent = true
+ *  - reminder_sent = false
+ *  - slot_time is between now and (now + windowMinutes)
+ */
+export async function getAppointmentsDueForReminder(
+  referenceTime: Date = new Date(),
+  windowMinutes: number = 65
+): Promise<AppointmentRecord[]> {
+  const windowStartIso = referenceTime.toISOString();
+  const windowEndDate = new Date(referenceTime.getTime() + windowMinutes * 60 * 1000);
+  const windowEndIso = windowEndDate.toISOString();
+
+  const supabase = getSupabaseServerClient();
+  if (supabase && isSupabaseConfigured()) {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .neq('status', 'CANCELLED')
+      .eq('reminder_consent', true)
+      .eq('reminder_sent', false)
+      .gte('slot_time', windowStartIso)
+      .lte('slot_time', windowEndIso)
+      .order('slot_time', { ascending: true });
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data.map((row: AppointmentRecord) => {
+      const london = utcToLondon(row.slot_time);
+      return {
+        ...row,
+        london_date: london.dateStr,
+        london_time: london.time12,
+        london_display: london.display,
+      };
+    });
+  }
+
+  // Fallback to in-memory store
+  return mockStore.appointments
+    .filter(a => {
+      if (a.status === 'CANCELLED') return false;
+      if (!a.reminder_consent) return false;
+      if (a.reminder_sent) return false;
+      const aptTime = new Date(a.slot_time).getTime();
+      return (
+        aptTime >= referenceTime.getTime() &&
+        aptTime <= windowEndDate.getTime()
+      );
+    })
+    .sort((a, b) => new Date(a.slot_time).getTime() - new Date(b.slot_time).getTime())
+    .map(row => {
+      const london = utcToLondon(row.slot_time);
+      return {
+        ...row,
+        london_date: london.dateStr,
+        london_time: london.time12,
+        london_display: london.display,
+      };
+    });
+}
+
+/**
+ * Atomically marks an appointment reminder as sent.
+ * Returns true if the status was successfully flipped from false to true.
+ */
+export async function markReminderAsSent(id: string): Promise<boolean> {
+  const now = new Date().toISOString();
+  const supabase = getSupabaseServerClient();
+
+  if (supabase && isSupabaseConfigured()) {
+    const { data, error } = await supabase
+      .from('appointments')
+      .update({
+        reminder_sent: true,
+        reminder_sent_at: now,
+        updated_at: now,
+      })
+      .eq('id', id)
+      .eq('reminder_sent', false)
+      .select('id')
+      .maybeSingle();
+
+    if (error || !data) {
+      return false;
+    }
+    return true;
+  }
+
+  const apt = mockStore.appointments.find(a => a.id === id);
+  if (!apt || apt.reminder_sent) {
+    return false;
+  }
+
+  apt.reminder_sent = true;
+  apt.reminder_sent_at = now;
+  apt.updated_at = now;
+  return true;
+}
+
