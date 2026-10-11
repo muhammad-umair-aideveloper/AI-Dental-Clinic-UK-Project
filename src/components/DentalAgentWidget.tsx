@@ -45,23 +45,48 @@ export const DentalAgentWidget: React.FC = () => {
     d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
   });
-  const [selectedSlot, setSelectedSlot] = useState('10:30 AM');
+  const [selectedSlot, setSelectedSlot] = useState('09:30 AM');
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState<any | null>(null);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
 
-  // Slot availability
+  // Live Slot availability
   const [availableSlots, setAvailableSlots] = useState<{ slot: string; available: boolean }[]>([
     { slot: '09:00 AM', available: true },
-    { slot: '09:45 AM', available: true },
+    { slot: '09:30 AM', available: true },
+    { slot: '10:00 AM', available: true },
     { slot: '10:30 AM', available: true },
-    { slot: '11:15 AM', available: false },
+    { slot: '11:00 AM', available: true },
     { slot: '02:00 PM', available: true },
-    { slot: '02:45 PM', available: true },
-    { slot: '03:30 PM', available: false },
-    { slot: '04:15 PM', available: true },
+    { slot: '02:30 PM', available: true },
+    { slot: '03:00 PM', available: true },
   ]);
+
+  // Fetch live availability for selected date
+  const refreshWidgetSlots = useCallback(async (date: string) => {
+    try {
+      const res = await fetch(`/api/appointments?checkAvailability=true&date=${date}`);
+      const data = await res.json();
+      if (data.success && data.availability) {
+        const mapped = data.availability.map((s: any) => ({
+          slot: s.time12 || s.timeStr,
+          available: s.available,
+        }));
+        setAvailableSlots(mapped);
+        const firstAvail = mapped.find((s: any) => s.available);
+        if (firstAvail) setSelectedSlot(firstAvail.slot);
+      }
+    } catch {
+      // Fallback to existing slots
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showSlotPicker && selectedDate) {
+      refreshWidgetSlots(selectedDate);
+    }
+  }, [showSlotPicker, selectedDate, refreshWidgetSlots]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -145,26 +170,25 @@ export const DentalAgentWidget: React.FC = () => {
 
     setIsSubmittingBooking(true);
     try {
-      const slotDateTime = new Date(`${selectedDate}T${selectedSlot.includes('PM') && !selectedSlot.startsWith('12') ? `${parseInt(selectedSlot) + 12}` : selectedSlot.split(':')[0].padStart(2, '0')}:${selectedSlot.split(':')[1].slice(0, 2)}:00`).toISOString();
-
       const res = await fetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           patientName,
           phoneNumber: patientPhone,
+          reason: selectedTreatment,
           treatmentType: selectedTreatment,
-          slotTime: slotDateTime,
+          date: selectedDate,
+          time: selectedSlot,
           clinicianName: 'Dr. Alistair Vance',
           notes: `Booked via DentalAgentWidget (${language.toUpperCase()})`,
-          isEmergency: selectedTreatment.includes('Emergency'),
+          reminderConsent: true,
           source: `DentalAgentWidget (${language})`,
-          sendImmediateConfirmation: true,
         }),
       });
 
       const data = await res.json();
-      if (data.success) {
+      if (res.ok && data.success) {
         setBookingSuccess(data.appointment);
         setShowSlotPicker(false);
 
@@ -175,13 +199,34 @@ export const DentalAgentWidget: React.FC = () => {
             id: `booking-success-${Date.now()}`,
             sender: 'ai',
             text: language === 'urdu'
-              ? `✅ مبارک ہو ${patientName}! آپ کی اپائنٹمنٹ (${selectedTreatment}) ${selectedDate} بوقت ${selectedSlot} محفوظ ہو چکی ہے۔ تصدیقی واٹس ایپ میسج آپ کے نمبر ${patientPhone} پر بھیج دیا گیا ہے۔`
+              ? `✅ مبارک ہو ${patientName}! آپ کی اپائنٹمنٹ (${selectedTreatment}) ${selectedDate} بوقت ${selectedSlot} محفوظ ہو چکی ہے۔ تصدیقی پیغام آپ کے نمبر ${data.appointment?.phone_number || patientPhone} پر بھیج دیا گیا ہے۔`
               : language === 'roman_urdu'
-              ? `✅ Mubarak ho ${patientName}! Aapki appointment for ${selectedTreatment} on ${selectedDate} at ${selectedSlot} confirm ho chuki hai. WhatsApp confirmation ${patientPhone} par bhej di gayi hai.`
-              : `✅ Appointment Confirmed! Thank you, ${patientName}. Your reservation for ${selectedTreatment} on ${selectedDate} at ${selectedSlot} is secured. An interactive confirmation WhatsApp has been dispatched to ${patientPhone}.`,
+              ? `✅ Mubarak ho ${patientName}! Aapki appointment for ${selectedTreatment} on ${selectedDate} at ${selectedSlot} confirm ho chuki hai. Confirmation ${data.appointment?.phone_number || patientPhone} par bhej di gayi hai.`
+              : `✅ Appointment Confirmed! Thank you, ${patientName}. Your reservation for ${selectedTreatment} on ${selectedDate} at ${selectedSlot} is secured. Reference: #${data.appointment?.id?.slice(-6)}.`,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
+      } else {
+        // Double booking or validation error
+        const errMsg =
+          res.status === 409 || data.code === 'DOUBLE_BOOKED'
+            ? language === 'urdu'
+              ? `⚠️ معذرت، یہ وقت (${selectedSlot}) ابھی کسی اور مریض نے بک کر لیا ہے۔ براہ کرم کوئی اور وقت منتخب کریں۔`
+              : language === 'roman_urdu'
+              ? `⚠️ Yeh slot (${selectedSlot}) abhi kisi aur ne book kar lia hai. Baraye meherbani koi doosra slot select karein.`
+              : `⚠️ This slot (${selectedSlot}) has just been booked by another patient. Please choose another available time.`
+            : data.error || 'Booking failed. Please try another slot.';
+
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `booking-err-${Date.now()}`,
+            sender: 'ai',
+            text: errMsg,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        refreshWidgetSlots(selectedDate);
       }
     } catch (err) {
       console.error(err);
