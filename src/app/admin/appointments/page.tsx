@@ -22,6 +22,7 @@ import {
   ChevronRight,
   ExternalLink,
   Lock,
+  Send,
 } from 'lucide-react';
 import { AppointmentRecord, AppointmentStatus } from '@/lib/appointments/types';
 
@@ -41,6 +42,7 @@ export default function AdminAppointmentsPage() {
   // Action notification banner
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [isSendingReport, setIsSendingReport] = useState(false);
 
   const getTodayDateStr = () => new Date().toISOString().split('T')[0];
   const getTomorrowDateStr = () => {
