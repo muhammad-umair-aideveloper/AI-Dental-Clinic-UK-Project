@@ -35,28 +35,34 @@ export default function AdminLoginPage() {
     }
   }, [currentUser, router]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setIsLoading(true);
 
-    const cleanUser = username.trim().toLowerCase();
-    const cleanPass = password.trim();
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: username, password }),
+      });
 
-    // Verify credentials against demo admin directives
-    setTimeout(() => {
-      if (
-        (cleanUser === 'admin' || cleanUser === 'admin@vertexdental.co.uk' || cleanUser === 'dr.vance') &&
-        cleanPass === 'admin123'
-      ) {
-        loginAs('admin', 'admin@vertexdental.co.uk', 'Dr. Alistair Vance (Lead Surgeon)');
-        triggerToast('Staff authenticated successfully. Redirecting to Lead Hub...');
-        router.push('/admin-dashboard');
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (data.token) {
+          localStorage.setItem('admin_session_token', data.token);
+        }
+        loginAs('admin', data.user.email, data.user.name);
+        triggerToast('Staff authenticated successfully. Redirecting to appointments dashboard...');
+        router.push('/admin/appointments');
       } else {
-        setIsLoading(false);
-        setErrorMessage('Invalid staff credentials. Please check your username and password or click the demo chip below.');
+        setErrorMessage(data.error || 'Invalid staff credentials. Please check your username and password.');
       }
-    }, 400);
+    } catch {
+      setErrorMessage('Network error while authenticating. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const fillDemoCredentials = () => {
