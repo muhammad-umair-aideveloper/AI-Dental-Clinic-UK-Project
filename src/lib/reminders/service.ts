@@ -2,7 +2,7 @@
  * src/lib/reminders/service.ts
  *
  * Patient Appointment Reminder Service for Vertex Dental Lab.
- * Runs on a 5-minute schedule via pg_cron (*/5 * * * *).
+ * Runs on a 5-minute schedule via pg_cron.
  *
  * Requirements:
  *  - Dispatches reminders ~1 hour before appointment time (0..65 minute window)
