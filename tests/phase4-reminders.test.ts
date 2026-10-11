@@ -77,9 +77,10 @@ describe('Phase 4: Automatic Patient Reminders System', () => {
   // 2. Eligibility & Lookahead Window Filter
   // -----------------------------------------------------------------------
   it('correctly filters appointments eligible for 1-hour reminders', async () => {
-    const referenceNow = new Date('2026-10-15T09:00:00.000Z');
+    // 09:00 AM London time
+    const referenceNow = new Date(londonTimeToUtcIso('2026-10-15', '09:00'));
 
-    // 1. Due in 50 minutes WITH consent -> SHOULD BE INCLUDED
+    // 1. Due in 50 minutes (09:50) WITH consent -> SHOULD BE INCLUDED
     const in50Min = new Date(referenceNow.getTime() + 50 * 60 * 1000);
     const apt1 = await createAppointment({
       patientName: 'Alice Green',
