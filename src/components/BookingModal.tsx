@@ -167,6 +167,11 @@ const BookingModalDialog: React.FC = () => {
         phoneNumber: patientDetails.phone.trim(),
         email: patientDetails.email.trim() || undefined,
         reason: currentService?.name || 'General Consultation',
+        customer_name: patientDetails.name.trim(),
+        phone: patientDetails.phone.trim(),
+        service: currentService.title,
+        appointment_date: selectedDate,
+        appointment_time: selectedTime,
         date: selectedDate,
         time: selectedTime,
         reminderConsent: patientDetails.reminderConsent,
@@ -175,7 +180,7 @@ const BookingModalDialog: React.FC = () => {
         source: 'Website',
       };
 
-      const res = await fetch('/api/appointments', {
+      const res = await fetch('/api/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
