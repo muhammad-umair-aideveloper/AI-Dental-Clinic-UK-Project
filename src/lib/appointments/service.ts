@@ -283,9 +283,15 @@ export async function createAppointment(
     }
 
     // Insert into appointments table
+    const timeFormatted = time.length === 5 ? `${time}:00` : time;
     const { data: insertedApt, error: insertError } = await supabase
       .from('appointments')
       .insert({
+        customer_name: patientName,
+        phone: phoneNumber,
+        service: reason,
+        appointment_date: date,
+        appointment_time: timeFormatted,
         patient_id: patientId,
         patient_name: patientName,
         phone_number: phoneNumber,
@@ -298,6 +304,7 @@ export async function createAppointment(
         reminder_consent: reminderConsent,
         consent_timestamp: consentTimestamp,
         reminder_sent: false,
+        google_sheet_synced: false,
         notes,
         source,
       })
@@ -305,11 +312,13 @@ export async function createAppointment(
       .single();
 
     if (insertError) {
-      // PostgreSQL exclusion violation (code 23P01) or unique constraint
+      // PostgreSQL unique constraint (23505) or exclusion violation (23P01)
       if (
+        insertError.code === '23505' ||
         insertError.code === '23P01' ||
+        insertError.message?.includes('unique_date_time_slot') ||
         insertError.message?.includes('prevent_double_booking') ||
-        insertError.message?.includes('duplicate')
+        insertError.message?.includes('duplicate key')
       ) {
         return {
           success: false,
@@ -325,11 +334,33 @@ export async function createAppointment(
       };
     }
 
+    // Attempt Google Sheets Sync
+    let sheetSynced = false;
+    try {
+      sheetSynced = await appendBookingToGoogleSheet({
+        appointment_date: date,
+        appointment_time: time.slice(0, 5),
+        customer_name: patientName,
+        phone: phoneNumber,
+        service: reason,
+      });
+
+      if (sheetSynced && insertedApt?.id) {
+        await supabase
+          .from('appointments')
+          .update({ google_sheet_synced: true })
+          .eq('id', insertedApt.id);
+      }
+    } catch (sheetErr) {
+      console.error('[Service] Google Sheets sync error:', sheetErr);
+    }
+
     const londonInfo = utcToLondon(insertedApt.slot_time);
     return {
       success: true,
       data: {
         ...insertedApt,
+        google_sheet_synced: sheetSynced,
         london_date: londonInfo.dateStr,
         london_time: londonInfo.time12,
         london_display: londonInfo.display,
