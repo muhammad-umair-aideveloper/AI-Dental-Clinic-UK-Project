@@ -15,18 +15,19 @@ DECLARE
     supabase_project_url TEXT;
     service_role_key TEXT;
     has_due_appointments BOOLEAN;
+    current_london_date DATE;
 BEGIN
-    -- 1. Quick pre-check: Are there any appointments due in the next 65 minutes needing a reminder?
+    current_london_date := (NOW() AT TIME ZONE 'Europe/London')::date;
+
+    -- 1. Quick pre-check: Are there any confirmed appointments today needing a 1-hr reminder?
     SELECT EXISTS (
-        SELECT 1 FROM appointments
-        WHERE status != 'CANCELLED'
-          AND reminder_consent = TRUE
-          AND reminder_sent = FALSE
-          AND slot_time >= NOW()
-          AND slot_time <= NOW() + INTERVAL '65 minutes'
+        SELECT 1 FROM public.appointments
+        WHERE status = 'CONFIRMED'
+          AND appointment_date = current_london_date
+          AND reminder_1hr_sent = false
     ) INTO has_due_appointments;
 
-    -- If no reminders are due, do nothing (avoids unnecessary HTTP network calls)
+    -- If no unreminded appointments exist today, do nothing (avoids unnecessary HTTP network calls)
     IF NOT has_due_appointments THEN
         RETURN;
     END IF;
