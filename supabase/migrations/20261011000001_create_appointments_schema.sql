@@ -1,86 +1,87 @@
 -- =========================================================================
 -- Migration: 20261011000001_create_appointments_schema.sql
--- Vertex Dental Lab — UK Dental Clinic Appointment & Double-Booking Prevention Schema
+-- Vertex Dental Lab — UK Dental Clinic Architecture
+-- Supabase PostgreSQL (eu-west-2 London)
+-- Single Source of Truth for Appointments, Patients, and Chat Logs
 -- =========================================================================
 
--- 1. Enable btree_gist extension for PostgreSQL exclusion constraint
-CREATE EXTENSION IF NOT EXISTS btree_gist;
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. ENUMS
-DO $$ BEGIN
-    CREATE TYPE appointment_status AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
--- 3. PATIENTS TABLE
-CREATE TABLE IF NOT EXISTS patients (
+-- 1. PATIENTS TABLE
+CREATE TABLE IF NOT EXISTS public.patients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(255),
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL UNIQUE,
+    email TEXT,
     notes TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_patients_phone ON patients (phone_number);
+CREATE INDEX IF NOT EXISTS idx_patients_phone ON public.patients (phone);
 
--- 4. APPOINTMENTS TABLE WITH STRICT DATABASE-LEVEL DOUBLE-BOOKING PREVENTION
-CREATE TABLE IF NOT EXISTS appointments (
+-- 2. APPOINTMENTS TABLE WITH STRICT DATABASE-LEVEL DOUBLE-BOOKING LOCK
+-- Enforces: CONSTRAINT unique_date_time_slot UNIQUE (appointment_date, appointment_time)
+-- Rejects duplicate slots with PostgreSQL error code 23505.
+CREATE TABLE IF NOT EXISTS public.appointments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    patient_id UUID REFERENCES patients(id) ON DELETE SET NULL,
-    patient_name VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(50) NOT NULL,
-    email VARCHAR(255),
-    reason TEXT NOT NULL,
-    slot_time TIMESTAMPTZ NOT NULL,
-    slot_end_time TIMESTAMPTZ NOT NULL,
-    status appointment_status NOT NULL DEFAULT 'CONFIRMED',
-    clinician_name VARCHAR(255) NOT NULL DEFAULT 'Dr. Alistair Vance',
-    reminder_consent BOOLEAN NOT NULL DEFAULT FALSE,
-    consent_timestamp TIMESTAMPTZ,
-    reminder_sent BOOLEAN NOT NULL DEFAULT FALSE,
-    reminder_sent_at TIMESTAMPTZ,
-    notes TEXT,
-    source VARCHAR(100) NOT NULL DEFAULT 'Website',
+    customer_name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    service TEXT NOT NULL,
+    appointment_date DATE NOT NULL,
+    appointment_time TIME NOT NULL,
+    status TEXT NOT NULL DEFAULT 'CONFIRMED',
+    reminder_1hr_sent BOOLEAN NOT NULL DEFAULT false,
+    google_sheet_synced BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    
+    -- Backward-compatible columns for existing views/components
+    patient_name TEXT GENERATED ALWAYS AS (customer_name) STORED,
+    phone_number TEXT GENERATED ALWAYS AS (phone) STORED,
+    reason TEXT GENERATED ALWAYS AS (service) STORED,
+    
+    -- CRITICAL ANTI-DOUBLE-BOOKING CONSTRAINT (Raises 23505 on duplicate date + time slot)
+    CONSTRAINT unique_date_time_slot UNIQUE (appointment_date, appointment_time)
 );
 
--- DATABASE-LEVEL EXCLUSION CONSTRAINT:
--- Prevents two non-cancelled appointments from having the exact same slot_time with the same clinician.
--- If a second booking request arrives simultaneously, PostgreSQL immediately raises an exclusion violation (23P01).
-DO $$ BEGIN
-    ALTER TABLE appointments
-    ADD CONSTRAINT prevent_double_booking
-    EXCLUDE USING gist (
-        slot_time WITH =,
-        clinician_name WITH =
-    ) WHERE (status != 'CANCELLED');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- Fast lookup indexes
+CREATE INDEX IF NOT EXISTS idx_appointments_date_time ON public.appointments (appointment_date, appointment_time);
+CREATE INDEX IF NOT EXISTS idx_appointments_date_status ON public.appointments (appointment_date, status);
+CREATE INDEX IF NOT EXISTS idx_appointments_phone ON public.appointments (phone);
+CREATE INDEX IF NOT EXISTS idx_appointments_reminder_poll ON public.appointments (appointment_date, appointment_time, reminder_1hr_sent, status);
 
--- Indexes for lightning-fast queries and reminder polling
-CREATE INDEX IF NOT EXISTS idx_appointments_slot_time ON appointments (slot_time);
-CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments (status);
-CREATE INDEX IF NOT EXISTS idx_appointments_phone ON appointments (phone_number);
-CREATE INDEX IF NOT EXISTS idx_appointments_reminder_poll 
-ON appointments (slot_time, status, reminder_consent, reminder_sent);
+-- 3. CHAT LOGS TABLE (Single Source of Truth for AI Receptionist)
+CREATE TABLE IF NOT EXISTS public.chat_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id TEXT,
+    phone TEXT,
+    user_message TEXT NOT NULL,
+    bot_response TEXT NOT NULL,
+    tools_called JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
--- 5. DAILY REPORTS LOG TABLE (Guarantees report is never sent twice per day)
-CREATE TABLE IF NOT EXISTS daily_reports_log (
-    report_date DATE PRIMARY KEY,
+CREATE INDEX IF NOT EXISTS idx_chat_logs_session ON public.chat_logs (session_id);
+CREATE INDEX IF NOT EXISTS idx_chat_logs_phone ON public.chat_logs (phone);
+CREATE INDEX IF NOT EXISTS idx_chat_logs_created_at ON public.chat_logs (created_at DESC);
+
+-- 4. DAILY OWNER REPORTS LOG TABLE (Guarantees Idempotency for 8:00 AM London Digest)
+CREATE TABLE IF NOT EXISTS public.daily_reports_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_date DATE UNIQUE NOT NULL,
     sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     appointment_count INT NOT NULL DEFAULT 0,
-    channel VARCHAR(50) NOT NULL,
-    recipient VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'SENT'
+    channel TEXT NOT NULL DEFAULT 'email',
+    recipient TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'SENT',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 6. AUTOMATIC UPDATED_AT TRIGGER
+CREATE INDEX IF NOT EXISTS idx_daily_reports_date ON public.daily_reports_log (report_date);
+
+-- 5. AUTOMATIC UPDATED_AT TRIGGER
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -89,12 +90,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trg_patients_updated_at ON patients;
+DROP TRIGGER IF EXISTS trg_patients_updated_at ON public.patients;
 CREATE TRIGGER trg_patients_updated_at
-BEFORE UPDATE ON patients
+BEFORE UPDATE ON public.patients
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
-DROP TRIGGER IF EXISTS trg_appointments_updated_at ON appointments;
+DROP TRIGGER IF EXISTS trg_appointments_updated_at ON public.appointments;
 CREATE TRIGGER trg_appointments_updated_at
-BEFORE UPDATE ON appointments
+BEFORE UPDATE ON public.appointments
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+-- 6. ENABLE SUPABASE REALTIME REPLICATION FOR LIVE ADMIN DASHBOARD
+ALTER PUBLICATION supabase_realtime ADD TABLE public.appointments;

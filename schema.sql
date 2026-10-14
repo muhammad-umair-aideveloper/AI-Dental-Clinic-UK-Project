@@ -1,98 +1,104 @@
 -- =========================================================================
--- Vertex Dental Practice Intelligence & Automation System DDL Schema
--- Compatible with PostgreSQL 14+, Supabase, and AWS RDS
+-- schema.sql
+-- Vertex Dental Lab — UK Dental Clinic Architecture
+-- Supabase PostgreSQL (eu-west-2 London)
+-- Single Source of Truth for Appointments, Patients, and Chat Logs
 -- =========================================================================
 
--- 1. ENUMS
-CREATE TYPE appointment_status AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED');
-CREATE TYPE message_type AS ENUM ('T24_REMINDER', 'T2_FINAL_ALERT', 'POST_OP_CARE', 'RECALL_6_MONTH', 'TRIAGE_RESPONSE');
-CREATE TYPE message_status AS ENUM ('QUEUED', 'SENT', 'DELIVERED', 'READ', 'FAILED');
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. PATIENTS TABLE
-CREATE TABLE IF NOT EXISTS patients (
+-- 1. PATIENTS TABLE
+CREATE TABLE IF NOT EXISTS public.patients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(255),
-    last_visit_date DATE,
-    treatment_type VARCHAR(100),
-    recall_sent BOOLEAN DEFAULT FALSE,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL UNIQUE,
+    email TEXT,
     notes TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_patients_phone ON patients (phone_number);
-CREATE INDEX idx_patients_recall ON patients (last_visit_date, recall_sent);
+CREATE INDEX IF NOT EXISTS idx_patients_phone ON public.patients (phone);
 
--- 3. APPOINTMENTS TABLE
-CREATE TABLE IF NOT EXISTS appointments (
+-- 2. APPOINTMENTS TABLE WITH STRICT DATABASE-LEVEL DOUBLE-BOOKING LOCK
+-- Enforces: CONSTRAINT unique_date_time_slot UNIQUE (appointment_date, appointment_time)
+-- Rejects duplicate slots with PostgreSQL error code 23505.
+CREATE TABLE IF NOT EXISTS public.appointments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    patient_id UUID REFERENCES patients(id) ON DELETE SET NULL,
-    patient_name VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(50) NOT NULL,
-    treatment_type VARCHAR(100) NOT NULL,
-    slot_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    status appointment_status DEFAULT 'PENDING',
-    clinician_name VARCHAR(255) DEFAULT 'Dr. Alistair Vance',
-    notes TEXT,
-    is_emergency BOOLEAN DEFAULT FALSE,
-    source VARCHAR(100) DEFAULT 'Website Widget',
-    post_op_dispatched_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    customer_name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    service TEXT NOT NULL,
+    appointment_date DATE NOT NULL,
+    appointment_time TIME NOT NULL,
+    status TEXT NOT NULL DEFAULT 'CONFIRMED',
+    reminder_1hr_sent BOOLEAN NOT NULL DEFAULT false,
+    google_sheet_synced BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    
+    -- Backward-compatible columns for existing views/components
+    patient_name TEXT GENERATED ALWAYS AS (customer_name) STORED,
+    phone_number TEXT GENERATED ALWAYS AS (phone) STORED,
+    reason TEXT GENERATED ALWAYS AS (service) STORED,
+    
+    -- CRITICAL ANTI-DOUBLE-BOOKING CONSTRAINT (Raises 23505 on duplicate date + time slot)
+    CONSTRAINT unique_date_time_slot UNIQUE (appointment_date, appointment_time)
 );
 
-CREATE INDEX idx_appointments_phone ON appointments (phone_number);
-CREATE INDEX idx_appointments_slot_time ON appointments (slot_time);
-CREATE INDEX idx_appointments_status ON appointments (status);
+-- Fast lookup indexes
+CREATE INDEX IF NOT EXISTS idx_appointments_date_time ON public.appointments (appointment_date, appointment_time);
+CREATE INDEX IF NOT EXISTS idx_appointments_date_status ON public.appointments (appointment_date, status);
+CREATE INDEX IF NOT EXISTS idx_appointments_phone ON public.appointments (phone);
+CREATE INDEX IF NOT EXISTS idx_appointments_reminder_poll ON public.appointments (appointment_date, appointment_time, reminder_1hr_sent, status);
 
--- 4. MESSAGE LOGS (WHATSAPP & SMS AUDIT TRAIL)
-CREATE TABLE IF NOT EXISTS message_logs (
+-- 3. CHAT LOGS TABLE (Single Source of Truth for AI Receptionist)
+CREATE TABLE IF NOT EXISTS public.chat_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL,
-    patient_phone VARCHAR(50) NOT NULL,
-    message_type message_type NOT NULL,
-    template_name VARCHAR(100) NOT NULL,
-    content TEXT NOT NULL,
-    status message_status DEFAULT 'SENT',
-    whatsapp_message_id VARCHAR(255),
-    sent_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    delivered_at TIMESTAMP WITH TIME ZONE,
-    read_at TIMESTAMP WITH TIME ZONE
+    session_id TEXT,
+    phone TEXT,
+    user_message TEXT NOT NULL,
+    bot_response TEXT NOT NULL,
+    tools_called JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_message_logs_appointment ON message_logs (appointment_id);
-CREATE INDEX idx_message_logs_phone ON message_logs (patient_phone);
-CREATE INDEX idx_message_logs_type ON message_logs (message_type);
+CREATE INDEX IF NOT EXISTS idx_chat_logs_session ON public.chat_logs (session_id);
+CREATE INDEX IF NOT EXISTS idx_chat_logs_phone ON public.chat_logs (phone);
+CREATE INDEX IF NOT EXISTS idx_chat_logs_created_at ON public.chat_logs (created_at DESC);
 
--- 5. WAITLIST & SLOT RECLAIM TABLE
-CREATE TABLE IF NOT EXISTS waitlists (
+-- 4. DAILY OWNER REPORTS LOG TABLE (Guarantees Idempotency for 8:00 AM London Digest)
+CREATE TABLE IF NOT EXISTS public.daily_reports_log (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    patient_name VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(50) NOT NULL,
-    treatment_type VARCHAR(100) NOT NULL,
-    preferred_date DATE,
-    notes TEXT,
-    alerted BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    report_date DATE UNIQUE NOT NULL,
+    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    appointment_count INT NOT NULL DEFAULT 0,
+    channel TEXT NOT NULL DEFAULT 'email',
+    recipient TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'SENT',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_waitlists_alerted ON waitlists (alerted);
+CREATE INDEX IF NOT EXISTS idx_daily_reports_date ON public.daily_reports_log (report_date);
 
--- 6. AUTOMATIC UPDATED_AT TRIGGER
+-- 5. AUTOMATIC UPDATED_AT TRIGGER
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
+    NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ LANGUAGE 'plpgsql';
+$$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_patients_updated_at ON public.patients;
 CREATE TRIGGER trg_patients_updated_at
-BEFORE UPDATE ON patients
+BEFORE UPDATE ON public.patients
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
+DROP TRIGGER IF EXISTS trg_appointments_updated_at ON public.appointments;
 CREATE TRIGGER trg_appointments_updated_at
-BEFORE UPDATE ON appointments
+BEFORE UPDATE ON public.appointments
 FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+
+-- 6. ENABLE SUPABASE REALTIME REPLICATION FOR LIVE ADMIN DASHBOARD
+ALTER PUBLICATION supabase_realtime ADD TABLE public.appointments;
