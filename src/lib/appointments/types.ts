@@ -21,6 +21,13 @@ export interface CreateAppointmentInput {
 
 export interface AppointmentRecord {
   id: string;
+  customer_name?: string;
+  phone?: string;
+  service?: string;
+  appointment_date?: string;
+  appointment_time?: string;
+  reminder_1hr_sent?: boolean;
+  google_sheet_synced?: boolean;
   patient_id?: string | null;
   patient_name: string;
   phone_number: string;
