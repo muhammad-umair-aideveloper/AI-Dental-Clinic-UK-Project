@@ -171,10 +171,15 @@ export const DentalAgentWidget: React.FC = () => {
 
     setIsSubmittingBooking(true);
     try {
-      const res = await fetch('/api/appointments', {
+      const res = await fetch('/api/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          customer_name: patientName,
+          phone: patientPhone,
+          service: selectedTreatment,
+          appointment_date: selectedDate,
+          appointment_time: selectedSlot,
           patientName,
           phoneNumber: patientPhone,
           reason: selectedTreatment,

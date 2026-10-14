@@ -211,7 +211,7 @@ const BookingModalDialog: React.FC = () => {
       addAppointment({
         patientName: patientDetails.name.trim(),
         patientEmail: patientDetails.email.trim(),
-        patientPhone: confirmedRecord.phone_number || patientDetails.phone.trim(),
+        patientPhone: confirmedRecord?.phone || confirmedRecord?.phone_number || patientDetails.phone.trim(),
         serviceId: currentService.id,
         serviceName: currentService.name,
         clinicianName: 'Dr. Alistair Vance',
