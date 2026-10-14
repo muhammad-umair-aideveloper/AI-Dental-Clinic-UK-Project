@@ -1,26 +1,20 @@
 // supabase/functions/daily-owner-report/index.ts
-// Supabase Edge Function: Daily Owner Report at 08:00 AM (Europe/London)
-// Runs daily via pg_cron. Automatically accounts for BST/GMT daylight saving transitions.
+// Supabase Edge Function: 8:00 AM UK Daily Owner Email Digest
+// Runs daily via pg_cron at 08:00 AM Europe/London time (accounting for GMT/BST).
+// Queries ONLY today's confirmed appointments, generates HTML table + CSV attachment, and emails via Resend.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-const CLINIC_OWNER_PHONE = Deno.env.get('CLINIC_OWNER_PHONE') || '+447946088800';
 const CLINIC_OWNER_EMAIL = Deno.env.get('CLINIC_OWNER_EMAIL') || 'owner@vertexdental.co.uk';
-const APP_URL = Deno.env.get('APP_URL') || Deno.env.get('NEXT_PUBLIC_SITE_URL');
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || '';
+const FROM_EMAIL = Deno.env.get('EMAIL_FROM') || 'Vertex Dental Lab <reports@vertexdental.co.uk>';
 const CRON_SECRET = Deno.env.get('CRON_SECRET');
-
-function formatPatientName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return 'Patient';
-  if (parts.length === 1) return parts[0];
-  return `${parts[0]} ${parts[parts.length - 1].charAt(0).toUpperCase()}.`;
-}
 
 Deno.serve(async (req) => {
   try {
-    // 1. Verify authorization if CRON_SECRET is set
+    // 1. Authorization verification
     const authHeader = req.headers.get('Authorization');
     if (CRON_SECRET) {
       const token = authHeader?.replace('Bearer ', '');
@@ -32,9 +26,8 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 2. Compute current Europe/London local date & hour (strictly accounts for BST / GMT)
     const now = new Date();
-
-    // 2. Compute current Europe/London local date & hour
     const dtfLondon = new Intl.DateTimeFormat('en-GB', {
       timeZone: 'Europe/London',
       year: 'numeric',
@@ -57,112 +50,188 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const force = url.searchParams.get('force') === 'true';
 
-    // 3. Daylight Savings Safeguard:
-    // If triggered by pg_cron at both 07:00 UTC and 08:00 UTC, only execute during London hour 8 (08:00 - 08:59).
+    // Verify it is exactly 08:00 AM London time (08:00 to 08:59)
     if (!force && londonHour !== 8) {
       return new Response(
         JSON.stringify({
           skipped: true,
-          reason: `Current London time is ${m.hour}:${m.minute}. Report executes only at 08:00 AM London.`,
+          reason: `Current London time is ${m.hour}:${m.minute}. Daily digest is dispatched strictly at 08:00 AM London.`,
           londonDate,
         }),
         { headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // 4. If APP_URL is provided, forward to the Next.js app endpoint for unified messaging
-    if (APP_URL) {
-      const endpoint = `${APP_URL}/api/cron/daily-report?date=${londonDate}${force ? '&force=true' : ''}`;
-      const appRes = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(CRON_SECRET ? { Authorization: `Bearer ${CRON_SECRET}` } : {}),
-        },
-      });
-      const data = await appRes.json();
-      return new Response(JSON.stringify(data), {
-        status: appRes.status,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // 5. Fallback self-contained execution using Supabase client
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Check idempotency in daily_reports_log
+    // 3. Idempotency Check: Don't email twice on the same London date
     if (!force) {
-      const { data: existing } = await supabase
+      const { data: alreadySent } = await supabase
         .from('daily_reports_log')
         .select('report_date, sent_at')
         .eq('report_date', londonDate)
         .eq('status', 'SENT')
         .maybeSingle();
 
-      if (existing) {
+      if (alreadySent) {
         return new Response(
           JSON.stringify({
             sent: false,
-            reason: `Report already sent for ${londonDate} at ${existing.sent_at}`,
+            reason: `Daily report already emailed for ${londonDate} at ${alreadySent.sent_at}`,
           }),
           { headers: { 'Content-Type': 'application/json' } }
         );
       }
     }
 
-    // Fetch appointments for today
-    const startIso = new Date(`${londonDate}T00:00:00Z`).toISOString();
-    const endIso = new Date(`${londonDate}T23:59:59Z`).toISOString();
-
+    // 4. Query Supabase for ONLY TODAY'S confirmed appointments (Do NOT include tomorrow or future)
     const { data: appointments, error: aptError } = await supabase
       .from('appointments')
-      .select('*')
-      .neq('status', 'CANCELLED')
-      .gte('slot_time', startIso)
-      .lte('slot_time', endIso)
-      .order('slot_time', { ascending: true });
+      .select('customer_name, appointment_date, appointment_time, service, phone')
+      .eq('appointment_date', londonDate)
+      .eq('status', 'CONFIRMED')
+      .order('appointment_time', { ascending: true });
 
     if (aptError) {
       throw aptError;
     }
 
-    const count = appointments?.length || 0;
-    let appointmentLines = 'No appointments scheduled for today.';
-    if (count > 0 && appointments) {
-      appointmentLines = appointments
-        .map((apt: any, i: number) => {
-          const ptName = formatPatientName(apt.patient_name);
-          const t = new Intl.DateTimeFormat('en-GB', {
-            timeZone: 'Europe/London',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true,
-          }).format(new Date(apt.slot_time));
-          return `${i + 1}. ${ptName} - ${t} - ${apt.reason}`;
-        })
-        .join('\n');
+    const aptList = appointments || [];
+    const count = aptList.length;
+
+    // 5. Generate CSV Attachment (Google Sheets compatible)
+    const csvRows = aptList.map((a: any) => {
+      const escape = (val: string) => `"${(val || '').replace(/"/g, '""')}"`;
+      const timeClean = (a.appointment_time || '').slice(0, 5);
+      return `${escape(a.customer_name)},${escape(a.appointment_date)},${escape(timeClean)},${escape(a.service)},${escape(a.phone)}`;
+    });
+
+    const csvContent = ['Customer Name,Date,Time,Service,Phone', ...csvRows].join('\r\n');
+    const csvBase64 = btoa(csvContent);
+
+    // 6. Generate Clean HTML Table
+    const tableRowsHtml =
+      count === 0
+        ? `<tr><td colspan="5" style="padding: 16px; text-align: center; color: #64748b; font-style: italic;">No appointments scheduled for today.</td></tr>`
+        : aptList
+            .map((a: any, idx: number) => {
+              const bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+              const timeDisplay = (a.appointment_time || '').slice(0, 5);
+              return `
+                <tr style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0;">
+                  <td style="padding: 12px 16px; font-weight: 600; color: #0f172a;">${a.customer_name}</td>
+                  <td style="padding: 12px 16px; color: #334155;">${a.appointment_date}</td>
+                  <td style="padding: 12px 16px; font-weight: 700; color: #0284c7;">${timeDisplay}</td>
+                  <td style="padding: 12px 16px; color: #334155;">${a.service}</td>
+                  <td style="padding: 12px 16px; font-family: monospace; color: #0f172a;">${a.phone}</td>
+                </tr>`;
+            })
+            .join('');
+
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Daily Clinic Appointments — ${londonDate}</title>
+    </head>
+    <body style="margin: 0; padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #0f172a;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 720px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <tr>
+          <td style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 32px 24px; color: #ffffff;">
+            <div style="font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #38bdf8;">Vertex Dental Lab — London</div>
+            <h1 style="margin: 8px 0 0 0; font-size: 24px; font-weight: 700; color: #ffffff;">Daily Appointments Digest</h1>
+            <p style="margin: 6px 0 0 0; font-size: 15px; color: #94a3b8;">Today: <strong>${londonDate}</strong> (08:00 AM London Time)</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 24px;">
+            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; display: inline-block;">
+              <span style="font-size: 14px; font-weight: 600; color: #166534;">Today's Confirmed Bookings: ${count} patient${count === 1 ? '' : 's'}</span>
+            </div>
+            
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse: collapse; width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+              <thead>
+                <tr style="background-color: #f8fafc; border-bottom: 2px solid #cbd5e1; text-align: left;">
+                  <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Customer Name</th>
+                  <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Date</th>
+                  <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Time</th>
+                  <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Service</th>
+                  <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Phone</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRowsHtml}
+              </tbody>
+            </table>
+
+            <p style="margin-top: 24px; font-size: 13px; color: #64748b; line-height: 1.5;">
+              📎 Attached is the complete CSV spreadsheet for today, ready to import into Google Sheets or practice management systems.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 16px 24px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; text-align: center;">
+            Vertex Dental Lab • 45 Harley Street, London, W1G 8QR • Generated automatically by Supabase Edge Functions (pg_cron)
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+    `;
+
+    // 7. Email via Resend
+    let emailSent = false;
+    let emailError: string | null = null;
+
+    if (RESEND_API_KEY) {
+      try {
+        const resendRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: FROM_EMAIL,
+            to: [CLINIC_OWNER_EMAIL],
+            subject: `Daily Appointments Digest - ${londonDate} (${count} booked) — Vertex Dental Lab`,
+            html: htmlContent,
+            attachments: [
+              {
+                filename: `appointments-${londonDate}.csv`,
+                content: csvBase64,
+              },
+            ],
+          }),
+        });
+
+        if (resendRes.ok) {
+          emailSent = true;
+          console.log(`[DailyReport] Email digest successfully sent to ${CLINIC_OWNER_EMAIL}`);
+        } else {
+          const errBody = await resendRes.text();
+          emailError = `Resend API error: ${errBody}`;
+          console.error('[DailyReport] Resend email failed:', errBody);
+        }
+      } catch (e: any) {
+        emailError = e.message;
+        console.error('[DailyReport] Exception sending email:', e);
+      }
+    } else {
+      console.info(`[DailyReport] RESEND_API_KEY not configured. Simulated send to ${CLINIC_OWNER_EMAIL} (${count} appointments).`);
+      emailSent = true; // In test/mock mode
     }
 
-    const reportContent = [
-      `📅 Vertex Dental Lab - Daily Schedule`,
-      `Date: ${londonDate}`,
-      `Total Appointments: ${count}`,
-      '',
-      appointmentLines,
-    ].join('\n');
-
-    console.log(`[DailyReport] Dispatched to owner (${CLINIC_OWNER_PHONE}):\n${reportContent}`);
-
-    // Insert log into daily_reports_log
+    // 8. Record in daily_reports_log for idempotency
     await supabase.from('daily_reports_log').upsert(
       {
         report_date: londonDate,
         sent_at: new Date().toISOString(),
         appointment_count: count,
-        channel: 'sms',
-        recipient: CLINIC_OWNER_PHONE,
-        content: reportContent,
-        status: 'SENT',
+        channel: 'email',
+        recipient: CLINIC_OWNER_EMAIL,
+        status: emailSent ? 'SENT' : 'FAILED',
       },
       { onConflict: 'report_date' }
     );
@@ -170,10 +239,12 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        sent: true,
+        sent: emailSent,
         londonDate,
         appointmentCount: count,
-        content: reportContent,
+        recipient: CLINIC_OWNER_EMAIL,
+        csvRowsCount: aptList.length,
+        error: emailError,
       }),
       { headers: { 'Content-Type': 'application/json' } }
     );
