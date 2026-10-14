@@ -74,14 +74,16 @@ export function maskPhoneNumber(phone: string): string {
 export async function sendDuePatientReminders(options?: {
   referenceTime?: Date;
   windowMinutes?: number;
+  minMinutes?: number;
   channel?: MessageChannel;
 }): Promise<ReminderProcessResult> {
   const referenceTime = options?.referenceTime || new Date();
   const windowMinutes = options?.windowMinutes ?? 65; // ~1 hour before appointment (with 5-minute cron buffer)
+  const minMinutes = options?.minMinutes ?? 35;
   const channel: MessageChannel = options?.channel || 'sms';
 
   // 1. Query appointments that are due, have consent, and haven't had a reminder sent yet
-  const dueAppointments = await getAppointmentsDueForReminder(referenceTime, windowMinutes);
+  const dueAppointments = await getAppointmentsDueForReminder(referenceTime, windowMinutes, minMinutes);
 
   const results: ReminderProcessResult['results'] = [];
   let sentCount = 0;

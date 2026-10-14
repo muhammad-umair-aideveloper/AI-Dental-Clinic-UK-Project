@@ -127,21 +127,24 @@ Deno.serve(async (req) => {
           console.error('[TwilioSMS] Exception sending SMS:', e);
         }
       } else {
-        // Test / development mode
-        smsSuccess = true;
-        console.log(`[TwilioSMS-Simulated] To: ${maskPhone(phone)} | ${messageBody}`);
+        // Missing Twilio credentials - log and do NOT mark as sent
+        smsSuccess = false;
+        smsError = 'Twilio credentials (ACCOUNT_SID, AUTH_TOKEN, SENDER) not configured';
+        console.warn(`[TwilioSMS] Cannot dispatch SMS to ${maskPhone(phone)}: ${smsError}`);
       }
 
       // 5. Immediately update reminder_1hr_sent = true in Supabase (idempotent lock)
+      // Strictly committed ONLY upon verified successful dispatch
       if (smsSuccess) {
         const { error: updateErr } = await supabase
           .from('appointments')
           .update({
             reminder_1hr_sent: true,
+            reminder_sent: true,
+            reminder_sent_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
-          .eq('id', apt.id)
-          .eq('reminder_1hr_sent', false);
+          .eq('id', apt.id);
 
         if (!updateErr) {
           sentCount++;

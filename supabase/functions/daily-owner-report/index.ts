@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
             html: htmlContent,
             attachments: [
               {
-                filename: `appointments-${londonDate}.csv`,
+                filename: `Appointments_${londonDate}.csv`,
                 content: csvBase64,
               },
             ],

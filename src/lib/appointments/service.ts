@@ -29,6 +29,7 @@ import type {
 } from './types';
 import { getSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
 import { appendBookingToGoogleSheet } from '@/lib/sheets/google-sheets';
+import { appendAppointmentToGoogleSheet } from '@/lib/google-sheets/sync';
 
 // =========================================================================
 // IN-MEMORY CONCURRENT SIMULATOR
@@ -356,15 +357,22 @@ export async function createAppointment(
     }
 
     const londonInfo = utcToLondon(insertedApt.slot_time);
+    const confirmedRecord: AppointmentRecord = {
+      ...insertedApt,
+      google_sheet_synced: sheetSynced,
+      london_date: londonInfo.dateStr,
+      london_time: londonInfo.time12,
+      london_display: londonInfo.display,
+    };
+
+    // Non-blocking Google Sheets sync
+    appendAppointmentToGoogleSheet(confirmedRecord).catch(err => {
+      console.error('[Service] Non-blocking Google Sheets sync error:', err);
+    });
+
     return {
       success: true,
-      data: {
-        ...insertedApt,
-        google_sheet_synced: sheetSynced,
-        london_date: londonInfo.dateStr,
-        london_time: londonInfo.time12,
-        london_display: londonInfo.display,
-      },
+      data: confirmedRecord,
     };
   }
 
@@ -408,14 +416,21 @@ export async function createAppointment(
   mockStore.appointments.unshift(newRecord);
 
   const londonInfo = utcToLondon(newRecord.slot_time);
+  const confirmedMock: AppointmentRecord = {
+    ...newRecord,
+    london_date: londonInfo.dateStr,
+    london_time: londonInfo.time12,
+    london_display: londonInfo.display,
+  };
+
+  // Non-blocking Google Sheets sync in fallback
+  appendAppointmentToGoogleSheet(confirmedMock).catch(err => {
+    console.error('[Service:Mock] Non-blocking Google Sheets sync error:', err);
+  });
+
   return {
     success: true,
-    data: {
-      ...newRecord,
-      london_date: londonInfo.dateStr,
-      london_time: londonInfo.time12,
-      london_display: londonInfo.display,
-    },
+    data: confirmedMock,
   };
 }
 
@@ -545,10 +560,12 @@ export async function updateAppointmentStatus(
  */
 export async function getAppointmentsDueForReminder(
   referenceTime: Date = new Date(),
-  windowMinutes: number = 65
+  windowMinutes: number = 65,
+  minMinutes: number = 35
 ): Promise<AppointmentRecord[]> {
-  const windowStartIso = referenceTime.toISOString();
+  const windowStartDate = new Date(referenceTime.getTime() + minMinutes * 60 * 1000);
   const windowEndDate = new Date(referenceTime.getTime() + windowMinutes * 60 * 1000);
+  const windowStartIso = windowStartDate.toISOString();
   const windowEndIso = windowEndDate.toISOString();
 
   const supabase = getSupabaseServerClient();
@@ -586,7 +603,7 @@ export async function getAppointmentsDueForReminder(
       if (a.reminder_sent) return false;
       const aptTime = new Date(a.slot_time).getTime();
       return (
-        aptTime >= referenceTime.getTime() &&
+        aptTime >= windowStartDate.getTime() &&
         aptTime <= windowEndDate.getTime()
       );
     })

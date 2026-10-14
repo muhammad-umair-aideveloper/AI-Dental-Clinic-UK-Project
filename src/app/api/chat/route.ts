@@ -639,6 +639,47 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 4b. Gemini AI Execution (if GEMINI_API_KEY is configured and OpenAI is not)
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (!openAiApiKey && geminiKey) {
+      try {
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: 'user',
+                  parts: [{ text: `${SYSTEM_PROMPT}\n\nPatient Query: ${scrubbed}` }],
+                },
+              ],
+              generationConfig: {
+                temperature: 0.6,
+                maxOutputTokens: 500,
+              },
+            }),
+          }
+        );
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          const replyText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          if (replyText) {
+            await logChatToSupabase({ user_message: scrubbed, bot_response: replyText });
+            return NextResponse.json({
+              success: true,
+              reply: replyText,
+              meta: { piiScrubbed: piiDetected, redactedTypes },
+            });
+          }
+        }
+      } catch (err: any) {
+        console.warn('[ChatRoute] Gemini request failed, using deterministic local engine:', err.message);
+      }
+    }
+
     // 5. Fallback British Receptionist Engine (Resilient offline / no key mode)
     const localResult = await localBritishReceptionistEngine(scrubbed, messageHistory);
     await logChatToSupabase({

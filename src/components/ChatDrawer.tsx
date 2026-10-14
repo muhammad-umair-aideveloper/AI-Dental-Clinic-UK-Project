@@ -150,23 +150,7 @@ export const ChatDrawer: React.FC = () => {
 
   return (
     <>
-      {/* Floating Trigger Button (Bottom Right) */}
-      {!isChatDrawerOpen && (
-        <button
-          onClick={() => openChatDrawer()}
-          className="fixed bottom-6 right-6 z-40 p-4 rounded-full bg-[#0F172A] hover:bg-slate-800 text-white shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center space-x-2.5 border-2 border-white/80"
-          title="Open Clinical AI Assistant"
-          aria-label="Open AI Assistant"
-        >
-          <div className="relative">
-            <Bot className="w-5 h-5 text-white" />
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 absolute -top-1 -right-1 border-2 border-[#0F172A]"></span>
-          </div>
-          <span className="text-xs font-bold hidden sm:inline">AI Dental Concierge</span>
-        </button>
-      )}
-
-      {/* Slide-out Drawer container */}
+      {/* Slide-out Drawer container (Triggered by context actions) */}
       <div
         className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[460px] shadow-2xl transition-transform duration-300 flex flex-col bg-white border-l border-slate-200 ${
           isChatDrawerOpen ? 'translate-x-0' : 'translate-x-full'

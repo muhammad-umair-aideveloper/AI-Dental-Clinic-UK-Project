@@ -21,6 +21,7 @@ import {
   Minimize2,
 } from 'lucide-react';
 import { processDentalTriage, SupportedLanguage, TriageResult } from '@/lib/triage-engine';
+import { useClinic } from '@/context/ClinicContext';
 
 interface ChatMessage {
   id: string;
@@ -31,11 +32,22 @@ interface ChatMessage {
 }
 
 export const DentalAgentWidget: React.FC = () => {
+  const { isChatDrawerOpen, closeChatDrawer, chatInitialMessage } = useClinic();
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [language, setLanguage] = useState<SupportedLanguage>('en');
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+
+  // Sync with global openChatDrawer trigger (e.g. from Navbar)
+  useEffect(() => {
+    if (isChatDrawerOpen) {
+      setIsOpen(true);
+      if (chatInitialMessage && chatInitialMessage.trim()) {
+        setInput(chatInitialMessage);
+      }
+    }
+  }, [isChatDrawerOpen, chatInitialMessage]);
   
   // Interactive Booking Calendar State
   const [showSlotPicker, setShowSlotPicker] = useState(false);
@@ -300,7 +312,10 @@ export const DentalAgentWidget: React.FC = () => {
                 {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </button>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  closeChatDrawer();
+                }}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                 title="Close"
               >

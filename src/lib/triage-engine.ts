@@ -249,3 +249,120 @@ export function processDentalTriage(input: string, preferredLanguage?: Supported
     reply: `Hello! I am the Vertex Dental Lab clinical AI concierge in Marylebone, London. I can assist you with fee guides, emergency overnight toothache triage, or booking a consultation with Dr. Vance. How may I help you today?`,
   };
 }
+
+/**
+ * Enhanced LLM-Powered UK Clinical Concierge Triage.
+ * Calls OpenAI or Gemini with UK clinical grounding, GDC governance, and NHS capacity rules.
+ * Automatically falls back to deterministic processDentalTriage when no key is configured.
+ */
+export async function processDentalTriageWithLlm(
+  input: string,
+  preferredLanguage?: SupportedLanguage
+): Promise<TriageResult> {
+  const lang = preferredLanguage || detectLanguage(input);
+  const fallback = processDentalTriage(input, lang);
+
+  const openAiKey = process.env.OPENAI_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+
+  if (!openAiKey && !geminiKey) {
+    return fallback;
+  }
+
+  try {
+    const systemPrompt = `You are the Senior Clinical AI Concierge for Vertex Dental Lab, an elite private dental clinic in Marylebone & Harley Street, London.
+Adhere strictly to:
+1. GDC (General Dental Council) UK Clinical Governance and British etiquette.
+2. NHS Policy: Inform patients that Vertex Dental Lab is at FULL NHS CAPACITY and cannot accept new NHS registrations, but has immediate private availability.
+3. UK Private Fees Schedule (All in £ GBP):
+   - New Patient Consultation: £65
+   - Hygiene Scale & Polish: £85
+   - Routine Extraction: £150
+   - White Composite Filling: £140
+   - Root Canal Treatment: £450
+   - Boutique Teeth Whitening: £350
+   - Invisalign Clear Aligners: From £2,500 (0% finance available)
+   - Single Dental Implant: £2,200
+4. Language: Respond in ${lang === 'urdu' ? 'Urdu (اردو)' : lang === 'roman_urdu' ? 'Roman Urdu' : 'polite British English'}.
+5. Triage Intent: Classify patient query into EMERGENCY_PAIN, PRICING, BOOKING, or GENERAL.
+Provide a clear, reassuring, professional response.`;
+
+    if (openAiKey) {
+      const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${openAiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: input },
+          ],
+          temperature: 0.5,
+          max_tokens: 350,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json();
+        const replyText = json.choices?.[0]?.message?.content?.trim();
+        if (replyText) {
+          return {
+            ...fallback,
+            reply: replyText,
+          };
+        }
+      }
+    } else if (geminiKey) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: `${systemPrompt}\n\nPatient Query: ${input}` }],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.5,
+              maxOutputTokens: 350,
+            },
+          }),
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json();
+        const replyText = json.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (replyText) {
+          return {
+            ...fallback,
+            reply: replyText,
+          };
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn('[TriageEngine] LLM request bypassed or timed out, returning deterministic triage:', err.message);
+  }
+
+  return fallback;
+}
