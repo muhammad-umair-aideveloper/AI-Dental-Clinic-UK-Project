@@ -28,6 +28,7 @@ import type {
   SlotAvailability,
 } from './types';
 import { getSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
+import { appendBookingToGoogleSheet } from '@/lib/sheets/google-sheets';
 
 // =========================================================================
 // IN-MEMORY CONCURRENT SIMULATOR
