@@ -36,12 +36,15 @@ CREATE TABLE IF NOT EXISTS public.appointments (
     google_sheet_synced BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    
-    -- Backward-compatible columns for existing views/components
-    patient_name TEXT GENERATED ALWAYS AS (customer_name) STORED,
-    phone_number TEXT GENERATED ALWAYS AS (phone) STORED,
-    reason TEXT GENERATED ALWAYS AS (service) STORED,
-    
+
+    -- Compatibility columns for existing clinical workflows
+    patient_name TEXT,
+    phone_number TEXT,
+    reason TEXT,
+    email TEXT,
+    notes TEXT,
+    source TEXT DEFAULT 'Website',
+
     -- CRITICAL ANTI-DOUBLE-BOOKING CONSTRAINT (Raises 23505 on duplicate date + time slot)
     CONSTRAINT unique_date_time_slot UNIQUE (appointment_date, appointment_time)
 );
@@ -51,6 +54,37 @@ CREATE INDEX IF NOT EXISTS idx_appointments_date_time ON public.appointments (ap
 CREATE INDEX IF NOT EXISTS idx_appointments_date_status ON public.appointments (appointment_date, status);
 CREATE INDEX IF NOT EXISTS idx_appointments_phone ON public.appointments (phone);
 CREATE INDEX IF NOT EXISTS idx_appointments_reminder_poll ON public.appointments (appointment_date, appointment_time, reminder_1hr_sent, status);
+
+-- Sync trigger to guarantee customer_name/patient_name, phone/phone_number, and service/reason consistency
+CREATE OR REPLACE FUNCTION sync_appointment_columns()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.customer_name IS NULL AND NEW.patient_name IS NOT NULL THEN
+        NEW.customer_name := NEW.patient_name;
+    ELSIF NEW.patient_name IS NULL AND NEW.customer_name IS NOT NULL THEN
+        NEW.patient_name := NEW.customer_name;
+    END IF;
+
+    IF NEW.phone IS NULL AND NEW.phone_number IS NOT NULL THEN
+        NEW.phone := NEW.phone_number;
+    ELSIF NEW.phone_number IS NULL AND NEW.phone IS NOT NULL THEN
+        NEW.phone_number := NEW.phone;
+    END IF;
+
+    IF NEW.service IS NULL AND NEW.reason IS NOT NULL THEN
+        NEW.service := NEW.reason;
+    ELSIF NEW.reason IS NULL AND NEW.service IS NOT NULL THEN
+        NEW.reason := NEW.service;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_sync_appointment_columns ON public.appointments;
+CREATE TRIGGER trg_sync_appointment_columns
+BEFORE INSERT OR UPDATE ON public.appointments
+FOR EACH ROW EXECUTE PROCEDURE sync_appointment_columns();
 
 -- 3. CHAT LOGS TABLE (Single Source of Truth for AI Receptionist)
 CREATE TABLE IF NOT EXISTS public.chat_logs (
