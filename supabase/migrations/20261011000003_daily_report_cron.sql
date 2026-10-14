@@ -13,6 +13,7 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 --  a) BST/GMT correctness: pg_cron triggers at 07:00 UTC and 08:00 UTC.
 --     The procedure verifies: EXTRACT(HOUR FROM (NOW() AT TIME ZONE 'Europe/London')) = 8
 --  b) Idempotency: Checks daily_reports_log table. If already sent today, skips silently.
+--  c) Scope: Only today's confirmed appointments (WHERE appointment_date = CURRENT_DATE_IN_LONDON AND status = 'CONFIRMED')
 CREATE OR REPLACE FUNCTION trigger_daily_owner_report()
 RETURNS void AS $$
 DECLARE
@@ -33,7 +34,7 @@ BEGIN
 
     -- 3. Idempotency Check: Don't execute if already sent for this London date
     SELECT EXISTS (
-        SELECT 1 FROM daily_reports_log
+        SELECT 1 FROM public.daily_reports_log
         WHERE report_date = current_london_date AND status = 'SENT'
     ) INTO already_sent;
 
@@ -41,8 +42,7 @@ BEGIN
         RETURN;
     END IF;
 
-    -- 4. Invoke Edge Function or API webhook via pg_net
-    -- Retrieve project URL and secret from vault or app config if present
+    -- 4. Invoke Edge Function via pg_net
     BEGIN
         SELECT decrypted_secret INTO supabase_project_url 
         FROM vault.decrypted_secrets 
@@ -75,13 +75,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Schedule: '0 7,8 * * *' (Every day at 07:00 UTC and 08:00 UTC)
 -- - During British Summer Time (BST, UTC+1): 07:00 UTC = 08:00 BST -> Executes! 08:00 UTC = 09:00 BST -> Skips!
 -- - During Greenwich Mean Time (GMT, UTC+0): 07:00 UTC = 07:00 GMT -> Skips! 08:00 UTC = 08:00 GMT -> Executes!
--- Zero missed days, zero duplicate sends.
 DO $$
 BEGIN
-    -- Remove any prior schedule with the same name if exists
     PERFORM cron.unschedule('daily-owner-report-london-8am');
 EXCEPTION WHEN OTHERS THEN
-    -- cron table may be fresh or uninitialized
     NULL;
 END $$;
 
