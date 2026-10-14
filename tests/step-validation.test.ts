@@ -7,7 +7,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { sanitizeUkMobile, normalizeTimeFormat, CLINIC_SLOTS } from '@/app/api/book/route';
-import { appendBookingToGoogleSheet } from '@/lib/sheets/google-sheets';
+import { appendBookingToGoogleSheet } from '@/lib/google-sheets/sync';
 
 test('Step 2 & 3: UK Mobile Phone Sanitization (+447...)', () => {
   // Test converting 07xxx to +447xxx

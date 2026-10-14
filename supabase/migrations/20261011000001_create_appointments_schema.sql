@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS public.appointments (
     appointment_time TIME NOT NULL,
     status TEXT NOT NULL DEFAULT 'CONFIRMED',
     reminder_1hr_sent BOOLEAN NOT NULL DEFAULT false,
+    reminder_sent BOOLEAN NOT NULL DEFAULT false,
+    reminder_sent_at TIMESTAMPTZ,
     google_sheet_synced BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -54,6 +56,7 @@ CREATE INDEX IF NOT EXISTS idx_appointments_date_time ON public.appointments (ap
 CREATE INDEX IF NOT EXISTS idx_appointments_date_status ON public.appointments (appointment_date, status);
 CREATE INDEX IF NOT EXISTS idx_appointments_phone ON public.appointments (phone);
 CREATE INDEX IF NOT EXISTS idx_appointments_reminder_poll ON public.appointments (appointment_date, appointment_time, reminder_1hr_sent, status);
+CREATE INDEX IF NOT EXISTS idx_appointments_reminder_sent ON public.appointments (appointment_date, appointment_time, reminder_sent, status);
 
 -- Sync trigger to guarantee customer_name/patient_name, phone/phone_number, and service/reason consistency
 CREATE OR REPLACE FUNCTION sync_appointment_columns()
@@ -75,6 +78,13 @@ BEGIN
         NEW.service := NEW.reason;
     ELSIF NEW.reason IS NULL AND NEW.service IS NOT NULL THEN
         NEW.reason := NEW.service;
+    END IF;
+
+    -- Keep reminder_sent and reminder_1hr_sent in sync
+    IF NEW.reminder_sent = true AND (NEW.reminder_1hr_sent IS NULL OR NEW.reminder_1hr_sent = false) THEN
+        NEW.reminder_1hr_sent := true;
+    ELSIF NEW.reminder_1hr_sent = true AND (NEW.reminder_sent IS NULL OR NEW.reminder_sent = false) THEN
+        NEW.reminder_sent := true;
     END IF;
 
     RETURN NEW;

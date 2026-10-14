@@ -18,7 +18,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
 import { sanitizeUkMobile, normalizeTimeFormat, CLINIC_SLOTS } from '@/app/api/book/route';
-import { appendBookingToGoogleSheet } from '@/lib/sheets/google-sheets';
+import { appendBookingToGoogleSheet } from '@/lib/google-sheets/sync';
 import {
   checkChatRateLimit,
   sanitizeChatInput,

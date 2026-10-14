@@ -13,7 +13,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
-import { appendBookingToGoogleSheet } from '@/lib/sheets/google-sheets';
+import { appendBookingToGoogleSheet } from '@/lib/google-sheets/sync';
 
 // Standard UK Clinic Slots (09:00 to 17:00, 30-minute intervals)
 export const CLINIC_SLOTS = [

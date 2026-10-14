@@ -62,13 +62,14 @@ Deno.serve(async (req) => {
       .select('*')
       .eq('appointment_date', londonDate)
       .eq('status', 'CONFIRMED')
-      .eq('reminder_1hr_sent', false);
+      .eq('reminder_sent', false);
 
     if (error) {
       throw error;
     }
 
     const dueList = (appointments || []).filter((apt: any) => {
+      if (apt.reminder_sent === true || apt.reminder_1hr_sent === true) return false;
       if (!apt.appointment_time) return false;
       const [hh, mm] = apt.appointment_time.split(':').map((n: string) => parseInt(n, 10));
       if (isNaN(hh) || isNaN(mm)) return false;

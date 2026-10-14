@@ -197,3 +197,33 @@ export async function appendAppointmentToGoogleSheet(record: AppointmentRecord):
     return false;
   }
 }
+
+export interface BookingSheetRow {
+  appointment_date: string;
+  appointment_time: string;
+  customer_name: string;
+  phone: string;
+  service: string;
+}
+
+/**
+ * Backward-compatible adapter for legacy callers expecting appendBookingToGoogleSheet.
+ */
+export async function appendBookingToGoogleSheet(booking: BookingSheetRow): Promise<boolean> {
+  return appendAppointmentToGoogleSheet({
+    appointment_date: booking.appointment_date,
+    appointment_time: booking.appointment_time,
+    patient_name: booking.customer_name,
+    customer_name: booking.customer_name,
+    phone_number: booking.phone,
+    phone: booking.phone,
+    reason: booking.service,
+    service: booking.service,
+    status: 'CONFIRMED',
+    slot_time: new Date().toISOString(),
+    slot_end_time: new Date().toISOString(),
+    reminder_sent: false,
+    google_sheet_synced: false,
+  } as unknown as AppointmentRecord);
+}
+
