@@ -169,7 +169,7 @@ const BookingModalDialog: React.FC = () => {
         reason: currentService?.name || 'General Consultation',
         customer_name: patientDetails.name.trim(),
         phone: patientDetails.phone.trim(),
-        service: currentService.title,
+        service: currentService?.name || 'General Consultation',
         appointment_date: selectedDate,
         appointment_time: selectedTime,
         date: selectedDate,

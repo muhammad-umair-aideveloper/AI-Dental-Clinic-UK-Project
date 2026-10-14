@@ -28,7 +28,6 @@ import type {
   SlotAvailability,
 } from './types';
 import { getSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
-import { appendBookingToGoogleSheet } from '@/lib/sheets/google-sheets';
 import { appendAppointmentToGoogleSheet } from '@/lib/google-sheets/sync';
 
 // =========================================================================
@@ -284,14 +283,14 @@ export async function createAppointment(
     }
 
     // Insert into appointments table
-    const timeFormatted = time.length === 5 ? `${time}:00` : time;
+    const timeFormatted = timeStr.length === 5 ? `${timeStr}:00` : timeStr;
     const { data: insertedApt, error: insertError } = await supabase
       .from('appointments')
       .insert({
         customer_name: patientName,
         phone: phoneNumber,
         service: reason,
-        appointment_date: date,
+        appointment_date: dateStr,
         appointment_time: timeFormatted,
         patient_id: patientId,
         patient_name: patientName,
@@ -335,31 +334,10 @@ export async function createAppointment(
       };
     }
 
-    // Attempt Google Sheets Sync
-    let sheetSynced = false;
-    try {
-      sheetSynced = await appendBookingToGoogleSheet({
-        appointment_date: date,
-        appointment_time: time.slice(0, 5),
-        customer_name: patientName,
-        phone: phoneNumber,
-        service: reason,
-      });
-
-      if (sheetSynced && insertedApt?.id) {
-        await supabase
-          .from('appointments')
-          .update({ google_sheet_synced: true })
-          .eq('id', insertedApt.id);
-      }
-    } catch (sheetErr) {
-      console.error('[Service] Google Sheets sync error:', sheetErr);
-    }
-
     const londonInfo = utcToLondon(insertedApt.slot_time);
     const confirmedRecord: AppointmentRecord = {
       ...insertedApt,
-      google_sheet_synced: sheetSynced,
+      google_sheet_synced: false,
       london_date: londonInfo.dateStr,
       london_time: londonInfo.time12,
       london_display: londonInfo.display,
