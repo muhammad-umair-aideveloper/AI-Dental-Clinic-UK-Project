@@ -971,33 +971,33 @@ export default function AdminDashboardPage() {
         {activeMainTab === 'ai' && (
           <div className="space-y-6 animate-fade-in">
             {/* Top Navigation for AI 3 Subtabs */}
-            <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+            <div className="inline-flex items-center p-1.5 bg-white border border-neutral-200/60 rounded-full shadow-[0_2px_10px_-2px_rgba(0,0,0,0.03)] space-x-1">
               <button
                 onClick={() => setActiveAITab('knowledge')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
                   activeAITab === 'knowledge'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-[#141519] text-white shadow-xs'
+                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
                 }`}
               >
                 Subtab 1: Company Knowledge Base
               </button>
               <button
                 onClick={() => setActiveAITab('guardrails')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
                   activeAITab === 'guardrails'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-[#141519] text-white shadow-xs'
+                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
                 }`}
               >
                 Subtab 2: AI Instructions & Guardrails
               </button>
               <button
                 onClick={() => setActiveAITab('simulator')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
                   activeAITab === 'simulator'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-[#141519] text-white shadow-xs'
+                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
                 }`}
               >
                 Subtab 3: Live Chat Simulator
@@ -1008,18 +1008,18 @@ export default function AdminDashboardPage() {
             {activeAITab === 'knowledge' && (
               <div className="space-y-6">
                 {/* Clinic Details Form */}
-                <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-2xs space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="p-6 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] space-y-4">
+                  <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                     <div>
-                      <h4 className="font-extrabold text-sm text-slate-900">Clinic Details & Regulatory Grounding</h4>
-                      <p className="text-xs text-slate-500">Core parameters the AI uses to ground patient queries.</p>
+                      <h4 className="font-semibold text-sm text-[#111827]">Clinic Details & Regulatory Grounding</h4>
+                      <p className="text-xs text-neutral-500">Core parameters the AI uses to ground patient queries.</p>
                     </div>
                     <button
                       onClick={() => {
                         updateCompanyDetails(kbCompany);
                         triggerToast('Saved company knowledge parameters.');
                       }}
-                      className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold"
+                      className="px-5 py-2.5 rounded-full bg-[#141519] hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs transition-colors"
                     >
                       Save Details
                     </button>
@@ -1027,84 +1027,84 @@ export default function AdminDashboardPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Clinic Name</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Clinic Name</label>
                       <input
                         type="text"
                         value={kbCompany.clinicName}
                         onChange={e => setKbCompany({ ...kbCompany, clinicName: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Helpline Phone (Emergency)</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Helpline Phone (Emergency)</label>
                       <input
                         type="text"
                         value={kbCompany.helplinePhone}
                         onChange={e => setKbCompany({ ...kbCompany, helplinePhone: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">WhatsApp Triage Number</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">WhatsApp Triage Number</label>
                       <input
                         type="text"
                         value={kbCompany.whatsappPhone}
                         onChange={e => setKbCompany({ ...kbCompany, whatsappPhone: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Contact Email</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Contact Email</label>
                       <input
                         type="email"
                         value={kbCompany.contactEmail}
                         onChange={e => setKbCompany({ ...kbCompany, contactEmail: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">CQC Provider Reg</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">CQC Provider Reg</label>
                       <input
                         type="text"
                         value={kbCompany.cqcRegistration}
                         onChange={e => setKbCompany({ ...kbCompany, cqcRegistration: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Operating Hours</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Operating Hours</label>
                       <input
                         type="text"
                         value={kbCompany.workingHours}
                         onChange={e => setKbCompany({ ...kbCompany, workingHours: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                     <div className="sm:col-span-2 lg:col-span-3">
-                      <label className="block font-bold text-slate-700 mb-1">Physical Clinical Address</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Physical Clinical Address</label>
                       <input
                         type="text"
                         value={kbCompany.clinicalAddress}
                         onChange={e => setKbCompany({ ...kbCompany, clinicalAddress: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Policies Editor */}
-                <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-2xs space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="p-6 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] space-y-4">
+                  <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                     <div>
-                      <h4 className="font-extrabold text-sm text-slate-900">Clinic Policies & Cancellation Terms</h4>
-                      <p className="text-xs text-slate-500">Cited whenever patients ask about refunds, missed visits, or 0% finance.</p>
+                      <h4 className="font-semibold text-sm text-[#111827]">Clinic Policies & Cancellation Terms</h4>
+                      <p className="text-xs text-neutral-500">Cited whenever patients ask about refunds, missed visits, or 0% finance.</p>
                     </div>
                     <button
                       onClick={() => {
                         updateClinicPolicies(kbPolicies);
                         triggerToast('Saved clinic policies.');
                       }}
-                      className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold"
+                      className="px-5 py-2.5 rounded-full bg-[#141519] hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs transition-colors"
                     >
                       Save Policies
                     </button>
@@ -1112,39 +1112,39 @@ export default function AdminDashboardPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Cancellation Policy (Notice Window)</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Cancellation Policy (Notice Window)</label>
                       <textarea
                         rows={3}
                         value={kbPolicies.cancellationPolicy}
                         onChange={e => setKbPolicies({ ...kbPolicies, cancellationPolicy: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Refund & Deposit Policy</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Refund & Deposit Policy</label>
                       <textarea
                         rows={3}
                         value={kbPolicies.refundPolicy}
                         onChange={e => setKbPolicies({ ...kbPolicies, refundPolicy: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* FAQs Manager */}
-                <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-2xs space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="p-6 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] space-y-4">
+                  <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                     <div>
-                      <h4 className="font-extrabold text-sm text-slate-900">Knowledge Base FAQs ({faqs.length})</h4>
-                      <p className="text-xs text-slate-500">Direct question-answer pairings retrieved during semantic grounding.</p>
+                      <h4 className="font-semibold text-sm text-[#111827]">Knowledge Base FAQs ({faqs.length})</h4>
+                      <p className="text-xs text-neutral-500">Direct question-answer pairings retrieved during semantic grounding.</p>
                     </div>
                     <button
                       onClick={() => {
                         setFaqForm({ question: '', answer: '', category: 'General' });
                         setFaqModalOpen(true);
                       }}
-                      className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center space-x-1"
+                      className="px-4 py-2 rounded-full bg-[#141519] hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>+ Add FAQ</span>
@@ -1153,17 +1153,17 @@ export default function AdminDashboardPage() {
 
                   <div className="space-y-3">
                     {faqs.map(faq => (
-                      <div key={faq.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-4 text-xs">
+                      <div key={faq.id} className="p-4 rounded-xl bg-[#F8F9FA] border border-neutral-200/70 hover:border-neutral-300 transition-colors flex items-start justify-between gap-4 text-xs">
                         <div className="space-y-1">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F2F4F7] text-[#344054]">
                             {faq.category || 'General'}
                           </span>
-                          <p className="font-bold text-slate-900">{faq.question}</p>
-                          <p className="text-slate-600 leading-relaxed">{faq.answer}</p>
+                          <p className="font-semibold text-neutral-900">{faq.question}</p>
+                          <p className="text-neutral-600 leading-relaxed">{faq.answer}</p>
                         </div>
                         <button
                           onClick={() => deleteFAQ(faq.id)}
-                          className="p-1.5 rounded-lg bg-white text-slate-400 hover:text-rose-600 border border-slate-200 shrink-0"
+                          className="p-2 rounded-full bg-white text-neutral-400 hover:text-rose-600 border border-neutral-200/60 shadow-xs shrink-0 transition-colors"
                           title="Delete FAQ"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1178,11 +1178,11 @@ export default function AdminDashboardPage() {
             {/* SUBTAB 2: AI INSTRUCTIONS & GUARDRAILS */}
             {activeAITab === 'guardrails' && (
               <div className="space-y-6">
-                <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-2xs space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="p-6 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] space-y-4">
+                  <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                     <div>
-                      <h4 className="font-extrabold text-sm text-slate-900">AI Persona & Behavioral Directives</h4>
-                      <p className="text-xs text-slate-500">Guarantees GDC clinical compliance, ethical standards, and patient triage safety.</p>
+                      <h4 className="font-semibold text-sm text-[#111827]">AI Persona & Behavioral Directives</h4>
+                      <p className="text-xs text-neutral-500">Guarantees GDC clinical compliance, ethical standards, and patient triage safety.</p>
                     </div>
                     <button
                       onClick={() => {
@@ -1190,7 +1190,7 @@ export default function AdminDashboardPage() {
                         updateAIProviderSettings(aiLocalProvider);
                         triggerToast('Saved AI Persona & GDC Guardrails.');
                       }}
-                      className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold"
+                      className="px-5 py-2.5 rounded-full bg-[#141519] hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs transition-colors"
                     >
                       Save All Guardrails
                     </button>
@@ -1198,49 +1198,49 @@ export default function AdminDashboardPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Identity & Clinical Role</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Identity & Clinical Role</label>
                       <textarea
                         rows={2}
                         value={aiLocalSettings.identityRole}
                         onChange={e => setAiLocalSettings({ ...aiLocalSettings, identityRole: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Target Audience</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Target Audience</label>
                       <textarea
                         rows={2}
                         value={aiLocalSettings.targetAudience}
                         onChange={e => setAiLocalSettings({ ...aiLocalSettings, targetAudience: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Tone & Manner</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Tone & Manner</label>
                       <input
                         type="text"
                         value={aiLocalSettings.toneManner}
                         onChange={e => setAiLocalSettings({ ...aiLocalSettings, toneManner: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Language & Spelling Standard</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Language & Spelling Standard</label>
                       <input
                         type="text"
                         value={aiLocalSettings.languageBehaviorPolicy}
                         onChange={e => setAiLocalSettings({ ...aiLocalSettings, languageBehaviorPolicy: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Strictly What AI Must NOT Say (GDC Compliance Guardrail) */}
-                  <div className="pt-3 border-t border-slate-100 space-y-2">
-                    <label className="block font-bold text-rose-700 text-xs">
+                  <div className="pt-3 border-t border-neutral-100 space-y-2">
+                    <label className="block font-semibold text-rose-700 text-xs">
                       Mandatory Prohibitions (What the AI Must NOT Say):
                     </label>
-                    <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-950 space-y-1.5">
+                    <div className="p-4 rounded-2xl bg-rose-50/80 border border-rose-200/70 text-xs text-rose-950 space-y-2">
                       {aiLocalSettings.mustNotSay.map((rule, idx) => (
                         <div key={idx} className="flex items-start space-x-2">
                           <X className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
@@ -1252,10 +1252,10 @@ export default function AdminDashboardPage() {
 
                   {/* What the AI SHOULD Say */}
                   <div className="pt-2 space-y-2">
-                    <label className="block font-bold text-emerald-800 text-xs">
+                    <label className="block font-semibold text-emerald-800 text-xs">
                       Clinical Objectives (What the AI SHOULD Say):
                     </label>
-                    <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 space-y-1.5">
+                    <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/70 text-xs text-emerald-950 space-y-2">
                       {aiLocalSettings.shouldSay.map((rule, idx) => (
                         <div key={idx} className="flex items-start space-x-2">
                           <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
@@ -1267,33 +1267,33 @@ export default function AdminDashboardPage() {
 
                   {/* Transfer to Human Instructions */}
                   <div className="pt-2">
-                    <label className="block font-bold text-slate-700 text-xs mb-1">
+                    <label className="block font-semibold text-neutral-700 text-xs mb-1">
                       Emergency Triage Escalation Directive
                     </label>
                     <textarea
                       rows={2}
                       value={aiLocalSettings.transferToHumanInstructions}
                       onChange={e => setAiLocalSettings({ ...aiLocalSettings, transferToHumanInstructions: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 text-xs"
+                      className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Model Selector & API Key Settings */}
-                <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-2xs space-y-4">
-                  <div className="border-b border-slate-100 pb-3">
-                    <h4 className="font-extrabold text-sm text-slate-900">AI Model Selector & API Configuration</h4>
-                    <p className="text-xs text-slate-500">Select active foundation model and set optional custom backend credentials.</p>
+                <div className="p-6 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] space-y-4">
+                  <div className="border-b border-neutral-100 pb-3">
+                    <h4 className="font-semibold text-sm text-[#111827]">AI Model Selector & API Configuration</h4>
+                    <p className="text-xs text-neutral-500">Select active foundation model and set optional custom backend credentials.</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                     {/* Active Provider */}
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Active AI Provider</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Active AI Provider</label>
                       <select
                         value={aiLocalProvider.activeProvider}
                         onChange={e => setAiLocalProvider({ ...aiLocalProvider, activeProvider: e.target.value as any })}
-                        className="w-full p-2.5 rounded-xl border border-slate-200 font-bold text-slate-900"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs font-semibold text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                       >
                         <option value="Gemini">Google Gemini (Recommended)</option>
                         <option value="Claude">Anthropic Claude</option>
@@ -1303,7 +1303,7 @@ export default function AdminDashboardPage() {
 
                     {/* Model Identifier */}
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Model Name</label>
+                      <label className="block font-semibold text-neutral-700 mb-1">Model Name</label>
                       <input
                         type="text"
                         value={
@@ -1322,18 +1322,18 @@ export default function AdminDashboardPage() {
                             setAiLocalProvider({ ...aiLocalProvider, chatgptModel: e.target.value });
                           }
                         }}
-                        className="w-full p-2.5 rounded-xl border border-slate-200 font-mono"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs font-mono text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                       />
                     </div>
 
                     {/* API Key */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="block font-bold text-slate-700">API Key</label>
+                        <label className="block font-semibold text-neutral-700">API Key</label>
                         <button
                           type="button"
                           onClick={() => setShowApiKey(!showApiKey)}
-                          className="text-[10px] text-slate-500 hover:text-slate-800 underline"
+                          className="text-[10px] text-neutral-500 hover:text-neutral-900 underline"
                         >
                           {showApiKey ? 'Hide' : 'Reveal'}
                         </button>
@@ -1356,7 +1356,7 @@ export default function AdminDashboardPage() {
                             setAiLocalProvider({ ...aiLocalProvider, chatgptApiKey: e.target.value });
                           }
                         }}
-                        className="w-full p-2.5 rounded-xl border border-slate-200 font-mono"
+                        className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs font-mono text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                       />
                     </div>
                   </div>
@@ -1367,40 +1367,40 @@ export default function AdminDashboardPage() {
             {/* SUBTAB 3: LIVE CHAT SIMULATOR */}
             {activeAITab === 'simulator' && (
               <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-2">
+                <div className="p-5 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-extrabold text-sm text-slate-900">Interactive Test Bench</h4>
-                      <p className="text-xs text-slate-500">Test AI guardrails, emergency diversion, and GDC prescription blocks in real-time.</p>
+                      <h4 className="font-semibold text-sm text-[#111827]">Interactive Test Bench</h4>
+                      <p className="text-xs text-neutral-500">Test AI guardrails, emergency diversion, and GDC prescription blocks in real-time.</p>
                     </div>
-                    <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                    <span className="px-3 py-1 rounded-full bg-[#ECFDF3] text-[#027A48] text-[11px] font-semibold border border-emerald-200/60">
                       Engine: {aiLocalProvider.activeProvider}
                     </span>
                   </div>
 
                   {/* Preset prompt query chips */}
-                  <div className="flex flex-wrap gap-1.5 pt-2">
+                  <div className="flex flex-wrap gap-2 pt-1">
                     <button
                       onClick={() => runSimulatorQuery('How much does Invisalign cost and can I pay in monthly installments?')}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold"
+                      className="px-3.5 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-[11px] font-medium transition-all"
                     >
                       💡 "How much is Invisalign & 0% finance?"
                     </button>
                     <button
                       onClick={() => runSimulatorQuery('I have unbearable toothache and severe facial swelling')}
-                      className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 text-[11px] font-bold border border-rose-200"
+                      className="px-3.5 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-800 text-[11px] font-medium border border-rose-200/60 transition-all"
                     >
                       🚨 "Severe swelling & pain (Urgent Triage)"
                     </button>
                     <button
                       onClick={() => runSimulatorQuery('Can you prescribe me amoxicillin 500mg for a tooth infection?')}
-                      className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 text-[11px] font-bold border border-amber-200"
+                      className="px-3.5 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 text-[11px] font-medium border border-amber-200/60 transition-all"
                     >
                       🛑 "Prescribe Amoxicillin (GDC Block)"
                     </button>
                     <button
                       onClick={() => runSimulatorQuery('Are all your dentists registered with the GDC?')}
-                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold"
+                      className="px-3.5 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-[11px] font-medium transition-all"
                     >
                       🛡️ "Check GDC Credentials"
                     </button>
@@ -1408,7 +1408,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* Conversation Box */}
-                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4 h-[480px] overflow-y-auto flex flex-col justify-between">
+                <div className="bg-white rounded-2xl border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] p-5 sm:p-6 space-y-4 h-[480px] overflow-y-auto flex flex-col justify-between">
                   <div className="space-y-4 overflow-y-auto pr-1 flex-1">
                     {simHistory.map((msg, idx) => (
                       <div
@@ -1418,20 +1418,20 @@ export default function AdminDashboardPage() {
                         <div
                           className={`max-w-xl p-4 rounded-2xl text-xs leading-relaxed space-y-2 ${
                             msg.role === 'user'
-                              ? 'bg-slate-900 text-white rounded-br-none'
-                              : 'bg-slate-50 border border-slate-200 text-slate-900 rounded-bl-none'
+                              ? 'bg-[#141519] text-white rounded-br-xs'
+                              : 'bg-[#F8F9FA] border border-neutral-200/60 text-neutral-900 rounded-bl-xs'
                           }`}
                         >
                           <p className="whitespace-pre-line">{msg.text}</p>
 
                           {/* Reasoning Trace & Grounded Sources */}
                           {msg.result && (
-                            <div className="pt-2 border-t border-slate-200/60 space-y-2 mt-2">
+                            <div className="pt-2 border-t border-neutral-200/60 space-y-2 mt-2">
                               {msg.result.sourceGrounded && (
-                                <div className="flex flex-wrap items-center gap-1 text-[10px]">
-                                  <span className="font-bold text-slate-500">Grounded Sources:</span>
+                                <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                                  <span className="font-semibold text-neutral-500">Grounded Sources:</span>
                                   {msg.result.sourceGrounded.map((src, sIdx) => (
-                                    <span key={sIdx} className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-semibold">
+                                    <span key={sIdx} className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-medium border border-emerald-200/60">
                                       {src}
                                     </span>
                                   ))}
@@ -1439,9 +1439,9 @@ export default function AdminDashboardPage() {
                               )}
 
                               {msg.result.reasoningTrace && (
-                                <details className="text-[10px] text-slate-500 cursor-pointer">
-                                  <summary className="font-bold text-slate-700">View 4-Step Clinical Reasoning Trace</summary>
-                                  <div className="mt-1 space-y-1 pl-2 border-l border-slate-300">
+                                <details className="text-[10px] text-neutral-500 cursor-pointer">
+                                  <summary className="font-semibold text-neutral-700">View 4-Step Clinical Reasoning Trace</summary>
+                                  <div className="mt-1 space-y-1 pl-2 border-l border-neutral-300">
                                     {msg.result.reasoningTrace.map((st, stIdx) => (
                                       <p key={stIdx}>
                                         <strong>Step {st.step}:</strong> {st.title} — {st.detail}
@@ -1457,8 +1457,8 @@ export default function AdminDashboardPage() {
                     ))}
 
                     {isSimulating && (
-                      <div className="flex items-center space-x-2 text-xs text-slate-500">
-                        <span className="w-2 h-2 rounded-full bg-slate-400 animate-ping"></span>
+                      <div className="flex items-center space-x-2 text-xs text-neutral-500">
+                        <span className="w-2 h-2 rounded-full bg-[#FF5722] animate-ping"></span>
                         <span>AI reasoning across Knowledge Base & GDC Guardrails...</span>
                       </div>
                     )}
@@ -1470,19 +1470,19 @@ export default function AdminDashboardPage() {
                       e.preventDefault();
                       runSimulatorQuery(simQuery);
                     }}
-                    className="flex items-center space-x-2 pt-2 border-t border-slate-100"
+                    className="flex items-center space-x-2 pt-3 border-t border-neutral-100"
                   >
                     <input
                       type="text"
                       placeholder="Type a clinical query or test guardrail..."
                       value={simQuery}
                       onChange={e => setSimQuery(e.target.value)}
-                      className="flex-1 p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                      className="flex-1 p-3 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 placeholder-neutral-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                     />
                     <button
                       type="submit"
                       disabled={isSimulating || !simQuery.trim()}
-                      className="px-5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs flex items-center space-x-1"
+                      className="px-5 py-3 rounded-xl bg-[#141519] hover:bg-neutral-800 disabled:opacity-50 text-white font-semibold text-xs flex items-center space-x-1.5 transition-colors"
                     >
                       <Send className="w-3.5 h-3.5" />
                       <span>Send</span>
@@ -1501,81 +1501,81 @@ export default function AdminDashboardPage() {
       {/* MODAL: VIEW FULL LEAD DETAILS */}
       {/* ======================================================== */}
       {selectedLeadForView && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
+          <div className="relative w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F2F4F7] text-[#344054]">
                   Lead Reference #{selectedLeadForView.id}
                 </span>
-                <h3 className="text-base font-black text-slate-950 mt-1">{selectedLeadForView.patientName}</h3>
+                <h3 className="text-base font-semibold text-[#111827] mt-1.5">{selectedLeadForView.patientName}</h3>
               </div>
               <button
                 onClick={() => setSelectedLeadForView(null)}
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900"
+                className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="text-xs space-y-3">
-              <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="grid grid-cols-2 gap-2.5 p-3.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/70">
                 <div>
-                  <span className="text-slate-500 block">Phone / WhatsApp:</span>
-                  <a href={`tel:${selectedLeadForView.phone}`} className="font-bold text-slate-900 hover:underline">
+                  <span className="text-neutral-500 block mb-0.5">Phone / WhatsApp:</span>
+                  <a href={`tel:${selectedLeadForView.phone}`} className="font-semibold text-neutral-900 hover:text-[#FF5722] transition-colors">
                     {selectedLeadForView.phone}
                   </a>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Email:</span>
-                  <a href={`mailto:${selectedLeadForView.email}`} className="font-bold text-slate-900 hover:underline">
+                  <span className="text-neutral-500 block mb-0.5">Email:</span>
+                  <a href={`mailto:${selectedLeadForView.email}`} className="font-semibold text-neutral-900 hover:text-[#FF5722] transition-colors">
                     {selectedLeadForView.email}
                   </a>
                 </div>
               </div>
 
               <div>
-                <span className="text-slate-500 block mb-1">Treatment Interested In:</span>
-                <p className="font-bold text-sm text-slate-900">{selectedLeadForView.serviceInterest}</p>
+                <span className="text-neutral-500 block mb-1">Treatment Interested In:</span>
+                <p className="font-semibold text-sm text-neutral-900">{selectedLeadForView.serviceInterest}</p>
               </div>
 
               <div>
-                <span className="text-slate-500 block mb-1">Chief Concern / Symptoms Message:</span>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 leading-relaxed">
+                <span className="text-neutral-500 block mb-1">Chief Concern / Symptoms Message:</span>
+                <div className="p-3.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/70 text-neutral-800 leading-relaxed">
                   {selectedLeadForView.message}
                 </div>
               </div>
 
               {selectedLeadForView.preferredDate && (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                <div className="p-3.5 rounded-xl bg-[#ECFDF3] border border-emerald-200/60 text-[#027A48]">
                   <p><strong>Preferred Consultation Slot:</strong> {selectedLeadForView.preferredDate} ({selectedLeadForView.preferredTime || 'Morning'})</p>
                 </div>
               )}
             </div>
 
-            <div className="pt-2 flex items-center justify-between border-t border-slate-100">
+            <div className="pt-2 flex items-center justify-between border-t border-neutral-100">
               <div className="flex items-center space-x-2">
                 <a
                   href={`tel:${selectedLeadForView.phone.replace(/\s+/g, '')}`}
-                  className="px-3 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center space-x-1"
+                  className="px-3.5 py-2 rounded-full bg-[#141519] text-white font-semibold text-xs flex items-center space-x-1.5 hover:bg-neutral-800 transition-colors"
                 >
-                  <Phone className="w-3 h-3" />
+                  <Phone className="w-3.5 h-3.5" />
                   <span>Call Patient</span>
                 </a>
                 <a
                   href={`https://wa.me/${selectedLeadForView.phone.replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center space-x-1"
+                  className="px-3.5 py-2 rounded-full bg-[#ECFDF3] hover:bg-emerald-100 text-[#027A48] border border-emerald-200/60 font-semibold text-xs flex items-center space-x-1.5 transition-colors"
                 >
-                  <MessageSquare className="w-3 h-3" />
+                  <MessageSquare className="w-3.5 h-3.5" />
                   <span>WhatsApp</span>
                 </a>
               </div>
 
               <button
                 onClick={() => setSelectedLeadForView(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-neutral-600 hover:bg-neutral-100 transition-colors"
               >
                 Close
               </button>
@@ -1588,27 +1588,27 @@ export default function AdminDashboardPage() {
       {/* MODAL: WEBHOOK TRIGGER SIMULATOR */}
       {/* ======================================================== */}
       {showWebhookModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-950 flex items-center space-x-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <h3 className="text-base font-semibold text-[#111827] flex items-center space-x-2">
                 <Zap className="w-4 h-4 text-amber-500" />
                 <span>Front Desk CRM Webhook Dispatcher</span>
               </h3>
               <button
                 onClick={() => setShowWebhookModal(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900"
+                className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-neutral-600 leading-relaxed">
               Push un-synced patient inquiries and guest triage bookings directly into the reception CRM endpoint (e.g. Dentally UK, Exact by SOE, or Zapier).
             </p>
 
-            <div className="p-3 rounded-2xl bg-slate-900 text-emerald-400 font-mono text-[11px] space-y-1">
-              <p className="text-slate-400">// Outgoing Webhook Payload</p>
+            <div className="p-3.5 rounded-xl bg-neutral-900 text-emerald-400 font-mono text-[11px] space-y-1">
+              <p className="text-neutral-400">// Outgoing Webhook Payload</p>
               <p>POST /api/v1/crm/lead-sync</p>
               <p>Target: "Dentally Cloud UK Integration"</p>
               <p>Total Leads: {filteredLeads.length} records</p>
@@ -1618,14 +1618,14 @@ export default function AdminDashboardPage() {
             <div className="pt-2 flex justify-end space-x-2">
               <button
                 onClick={() => setShowWebhookModal(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-neutral-600 hover:bg-neutral-100 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleTriggerWebhookSync}
                 disabled={isPushingWebhook}
-                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 flex items-center space-x-1.5"
+                className="px-5 py-2 rounded-full text-xs font-semibold text-white bg-[#141519] hover:bg-neutral-800 disabled:opacity-50 flex items-center space-x-1.5 transition-colors shadow-xs"
               >
                 {isPushingWebhook ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 text-amber-400" />}
                 <span>{isPushingWebhook ? 'Dispatching...' : 'Dispatch Webhook Now'}</span>
@@ -1639,15 +1639,15 @@ export default function AdminDashboardPage() {
       {/* MODAL: ADD / EDIT TREATMENT SERVICE */}
       {/* ======================================================== */}
       {serviceModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-950">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <h3 className="text-base font-semibold text-[#111827]">
                 {editingService ? 'Edit Treatment & Pricing' : 'Add New Dental Treatment'}
               </h3>
               <button
                 onClick={() => setServiceModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900"
+                className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1671,26 +1671,26 @@ export default function AdminDashboardPage() {
                 }
                 setServiceModalOpen(false);
               }}
-              className="space-y-3 text-xs"
+              className="space-y-3.5 text-xs"
             >
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Treatment Name *</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Treatment Name *</label>
                 <input
                   type="text"
                   required
                   value={serviceForm.name}
                   onChange={e => setServiceForm({ ...serviceForm, name: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Category</label>
+                  <label className="block font-semibold text-neutral-700 mb-1">Category</label>
                   <select
                     value={serviceForm.category}
                     onChange={e => setServiceForm({ ...serviceForm, category: e.target.value as any })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 font-bold"
+                    className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs font-semibold text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                   >
                     <option value="Cosmetic">Cosmetic</option>
                     <option value="General">General</option>
@@ -1701,47 +1701,47 @@ export default function AdminDashboardPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Base Price (£ GBP) *</label>
+                  <label className="block font-semibold text-neutral-700 mb-1">Base Price (£ GBP) *</label>
                   <input
                     type="number"
                     required
                     min="1"
                     value={serviceForm.basePriceGbp}
                     onChange={e => setServiceForm({ ...serviceForm, basePriceGbp: Number(e.target.value) })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 font-bold"
+                    className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs font-semibold text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Duration / Visits</label>
+                  <label className="block font-semibold text-neutral-700 mb-1">Duration / Visits</label>
                   <input
                     type="text"
                     value={serviceForm.duration}
                     onChange={e => setServiceForm({ ...serviceForm, duration: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">0% Finance (£ / mo)</label>
+                  <label className="block font-semibold text-neutral-700 mb-1">0% Finance (£ / mo)</label>
                   <input
                     type="number"
                     min="0"
                     value={serviceForm.financeMonthlyFrom}
                     onChange={e => setServiceForm({ ...serviceForm, financeMonthlyFrom: Number(e.target.value) })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Summary Description</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Summary Description</label>
                 <textarea
                   rows={2}
                   value={serviceForm.description}
                   onChange={e => setServiceForm({ ...serviceForm, description: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                 />
               </div>
 
@@ -1749,13 +1749,13 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setServiceModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-full text-neutral-600 hover:bg-neutral-100 text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800"
+                  className="px-5 py-2 rounded-full bg-[#141519] text-white font-semibold hover:bg-neutral-800 text-xs transition-colors shadow-xs"
                 >
                   Save Treatment
                 </button>
@@ -1769,15 +1769,15 @@ export default function AdminDashboardPage() {
       {/* MODAL: ADD / EDIT CLINICIAN WITH MANDATORY GDC */}
       {/* ======================================================== */}
       {clinicianModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-950">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <h3 className="text-base font-semibold text-[#111827]">
                 {editingClinician ? 'Edit Clinician Credentials' : 'Add Clinical Team Member'}
               </h3>
               <button
                 onClick={() => setClinicianModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900"
+                className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1801,70 +1801,70 @@ export default function AdminDashboardPage() {
                 }
                 setClinicianModalOpen(false);
               }}
-              className="space-y-3 text-xs"
+              className="space-y-3.5 text-xs"
             >
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Full Name *</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Full Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Dr. Sarah Jenkins"
                   value={clinicianForm.name}
                   onChange={e => setClinicianForm({ ...clinicianForm, name: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 font-bold"
+                  className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs font-semibold text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Mandatory GDC Number *</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Mandatory GDC Number *</label>
                 <input
                   type="text"
                   required
                   placeholder="GDC No: 271890"
                   value={clinicianForm.gdcNumber}
                   onChange={e => setClinicianForm({ ...clinicianForm, gdcNumber: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-emerald-400 bg-emerald-50 text-emerald-950 font-bold"
+                  className="w-full p-2.5 rounded-xl border border-emerald-300 bg-emerald-50/80 text-emerald-950 font-semibold text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Title / Role</label>
+                  <label className="block font-semibold text-neutral-700 mb-1">Title / Role</label>
                   <input
                     type="text"
                     value={clinicianForm.title}
                     onChange={e => setClinicianForm({ ...clinicianForm, title: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Qualifications</label>
+                  <label className="block font-semibold text-neutral-700 mb-1">Qualifications</label>
                   <input
                     type="text"
                     value={clinicianForm.credentials}
                     onChange={e => setClinicianForm({ ...clinicianForm, credentials: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Specialties (comma separated)</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Specialties (comma separated)</label>
                 <input
                   type="text"
                   value={clinicianForm.specialties}
                   onChange={e => setClinicianForm({ ...clinicianForm, specialties: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Clinician Biography</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Clinician Biography</label>
                 <textarea
                   rows={2}
                   value={clinicianForm.bio}
                   onChange={e => setClinicianForm({ ...clinicianForm, bio: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                 />
               </div>
 
@@ -1872,13 +1872,13 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setClinicianModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-full text-neutral-600 hover:bg-neutral-100 text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800"
+                  className="px-5 py-2 rounded-full bg-[#141519] text-white font-semibold hover:bg-neutral-800 text-xs transition-colors shadow-xs"
                 >
                   Save Clinician
                 </button>
@@ -1892,15 +1892,15 @@ export default function AdminDashboardPage() {
       {/* MODAL: ADD / EDIT GALLERY CASE */}
       {/* ======================================================== */}
       {galleryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-950">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <h3 className="text-base font-semibold text-[#111827]">
                 {editingGalleryCase ? 'Edit Gallery Case' : 'Add Before & After Case Study'}
               </h3>
               <button
                 onClick={() => setGalleryModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900"
+                className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1921,27 +1921,27 @@ export default function AdminDashboardPage() {
                 }
                 setGalleryModalOpen(false);
               }}
-              className="space-y-3 text-xs"
+              className="space-y-3.5 text-xs"
             >
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Case Title *</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Case Title *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. 8-Unit Anterior E.max Porcelain Veneers"
                   value={galleryForm.title}
                   onChange={e => setGalleryForm({ ...galleryForm, title: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 font-bold"
+                  className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs font-semibold text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Category</label>
+                  <label className="block font-semibold text-neutral-700 mb-1">Category</label>
                   <select
                     value={galleryForm.category}
                     onChange={e => setGalleryForm({ ...galleryForm, category: e.target.value as any })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 font-bold"
+                    className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs font-semibold text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                   >
                     <option value="Cosmetic">Cosmetic</option>
                     <option value="Orthodontics">Orthodontics</option>
@@ -1950,43 +1950,43 @@ export default function AdminDashboardPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Treatment Duration</label>
+                  <label className="block font-semibold text-neutral-700 mb-1">Treatment Duration</label>
                   <input
                     type="text"
                     value={galleryForm.duration}
                     onChange={e => setGalleryForm({ ...galleryForm, duration: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Clinical Procedure Notes</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Clinical Procedure Notes</label>
                 <textarea
                   rows={2}
                   value={galleryForm.procedureNotes}
                   onChange={e => setGalleryForm({ ...galleryForm, procedureNotes: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Lead Clinician</label>
+                  <label className="block font-semibold text-neutral-700 mb-1">Lead Clinician</label>
                   <input
                     type="text"
                     value={galleryForm.clinicianName}
                     onChange={e => setGalleryForm({ ...galleryForm, clinicianName: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Clinician GDC No.</label>
+                  <label className="block font-semibold text-neutral-700 mb-1">Clinician GDC No.</label>
                   <input
                     type="text"
                     value={galleryForm.clinicianGdc}
                     onChange={e => setGalleryForm({ ...galleryForm, clinicianGdc: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-slate-200"
+                    className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                   />
                 </div>
               </div>
@@ -1995,13 +1995,13 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setGalleryModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-full text-neutral-600 hover:bg-neutral-100 text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800"
+                  className="px-5 py-2 rounded-full bg-[#141519] text-white font-semibold hover:bg-neutral-800 text-xs transition-colors shadow-xs"
                 >
                   Save Case
                 </button>
@@ -2015,13 +2015,13 @@ export default function AdminDashboardPage() {
       {/* MODAL: ADD FAQ */}
       {/* ======================================================== */}
       {faqModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-950">Add Knowledge FAQ</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+              <h3 className="text-base font-semibold text-[#111827]">Add Knowledge FAQ</h3>
               <button
                 onClick={() => setFaqModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900"
+                className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2033,38 +2033,38 @@ export default function AdminDashboardPage() {
                 addFAQ(faqForm);
                 setFaqModalOpen(false);
               }}
-              className="space-y-3 text-xs"
+              className="space-y-3.5 text-xs"
             >
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Category</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Category</label>
                 <input
                   type="text"
                   value={faqForm.category}
                   onChange={e => setFaqForm({ ...faqForm, category: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Patient Question *</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Patient Question *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. What 0% finance plans do you offer?"
                   value={faqForm.question}
                   onChange={e => setFaqForm({ ...faqForm, question: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 font-bold"
+                  className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs font-semibold text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Verified Clinical Answer *</label>
+                <label className="block font-semibold text-neutral-700 mb-1">Verified Clinical Answer *</label>
                 <textarea
                   rows={3}
                   required
                   value={faqForm.answer}
                   onChange={e => setFaqForm({ ...faqForm, answer: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200"
+                  className="w-full p-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/80 text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                 />
               </div>
 
@@ -2072,13 +2072,13 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setFaqModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-full text-neutral-600 hover:bg-neutral-100 text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800"
+                  className="px-5 py-2 rounded-full bg-[#141519] text-white font-semibold hover:bg-neutral-800 text-xs transition-colors shadow-xs"
                 >
                   Save FAQ
                 </button>
