@@ -663,33 +663,33 @@ export default function AdminDashboardPage() {
         {activeMainTab === 'cms' && (
           <div className="space-y-6 animate-fade-in">
             {/* Sub-tab Pills */}
-            <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+            <div className="inline-flex items-center p-1.5 bg-white border border-neutral-200/60 rounded-full shadow-[0_2px_10px_-2px_rgba(0,0,0,0.03)] space-x-1">
               <button
                 onClick={() => setActiveCMSTab('prices')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
                   activeCMSTab === 'prices'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-[#141519] text-white shadow-xs'
+                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
                 }`}
               >
                 1. Starting-From Prices ({services.length})
               </button>
               <button
                 onClick={() => setActiveCMSTab('team')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
                   activeCMSTab === 'team'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-[#141519] text-white shadow-xs'
+                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
                 }`}
               >
                 2. Clinical Team & GDC Numbers ({clinicians.length})
               </button>
               <button
                 onClick={() => setActiveCMSTab('gallery')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
                   activeCMSTab === 'gallery'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-[#141519] text-white shadow-xs'
+                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
                 }`}
               >
                 3. Smile Gallery Cases ({galleryCases.length})
@@ -701,8 +701,8 @@ export default function AdminDashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-black text-slate-900">Starting-From Prices & Treatment Durations</h3>
-                    <p className="text-xs text-slate-500">Live prices published across website and synced with AI Chatbot.</p>
+                    <h3 className="text-lg font-semibold tracking-tight text-[#111827]">Starting-From Prices & Treatment Durations</h3>
+                    <p className="text-xs text-neutral-500">Live prices published across website and synced with AI Chatbot.</p>
                   </div>
                   <button
                     onClick={() => {
@@ -719,40 +719,40 @@ export default function AdminDashboardPage() {
                       });
                       setServiceModalOpen(true);
                     }}
-                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center space-x-1.5"
+                    className="px-4 py-2 rounded-full bg-[#141519] hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>+ Add New Treatment</span>
                   </button>
                 </div>
 
-                <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xs">
+                <div className="bg-white rounded-2xl border border-neutral-200/60 overflow-hidden shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)]">
                   <table className="w-full text-xs text-left">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold">
-                        <th className="py-3 px-4">Treatment Name</th>
-                        <th className="py-3 px-4">Category</th>
-                        <th className="py-3 px-4">Starting Fee (£)</th>
-                        <th className="py-3 px-4">0% Finance / Mo</th>
-                        <th className="py-3 px-4">Typical Duration</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
+                      <tr className="bg-[#F8F9FA] border-b border-neutral-100 text-neutral-400 text-xs font-medium">
+                        <th className="py-3.5 px-4">Treatment Name</th>
+                        <th className="py-3.5 px-4">Category</th>
+                        <th className="py-3.5 px-4">Starting Fee (£)</th>
+                        <th className="py-3.5 px-4">0% Finance / Mo</th>
+                        <th className="py-3.5 px-4">Typical Duration</th>
+                        <th className="py-3.5 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-medium">
+                    <tbody className="divide-y divide-neutral-100 font-medium">
                       {services.map(srv => (
-                        <tr key={srv.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-3 px-4 font-bold text-slate-900">{srv.name}</td>
-                          <td className="py-3 px-4">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800">
+                        <tr key={srv.id} className="hover:bg-[#F8F9FA]/70 transition-colors">
+                          <td className="py-4 px-4 font-semibold text-neutral-900">{srv.name}</td>
+                          <td className="py-4 px-4">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F2F4F7] text-[#344054]">
                               {srv.category}
                             </span>
                           </td>
-                          <td className="py-3 px-4 font-black text-slate-950">£{srv.basePriceGbp}</td>
-                          <td className="py-3 px-4 text-emerald-700 font-bold">
+                          <td className="py-4 px-4 font-bold text-[#111827]">£{srv.basePriceGbp}</td>
+                          <td className="py-4 px-4 text-emerald-700 font-semibold">
                             {srv.financeMonthlyFrom ? `£${srv.financeMonthlyFrom}/mo` : 'N/A'}
                           </td>
-                          <td className="py-3 px-4 text-slate-600">{srv.duration}</td>
-                          <td className="py-3 px-4 text-right space-x-1">
+                          <td className="py-4 px-4 text-neutral-600">{srv.duration}</td>
+                          <td className="py-4 px-4 text-right space-x-1.5">
                             <button
                               onClick={() => {
                                 setEditingService(srv);
@@ -768,14 +768,14 @@ export default function AdminDashboardPage() {
                                 });
                                 setServiceModalOpen(true);
                               }}
-                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700"
+                              className="p-2 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 transition-colors"
                               title="Edit"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => deleteService(srv.id)}
-                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600"
+                              className="p-2 rounded-full bg-neutral-100 hover:bg-rose-50 text-neutral-400 hover:text-rose-600 transition-colors"
                               title="Delete"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -794,8 +794,8 @@ export default function AdminDashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-black text-slate-900">Clinical Team & Mandatory GDC Credentials</h3>
-                    <p className="text-xs text-slate-500">Every clinician profile requires a valid General Dental Council registration number.</p>
+                    <h3 className="text-lg font-semibold tracking-tight text-[#111827]">Clinical Team & Mandatory GDC Credentials</h3>
+                    <p className="text-xs text-neutral-500">Every clinician profile requires a valid General Dental Council registration number.</p>
                   </div>
                   <button
                     onClick={() => {
@@ -815,7 +815,7 @@ export default function AdminDashboardPage() {
                       });
                       setClinicianModalOpen(true);
                     }}
-                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center space-x-1.5"
+                    className="px-4 py-2 rounded-full bg-[#141519] hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>+ Add Clinician</span>
@@ -824,15 +824,15 @@ export default function AdminDashboardPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {clinicians.map(c => (
-                    <div key={c.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs flex space-x-4">
-                      <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 shrink-0 relative">
+                    <div key={c.id} className="p-5 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] flex space-x-4">
+                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-neutral-100 shrink-0 relative">
                         <img src={c.photo} alt={c.name} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-start justify-between">
                           <div>
-                            <h4 className="font-bold text-sm text-slate-900">{c.name}</h4>
-                            <p className="text-xs text-emerald-700 font-semibold">{c.title}</p>
+                            <h4 className="font-semibold text-sm text-[#111827]">{c.name}</h4>
+                            <p className="text-xs text-emerald-700 font-medium">{c.title}</p>
                           </div>
                           <div className="space-x-1">
                             <button
@@ -853,24 +853,24 @@ export default function AdminDashboardPage() {
                                 });
                                 setClinicianModalOpen(true);
                               }}
-                              className="p-1 rounded bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              className="p-1.5 rounded-full bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition-colors"
                             >
                               <Edit3 className="w-3 h-3" />
                             </button>
                             <button
                               onClick={() => deleteClinician(c.id)}
-                              className="p-1 rounded bg-slate-100 text-slate-400 hover:text-rose-600"
+                              className="p-1.5 rounded-full bg-neutral-100 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
 
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-[#0F172A] text-emerald-400">
+                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#141519] text-emerald-400 tracking-wide font-mono">
                           {c.gdcNumber}
                         </span>
-                        <p className="text-[11px] text-slate-600 leading-snug">{c.credentials}</p>
-                        <p className="text-[10px] text-slate-400 line-clamp-2">{c.bio}</p>
+                        <p className="text-[11px] text-neutral-600 leading-snug">{c.credentials}</p>
+                        <p className="text-[10px] text-neutral-400 line-clamp-2">{c.bio}</p>
                       </div>
                     </div>
                   ))}
@@ -883,8 +883,8 @@ export default function AdminDashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-black text-slate-900">Before & After Smile Gallery Cases</h3>
-                    <p className="text-xs text-slate-500">Manage real clinical cases displayed in the interactive slider.</p>
+                    <h3 className="text-lg font-semibold tracking-tight text-[#111827]">Before & After Smile Gallery Cases</h3>
+                    <p className="text-xs text-neutral-500">Manage real clinical cases displayed in the interactive slider.</p>
                   </div>
                   <button
                     onClick={() => {
@@ -901,7 +901,7 @@ export default function AdminDashboardPage() {
                       });
                       setGalleryModalOpen(true);
                     }}
-                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center space-x-1.5"
+                    className="px-4 py-2 rounded-full bg-[#141519] hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>+ Add Gallery Case</span>
@@ -910,26 +910,26 @@ export default function AdminDashboardPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {galleryCases.map(gc => (
-                    <div key={gc.id} className="rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-2xs flex flex-col justify-between">
+                    <div key={gc.id} className="rounded-2xl bg-white border border-neutral-200/60 overflow-hidden shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] flex flex-col justify-between">
                       <div>
-                        <div className="grid grid-cols-2 aspect-[16/9] bg-slate-900">
+                        <div className="grid grid-cols-2 aspect-[16/9] bg-neutral-900">
                           <img src={gc.beforeImage} alt="Before" className="w-full h-full object-cover" />
                           <img src={gc.afterImage} alt="After" className="w-full h-full object-cover" />
                         </div>
                         <div className="p-4 space-y-2">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F2F4F7] text-[#344054]">
                             {gc.category}
                           </span>
-                          <h4 className="font-bold text-xs text-slate-900">{gc.title}</h4>
-                          <p className="text-[11px] text-slate-600 line-clamp-2">{gc.procedureNotes}</p>
-                          <div className="text-[10px] text-slate-500 pt-1 border-t border-slate-100">
+                          <h4 className="font-semibold text-xs text-[#111827]">{gc.title}</h4>
+                          <p className="text-[11px] text-neutral-600 line-clamp-2 leading-relaxed">{gc.procedureNotes}</p>
+                          <div className="text-[10px] text-neutral-500 pt-2 border-t border-neutral-100">
                             <p><strong>Clinician:</strong> {gc.clinicianName} ({gc.clinicianGdc})</p>
                             <p><strong>Duration:</strong> {gc.duration}</p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="p-3 border-t border-slate-100 flex justify-end space-x-2">
+                      <div className="p-3 border-t border-neutral-100 flex justify-end space-x-2">
                         <button
                           onClick={() => {
                             setEditingGalleryCase(gc);
@@ -945,13 +945,13 @@ export default function AdminDashboardPage() {
                             });
                             setGalleryModalOpen(true);
                           }}
-                          className="px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700"
+                          className="px-3.5 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-xs font-semibold text-neutral-700 transition-colors"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => deleteGalleryCase(gc.id)}
-                          className="px-3 py-1 rounded bg-slate-100 hover:bg-rose-100 text-xs font-bold text-rose-600"
+                          className="px-3.5 py-1.5 rounded-full bg-neutral-100 hover:bg-rose-50 text-xs font-semibold text-rose-600 transition-colors"
                         >
                           Delete
                         </button>
