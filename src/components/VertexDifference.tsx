@@ -10,6 +10,50 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
+interface AuroraGlowConfig {
+  hoverBorderShadow: string;
+  primaryBloom: string;
+  bottomLeft: string;
+  bottomRight: string;
+  numHoverText: string;
+  iconHoverBorder: string;
+}
+
+const AURORA_CONFIGS: Record<string, AuroraGlowConfig> = {
+  '01': {
+    hoverBorderShadow: 'hover:border-[#FF1E8A]/40 hover:shadow-[0_20px_50px_-12px_rgba(255,30,138,0.28)]',
+    primaryBloom: 'bg-gradient-to-t from-[#FF1E8A]/45 via-[#A855F7]/25 to-transparent',
+    bottomLeft: 'bg-[#3B82F6]/35',
+    bottomRight: 'bg-[#FF0055]/40',
+    numHoverText: 'group-hover:text-[#FF1E8A]',
+    iconHoverBorder: 'group-hover:border-[#FF1E8A]/40',
+  },
+  '02': {
+    hoverBorderShadow: 'hover:border-[#10B981]/40 hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.28)]',
+    primaryBloom: 'bg-gradient-to-t from-[#10B981]/45 via-[#84CC16]/25 to-transparent',
+    bottomLeft: 'bg-[#FACC15]/35',
+    bottomRight: 'bg-[#06B6D4]/40',
+    numHoverText: 'group-hover:text-[#10B981]',
+    iconHoverBorder: 'group-hover:border-[#10B981]/40',
+  },
+  '03': {
+    hoverBorderShadow: 'hover:border-[#2563EB]/40 hover:shadow-[0_20px_50px_-12px_rgba(37,99,235,0.28)]',
+    primaryBloom: 'bg-gradient-to-t from-[#2563EB]/45 via-[#06B6D4]/25 to-transparent',
+    bottomLeft: 'bg-[#14B8A6]/35',
+    bottomRight: 'bg-[#4F46E5]/45',
+    numHoverText: 'group-hover:text-[#2563EB]',
+    iconHoverBorder: 'group-hover:border-[#2563EB]/40',
+  },
+  '04': {
+    hoverBorderShadow: 'hover:border-[#F97316]/40 hover:shadow-[0_20px_50px_-12px_rgba(249,115,22,0.28)]',
+    primaryBloom: 'bg-gradient-to-t from-[#F97316]/45 via-[#FACC15]/30 to-transparent',
+    bottomLeft: 'bg-[#EF4444]/40',
+    bottomRight: 'bg-[#EAB308]/45',
+    numHoverText: 'group-hover:text-[#F97316]',
+    iconHoverBorder: 'group-hover:border-[#F97316]/40',
+  },
+};
+
 export const VertexDifference: React.FC = () => {
   const pillars = [
     {
@@ -91,25 +135,46 @@ export const VertexDifference: React.FC = () => {
           </p>
         </div>
 
-        {/* 4-Pillar Grid with Frosted Glassmorphism & High-Contrast Visible Text */}
+        {/* 4-Pillar Grid with Interactive Bottom-Up Aurora Mesh Glow on Hover */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {pillars.map((pillar, idx) => {
             const Icon = pillar.icon;
+            const aurora = AURORA_CONFIGS[pillar.num] || AURORA_CONFIGS['01'];
+
             return (
               <div
                 key={idx}
-                className="relative rounded-[28px] bg-white/80 backdrop-blur-xl border border-white/95 p-8 transition-all duration-300 hover:shadow-[0_20px_45px_rgba(0,0,0,0.07)] hover:border-slate-300 hover:bg-white/95 group"
+                className={`group relative overflow-hidden rounded-[28px] bg-white border border-slate-200/90 p-8 transition-all duration-500 ease-out hover:-translate-y-1.5 ${aurora.hoverBorderShadow}`}
               >
-                {/* Specular Glare */}
-                <div className="absolute inset-0 rounded-[28px] bg-gradient-to-b from-white/40 via-transparent to-transparent pointer-events-none" />
+                {/* Multi-Layered Bottom-Up Aurora Mesh Glow Layer (Hover Active) */}
+                <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit] opacity-0 translate-y-8 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
+                  {/* Primary Bottom Bloom */}
+                  <div className={`absolute -bottom-12 left-0 right-0 h-64 blur-2xl ${aurora.primaryBloom}`} />
+                  
+                  {/* Secondary Accent Core: Bottom-Left Radial */}
+                  <div className={`absolute -bottom-10 -left-10 w-48 h-48 rounded-full blur-3xl ${aurora.bottomLeft}`} />
+                  
+                  {/* Secondary Accent Core: Bottom-Right Radial */}
+                  <div className={`absolute -bottom-10 -right-10 w-48 h-48 rounded-full blur-3xl ${aurora.bottomRight}`} />
+                  
+                  {/* Subtle Center Light Core for mesh luminance */}
+                  <div className="absolute -bottom-8 left-1/4 right-1/4 h-24 bg-white/40 blur-xl rounded-full" />
+                </div>
+
+                {/* Specular subtle top glare */}
+                <div className="absolute inset-0 rounded-[28px] bg-gradient-to-b from-white/60 via-transparent to-transparent pointer-events-none z-1" />
 
                 {/* Header with Number and Icon */}
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-6 relative z-10">
                   <div className="flex items-center space-x-4">
-                    <span className="text-4xl sm:text-5xl font-black tracking-tighter text-slate-300 group-hover:text-slate-900 transition-colors">
+                    <span
+                      className={`text-4xl sm:text-5xl font-black tracking-tighter text-slate-300 ${aurora.numHoverText} transition-colors duration-500`}
+                    >
                       {pillar.num}
                     </span>
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-900 group-hover:bg-slate-950 group-hover:text-white transition-all shrink-0">
+                    <div
+                      className={`w-12 h-12 rounded-2xl bg-slate-100/90 border border-slate-200/80 shadow-2xs flex items-center justify-center text-slate-900 group-hover:bg-slate-950 group-hover:text-white ${aurora.iconHoverBorder} transition-all duration-500 shrink-0`}
+                    >
                       <Icon className="w-6 h-6" />
                     </div>
                   </div>
@@ -118,7 +183,7 @@ export const VertexDifference: React.FC = () => {
                   </span>
                 </div>
 
-                <h3 className="text-xl sm:text-2xl font-black text-slate-950 group-hover:text-sky-700 transition-colors relative z-10 font-sans">
+                <h3 className="text-xl sm:text-2xl font-black text-slate-950 group-hover:text-slate-900 transition-colors relative z-10 font-sans">
                   {pillar.title}
                 </h3>
                 <p className="text-xs font-bold text-sky-700 mt-1 uppercase tracking-wider relative z-10">
