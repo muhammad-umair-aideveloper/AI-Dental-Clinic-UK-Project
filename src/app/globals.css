@@ -14,6 +14,21 @@
   --accent-sage: #10B981;
   --accent-bronze: #B45309;
   --border-subtle: #E2E8F0;
+
+  /* Finexy SaaS Dashboard Design Tokens */
+  --finexy-canvas: #F6F6F8;
+  --finexy-card: #FFFFFF;
+  --finexy-surface-nested: #F8F9FA;
+  --finexy-coral: #FF5722;
+  --finexy-coral-start: #FF6E40;
+  --finexy-coral-end: #F4511E;
+  --finexy-charcoal: #141519;
+  --finexy-status-positive-bg: #ECFDF3;
+  --finexy-status-positive-text: #027A48;
+  --finexy-status-pending-bg: #FFF4ED;
+  --finexy-status-pending-text: #C4320A;
+  --finexy-pill-neutral-bg: #F2F4F7;
+  --finexy-pill-neutral-text: #344054;
 }
 
 html {
