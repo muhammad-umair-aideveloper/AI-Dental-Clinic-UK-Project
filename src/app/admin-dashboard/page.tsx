@@ -282,13 +282,13 @@ export default function AdminDashboardPage() {
   // Auth Guard Fallback
   if (isCheckingAuth || !currentUser.isLoggedIn || currentUser.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-[#0F172A] text-white flex items-center justify-center p-4 font-sans">
-        <div className="flex flex-col items-center space-y-3 text-center max-w-sm">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+      <div className="min-h-screen bg-[#F6F6F8] text-[#111827] flex items-center justify-center p-4 font-sans">
+        <div className="flex flex-col items-center space-y-3.5 text-center max-w-sm p-8 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)]">
+          <div className="w-12 h-12 rounded-2xl bg-orange-50 text-[#FF5722] flex items-center justify-center border border-orange-200/60">
             <Lock className="w-5 h-5 animate-pulse" />
           </div>
-          <p className="text-sm font-bold text-slate-100">Verifying Staff Authorization...</p>
-          <p className="text-xs text-slate-400">
+          <p className="text-sm font-semibold text-[#111827]">Verifying Staff Authorization...</p>
+          <p className="text-xs text-neutral-500">
             Redirecting to staff authentication portal...
           </p>
         </div>
@@ -297,23 +297,23 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F6F6F8] text-[#111827] flex flex-col font-sans antialiased">
       
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-40 bg-[#0F172A] text-white border-b border-slate-800 shadow-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-white text-neutral-900 border-b border-neutral-200/60 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.03)] px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center space-x-3.5">
           <Link
             href="/"
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex items-center space-x-1 text-xs"
+            className="p-2 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 transition-colors flex items-center space-x-1.5 text-xs font-semibold"
             title="Return to Public Site"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Public Site</span>
           </Link>
 
-          <div className="flex items-center space-x-2">
-            <span className="font-black text-base tracking-[0.2em] uppercase">VERTEX</span>
-            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">
+          <div className="flex items-center space-x-2.5">
+            <span className="font-extrabold text-base tracking-tight text-neutral-950 uppercase">VERTEX</span>
+            <span className="text-[10px] font-semibold text-[#FF5722] bg-[#FFF4ED] border border-orange-200/60 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               Marketing Lead Hub & CMS
             </span>
           </div>
@@ -321,22 +321,22 @@ export default function AdminDashboardPage() {
 
         {/* Action Controls */}
         <div className="flex items-center space-x-2 sm:space-x-3">
-          <div className="hidden lg:flex items-center space-x-2 text-xs text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div className="hidden lg:flex items-center space-x-2 text-xs text-neutral-500 font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>GDC Reg: 248912 • Marylebone</span>
           </div>
 
           <button
             onClick={() => setShowWebhookModal(true)}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-colors"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold border border-neutral-200/60 transition-colors"
           >
-            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <Zap className="w-3.5 h-3.5 text-amber-500" />
             <span className="hidden sm:inline">Push to CRM</span>
           </button>
 
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-[#ECFDF3] hover:bg-emerald-100 text-[#027A48] border border-emerald-200/60 text-xs font-semibold transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -348,7 +348,7 @@ export default function AdminDashboardPage() {
               triggerToast('Staff session ended. Signed out.');
               router.push('/admin-login');
             }}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-300 text-xs font-bold border border-slate-700 hover:border-rose-700/60 transition-colors"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-neutral-100 hover:bg-rose-50 text-neutral-600 hover:text-rose-600 border border-neutral-200/60 hover:border-rose-200 text-xs font-semibold transition-colors"
             title="Sign out of staff session"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -358,21 +358,25 @@ export default function AdminDashboardPage() {
       </header>
 
       {/* Main 3-Tab Navigator */}
-      <div className="bg-white border-b border-slate-200 px-4 sm:px-8 py-3 shadow-2xs">
+      <div className="bg-transparent px-4 sm:px-8 pt-5 pb-1">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2 sm:space-x-3 overflow-x-auto no-scrollbar">
+          <div className="inline-flex items-center p-1.5 bg-white border border-neutral-200/60 rounded-full shadow-[0_2px_10px_-2px_rgba(0,0,0,0.03)] space-x-1 overflow-x-auto no-scrollbar">
             {/* TAB 1 */}
             <button
               onClick={() => setActiveMainTab('leads')}
-              className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+              className={`px-4 sm:px-5 py-2 rounded-full text-xs font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 activeMainTab === 'leads'
-                  ? 'bg-[#0F172A] text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-[#141519] text-white shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
               }`}
             >
-              <Users className="w-4 h-4 text-emerald-400" />
+              <Users className={`w-3.5 h-3.5 ${activeMainTab === 'leads' ? 'text-white' : 'text-neutral-400'}`} />
               <span>1. Lead & Triage Dashboard</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-emerald-300">
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                activeMainTab === 'leads'
+                  ? 'bg-[#FF5722] text-white'
+                  : 'bg-neutral-100 text-neutral-600'
+              }`}>
                 {inquiries.length}
               </span>
             </button>
@@ -380,26 +384,26 @@ export default function AdminDashboardPage() {
             {/* TAB 2 */}
             <button
               onClick={() => setActiveMainTab('cms')}
-              className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+              className={`px-4 sm:px-5 py-2 rounded-full text-xs font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 activeMainTab === 'cms'
-                  ? 'bg-[#0F172A] text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-[#141519] text-white shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
               }`}
             >
-              <Database className="w-4 h-4 text-sky-400" />
+              <Database className={`w-3.5 h-3.5 ${activeMainTab === 'cms' ? 'text-white' : 'text-neutral-400'}`} />
               <span>2. Clinic Content CMS</span>
             </button>
 
             {/* TAB 3 */}
             <button
               onClick={() => setActiveMainTab('ai')}
-              className={`px-4 sm:px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 whitespace-nowrap ${
+              className={`px-4 sm:px-5 py-2 rounded-full text-xs font-semibold transition-all flex items-center space-x-2 whitespace-nowrap ${
                 activeMainTab === 'ai'
-                  ? 'bg-[#0F172A] text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-[#141519] text-white shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
               }`}
             >
-              <Bot className="w-4 h-4 text-amber-400" />
+              <Bot className={`w-3.5 h-3.5 ${activeMainTab === 'ai' ? 'text-white' : 'text-neutral-400'}`} />
               <span>3. AI Assistant & Knowledge Base</span>
             </button>
           </div>
@@ -407,7 +411,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-6 flex-1 w-full">
         
         {/* ======================================================== */}
         {/* TAB 1: LEAD & TRIAGE DASHBOARD */}
@@ -416,59 +420,73 @@ export default function AdminDashboardPage() {
           <div className="space-y-6 animate-fade-in">
             {/* Top Metric Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Patient Leads</p>
-                <p className="text-2xl sm:text-3xl font-black text-[#0F172A] mt-1">{inquiries.length}</p>
-                <p className="text-[11px] text-emerald-700 font-semibold mt-1">Web checkout & AI bot flow</p>
+              <div className="p-5 sm:p-6 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                <div>
+                  <p className="text-xs font-medium text-neutral-500">Total Patient Leads</p>
+                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111827] mt-1.5">{inquiries.length}</p>
+                </div>
+                <p className="text-xs text-emerald-700 font-medium mt-3">Web checkout & AI bot flow</p>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">New Leads Pending</p>
-                <p className="text-2xl sm:text-3xl font-black text-amber-600 mt-1">
-                  {inquiries.filter(i => i.status === 'New Lead' || i.status === 'New').length}
-                </p>
-                <p className="text-[11px] text-slate-500 mt-1">Awaiting coordinator call</p>
+              {/* Outstanding Coral/Orange gradient card for high-priority New Leads Pending */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#FF6E40] to-[#F4511E] text-white shadow-[0_8px_25px_-4px_rgba(255,110,64,0.35)] relative overflow-hidden flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-white/90">New Leads Pending</p>
+                    <span className="p-1.5 rounded-full bg-white/20 text-white">
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
+                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-white mt-1.5">
+                    {inquiries.filter(i => i.status === 'New Lead' || i.status === 'New').length}
+                  </p>
+                </div>
+                <p className="text-xs text-white/90 font-medium mt-3">Awaiting coordinator call</p>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Consultations Booked</p>
-                <p className="text-2xl sm:text-3xl font-black text-emerald-600 mt-1">
-                  {inquiries.filter(i => i.status === 'Consultation Booked').length}
-                </p>
-                <p className="text-[11px] text-slate-500 mt-1">Confirmed clinical diary slots</p>
+              <div className="p-5 sm:p-6 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                <div>
+                  <p className="text-xs font-medium text-neutral-500">Consultations Booked</p>
+                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-emerald-600 mt-1.5">
+                    {inquiries.filter(i => i.status === 'Consultation Booked').length}
+                  </p>
+                </div>
+                <p className="text-xs text-neutral-500 font-medium mt-3">Confirmed clinical diary slots</p>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Contacted / In Triage</p>
-                <p className="text-2xl sm:text-3xl font-black text-sky-600 mt-1">
-                  {inquiries.filter(i => i.status === 'Contacted').length}
-                </p>
-                <p className="text-[11px] text-slate-500 mt-1">WhatsApp & phone follow-up</p>
+              <div className="p-5 sm:p-6 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                <div>
+                  <p className="text-xs font-medium text-neutral-500">Contacted / In Triage</p>
+                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-sky-600 mt-1.5">
+                    {inquiries.filter(i => i.status === 'Contacted').length}
+                  </p>
+                </div>
+                <p className="text-xs text-neutral-500 font-medium mt-3">WhatsApp & phone follow-up</p>
               </div>
             </div>
 
             {/* Filter & Search Bar */}
-            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3">
+            <div className="p-4 rounded-2xl bg-white border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-center justify-between gap-3">
               <div className="relative w-full md:w-80">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"
                   placeholder="Search patient, phone, treatment..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/70 text-xs text-neutral-900 placeholder-neutral-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722] transition-all"
                 />
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
                 {/* Status Filter */}
-                <div className="flex items-center space-x-1.5 text-xs text-slate-600 font-semibold">
-                  <Filter className="w-3.5 h-3.5 text-slate-400" />
+                <div className="flex items-center space-x-1.5 text-xs text-neutral-600 font-medium">
+                  <Filter className="w-3.5 h-3.5 text-neutral-400" />
                   <span>Status:</span>
                   <select
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
-                    className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800"
+                    className="px-3 py-2 rounded-xl bg-[#F8F9FA] border border-neutral-200/70 text-xs font-semibold text-neutral-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                   >
                     <option value="All">All Statuses</option>
                     <option value="New Lead">New Lead</option>
@@ -479,12 +497,12 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* Source Filter */}
-                <div className="flex items-center space-x-1.5 text-xs text-slate-600 font-semibold">
+                <div className="flex items-center space-x-1.5 text-xs text-neutral-600 font-medium">
                   <span>Source:</span>
                   <select
                     value={sourceFilter}
                     onChange={e => setSourceFilter(e.target.value)}
-                    className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800"
+                    className="px-3 py-2 rounded-xl bg-[#F8F9FA] border border-neutral-200/70 text-xs font-semibold text-neutral-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 focus:border-[#FF5722]"
                   >
                     <option value="All">All Sources</option>
                     <option value="Guest Triage Modal">Guest Triage Modal</option>
@@ -497,11 +515,11 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Leads Table */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-neutral-200/60 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
                   <thead>
-                    <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
+                    <tr className="bg-[#F8F9FA] border-b border-neutral-100 text-neutral-400 text-xs font-medium">
                       <th className="py-3.5 px-4">Patient Name & Contact</th>
                       <th className="py-3.5 px-4">Direct Contact Triggers</th>
                       <th className="py-3.5 px-4">Treatment Interest & Symptoms</th>
@@ -511,29 +529,29 @@ export default function AdminDashboardPage() {
                       <th className="py-3.5 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-neutral-100">
                     {filteredLeads.map(lead => {
                       const cleanPhone = lead.phone.replace(/[^0-9]/g, '');
 
                       return (
-                        <tr key={lead.id} className="hover:bg-slate-50/80 transition-colors">
+                        <tr key={lead.id} className="hover:bg-[#F8F9FA]/70 transition-colors">
                           {/* Col 1: Patient Name & Email */}
-                          <td className="py-3 px-4">
-                            <p className="font-bold text-slate-900 text-sm">{lead.patientName}</p>
-                            <p className="text-[11px] text-slate-500">{lead.email}</p>
-                            <span className="text-[10px] text-slate-400">ID: #{lead.id}</span>
+                          <td className="py-4 px-4">
+                            <p className="font-semibold text-neutral-900 text-sm">{lead.patientName}</p>
+                            <p className="text-[11px] text-neutral-500 mt-0.5">{lead.email}</p>
+                            <span className="text-[10px] text-neutral-400">ID: #{lead.id}</span>
                           </td>
 
                           {/* Col 2: Direct Contact Triggers */}
-                          <td className="py-3 px-4">
+                          <td className="py-4 px-4">
                             <div className="flex items-center space-x-2">
                               {/* Click-to-Call */}
                               <a
                                 href={`tel:${lead.phone.replace(/\s+/g, '')}`}
-                                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors flex items-center space-x-1"
+                                className="px-3 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-medium transition-colors flex items-center space-x-1.5"
                                 title="Click to Call"
                               >
-                                <Phone className="w-3 h-3 text-slate-700" />
+                                <Phone className="w-3 h-3 text-neutral-700" />
                                 <span>Call</span>
                               </a>
 
@@ -542,36 +560,36 @@ export default function AdminDashboardPage() {
                                 href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(lead.patientName)},%20this%20is%20Vertex%20Dental%20Lab%20in%20Marylebone%20following%20up%20on%20your%20inquiry.`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 transition-colors flex items-center space-x-1"
+                                className="px-3 py-1.5 rounded-full bg-[#ECFDF3] hover:bg-emerald-100 text-[#027A48] text-xs font-medium border border-emerald-200/60 transition-colors flex items-center space-x-1.5"
                                 title="Open WhatsApp Chat"
                               >
-                                <MessageSquare className="w-3 h-3 text-emerald-600" />
+                                <MessageSquare className="w-3 h-3 text-[#027A48]" />
                                 <span>WhatsApp</span>
                               </a>
                             </div>
-                            <p className="text-[11px] text-slate-600 font-mono mt-1">{lead.phone}</p>
+                            <p className="text-[11px] text-neutral-500 font-mono mt-1.5">{lead.phone}</p>
                           </td>
 
                           {/* Col 3: Treatment & Chief Concern */}
-                          <td className="py-3 px-4 max-w-xs">
-                            <span className="font-bold text-slate-900 block">{lead.serviceInterest}</span>
-                            <p className="text-[11px] text-slate-600 line-clamp-2 mt-0.5">{lead.message}</p>
+                          <td className="py-4 px-4 max-w-xs">
+                            <span className="font-semibold text-neutral-900 block">{lead.serviceInterest}</span>
+                            <p className="text-[11px] text-neutral-500 line-clamp-2 mt-0.5 leading-relaxed">{lead.message}</p>
                             {lead.preferredDate && (
-                              <span className="text-[10px] text-emerald-700 font-semibold block mt-0.5">
+                              <span className="text-[10px] text-emerald-700 font-medium block mt-1">
                                 Preferred: {lead.preferredDate} ({lead.preferredTime || 'Anytime'})
                               </span>
                             )}
                           </td>
 
                           {/* Col 4: Source */}
-                          <td className="py-3 px-4">
+                          <td className="py-4 px-4">
                             <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-medium ${
                                 lead.source === 'Guest Triage Modal'
-                                  ? 'bg-purple-100 text-purple-900 border border-purple-200'
+                                  ? 'bg-purple-50 text-purple-800 border border-purple-200/60'
                                   : lead.source === 'AI Bot'
-                                  ? 'bg-amber-100 text-amber-900 border border-amber-200'
-                                  : 'bg-slate-100 text-slate-800 border border-slate-200'
+                                  ? 'bg-amber-50 text-amber-800 border border-amber-200/60'
+                                  : 'bg-[#F2F4F7] text-[#344054]'
                               }`}
                             >
                               {lead.source || 'Web Form'}
@@ -579,28 +597,28 @@ export default function AdminDashboardPage() {
                           </td>
 
                           {/* Col 5: Date / Time */}
-                          <td className="py-3 px-4 text-slate-600 text-[11px]">
-                            <p className="font-semibold text-slate-800">
+                          <td className="py-4 px-4 text-neutral-600 text-[11px]">
+                            <p className="font-medium text-neutral-800">
                               {new Date(lead.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                             </p>
-                            <p className="text-slate-400">
+                            <p className="text-neutral-400">
                               {new Date(lead.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </td>
 
                           {/* Col 6: Status Dropdown */}
-                          <td className="py-3 px-4">
+                          <td className="py-4 px-4">
                             <select
                               value={lead.status}
                               onChange={e => updateInquiryStatus(lead.id, e.target.value as LeadStatus)}
-                              className={`text-xs font-bold p-1.5 rounded-xl border transition-colors ${
+                              className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF5722]/20 ${
                                 lead.status === 'New Lead' || lead.status === 'New'
-                                  ? 'bg-amber-50 text-amber-900 border-amber-300'
+                                  ? 'bg-[#FFF4ED] text-[#C4320A] border-orange-200/80'
                                   : lead.status === 'Contacted'
-                                  ? 'bg-sky-50 text-sky-900 border-sky-300'
+                                  ? 'bg-sky-50 text-sky-800 border-sky-200/80'
                                   : lead.status === 'Consultation Booked'
-                                  ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
-                                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                                  ? 'bg-[#ECFDF3] text-[#027A48] border-emerald-200/80'
+                                  : 'bg-neutral-100 text-neutral-600 border-neutral-200/80'
                               }`}
                             >
                               <option value="New Lead">New Lead</option>
@@ -611,18 +629,18 @@ export default function AdminDashboardPage() {
                           </td>
 
                           {/* Col 7: Actions */}
-                          <td className="py-3 px-4 text-right">
+                          <td className="py-4 px-4 text-right">
                             <div className="flex items-center justify-end space-x-1.5">
                               <button
                                 onClick={() => setSelectedLeadForView(lead)}
-                                className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                                className="p-2 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 transition-colors"
                                 title="View Full Lead Details"
                               >
                                 <Eye className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => deleteInquiry(lead.id)}
-                                className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors"
+                                className="p-2 rounded-full bg-neutral-100 hover:bg-rose-50 text-neutral-400 hover:text-rose-600 transition-colors"
                                 title="Delete Lead"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
