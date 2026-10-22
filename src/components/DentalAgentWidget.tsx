@@ -63,7 +63,7 @@ interface ChatMessage {
 }
 
 export const DentalAgentWidget: React.FC = () => {
-  const { isChatDrawerOpen, closeChatDrawer, chatInitialMessage } = useClinic();
+  const { isChatDrawerOpen, closeChatDrawer, chatInitialMessage, aiProviderSettings } = useClinic();
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [language, setLanguage] = useState<SupportedLanguage>('en');
@@ -196,12 +196,18 @@ export const DentalAgentWidget: React.FC = () => {
       setShowSlotPicker(false);
     }
 
+    const apiKeyOverride =
+      aiProviderSettings?.activeProvider === 'Gemini' && aiProviderSettings.geminiApiKey
+        ? aiProviderSettings.geminiApiKey
+        : undefined;
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: query,
+          apiKeyOverride,
           messages: [...messages, userMessage].map(m => ({
             role: m.sender === 'user' ? 'user' : 'assistant',
             content: m.text,
@@ -220,6 +226,23 @@ export const DentalAgentWidget: React.FC = () => {
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           };
           setMessages(prev => [...prev, aiMessage]);
+
+          // Sync tool calling availability with interactive widget calendar
+          if (Array.isArray(data.tools)) {
+            const slotTool = data.tools.find((t: any) => t.name === 'check_slot_availability');
+            if (slotTool?.result?.appt_date) {
+              setSelectedDate(slotTool.result.appt_date);
+              if (Array.isArray(slotTool.result.available_slots) && slotTool.result.available_slots.length > 0) {
+                setAvailableSlots(
+                  slotTool.result.available_slots.map((s: string) => ({
+                    slot: s,
+                    available: true,
+                  }))
+                );
+                setSelectedSlot(slotTool.result.available_slots[0]);
+              }
+            }
+          }
 
           // If Gemini confirmed a booking, close the slot picker (if open)
           if (data.bookingConfirmed) {

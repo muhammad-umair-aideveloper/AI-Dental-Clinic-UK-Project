@@ -522,9 +522,15 @@ export async function POST(req: NextRequest) {
 
     // 4. Primary Engine: Gemini AI Receptionist Agent with Deterministic Function Calling
     // (check_slot_availability, create_booking)
+    const apiKeyOverride =
+      typeof body.apiKeyOverride === 'string' && body.apiKeyOverride.trim()
+        ? body.apiKeyOverride.trim()
+        : undefined;
+
     const geminiAgentResult = await runGeminiReceptionist(
       scrubbed,
-      messageHistory as any
+      messageHistory as any,
+      apiKeyOverride
     );
 
     await logChatToSupabase({
