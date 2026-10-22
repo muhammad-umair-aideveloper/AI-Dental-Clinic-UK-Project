@@ -22,8 +22,11 @@ export interface CreateAppointmentInput {
 export interface AppointmentRecord {
   id: string;
   customer_name?: string;
+  customer_phone?: string;
   phone?: string;
   service?: string;
+  appt_date?: string;
+  appt_time?: string;
   appointment_date?: string;
   appointment_time?: string;
   reminder_1hr_sent?: boolean;
