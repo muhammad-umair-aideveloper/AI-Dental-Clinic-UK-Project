@@ -2300,7 +2300,7 @@ export default function AdminDashboardPage() {
       {/* ======================================================== */}
       {serviceModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <h3 className="text-base font-semibold text-[#111827]">
                 {editingService ? 'Edit Treatment & Pricing' : 'Add New Dental Treatment'}
@@ -2430,7 +2430,7 @@ export default function AdminDashboardPage() {
       {/* ======================================================== */}
       {clinicianModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <h3 className="text-base font-semibold text-[#111827]">
                 {editingClinician ? 'Edit Clinician Credentials' : 'Add Clinical Team Member'}
@@ -2553,7 +2553,7 @@ export default function AdminDashboardPage() {
       {/* ======================================================== */}
       {galleryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <h3 className="text-base font-semibold text-[#111827]">
                 {editingGalleryCase ? 'Edit Gallery Case' : 'Add Before & After Case Study'}
@@ -2676,7 +2676,7 @@ export default function AdminDashboardPage() {
       {/* ======================================================== */}
       {faqModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <h3 className="text-base font-semibold text-[#111827]">Add Knowledge FAQ</h3>
               <button
