@@ -217,8 +217,22 @@ export const Footer: React.FC = () => {
             </a>
             <span>•</span>
             <Link
-              href="/admin/appointments"
+              href="/dashboard"
+              className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors text-[10px] whitespace-nowrap"
+            >
+              Live Appointments Dashboard
+            </Link>
+            <span>•</span>
+            <Link
+              href="/admin-dashboard"
               className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors text-[10px] whitespace-nowrap"
+            >
+              Admin CMS Dashboard
+            </Link>
+            <span>•</span>
+            <Link
+              href="/admin/appointments"
+              className="text-slate-400 hover:text-slate-300 transition-colors text-[10px] whitespace-nowrap"
             >
               Reception Desk & Automations
             </Link>
@@ -227,7 +241,7 @@ export const Footer: React.FC = () => {
               href="/admin-login"
               className="text-slate-500 hover:text-slate-300 transition-colors text-[10px] whitespace-nowrap"
             >
-              Staff CMS
+              Staff CMS Login
             </Link>
           </div>
         </div>

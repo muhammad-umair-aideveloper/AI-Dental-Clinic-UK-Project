@@ -59,6 +59,14 @@ export const Navbar: React.FC = () => {
             </a>
 
             <Link
+              href="/dashboard"
+              className="hidden sm:inline-flex items-center space-x-1 text-[10px] font-bold text-cyan-400 bg-cyan-950/80 hover:bg-cyan-900 px-2.5 py-0.5 rounded-full border border-cyan-500/40 transition-colors whitespace-nowrap"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse mr-1"></span>
+              <span>Live Dashboard ↗</span>
+            </Link>
+
+            <Link
               href="/admin/appointments"
               className="hidden lg:inline-flex items-center space-x-1 text-[10px] font-bold text-emerald-400 bg-emerald-950/80 hover:bg-emerald-900 px-2.5 py-0.5 rounded-full border border-emerald-500/40 transition-colors whitespace-nowrap"
             >
@@ -219,6 +227,22 @@ export const Navbar: React.FC = () => {
                 <span>Marylebone Clinic & Tube Access</span>
                 <ArrowUpRight className="w-4 h-4 text-slate-400" />
               </a>
+              <Link
+                href="/dashboard"
+                onClick={() => setMenuOpen(false)}
+                className="py-1.5 flex items-center justify-between border-b border-slate-100 text-cyan-700 font-semibold"
+              >
+                <span>Live Appointments Dashboard</span>
+                <ArrowUpRight className="w-4 h-4 text-cyan-600" />
+              </Link>
+              <Link
+                href="/admin-dashboard"
+                onClick={() => setMenuOpen(false)}
+                className="py-1.5 flex items-center justify-between border-b border-slate-100 text-emerald-700 font-semibold"
+              >
+                <span>Staff Admin CMS Dashboard</span>
+                <ArrowUpRight className="w-4 h-4 text-emerald-600" />
+              </Link>
             </div>
 
             <div className="pt-2 flex flex-col gap-2">

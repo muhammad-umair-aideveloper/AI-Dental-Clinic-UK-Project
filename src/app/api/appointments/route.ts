@@ -73,8 +73,9 @@ export async function POST(req: NextRequest) {
     const result = await createAppointment(appointmentInput);
 
     if (!result.success) {
+      const isConflict = result.code === 'DOUBLE_BOOKED' || (result as any).code === '23505';
       const statusCode =
-        result.code === 'DOUBLE_BOOKED'
+        isConflict
           ? 409
           : result.code === 'INVALID_INPUT' || result.code === 'CLINIC_CLOSED' || result.code === 'SLOT_UNAVAILABLE'
           ? 400
@@ -83,8 +84,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          code: result.code,
+          code: isConflict ? '23505' : result.code,
           error: result.error,
+          requested_date: appointmentInput.date,
+          requested_time: appointmentInput.time,
+          available_slots: result.availableSlots || result.available_slots || [],
+          availableSlots: result.availableSlots || result.available_slots || [],
         },
         { status: statusCode }
       );

@@ -10,6 +10,8 @@
  * All credentials sourced exclusively from environment variables.
  */
 
+import { normalizeUkMobilePhone } from '@/lib/uk-utils';
+
 export type MessageChannel = 'sms' | 'email' | 'whatsapp';
 
 export interface MessageAttachment {
@@ -99,10 +101,15 @@ export class TwilioSmsAdapter implements MessagingAdapter {
       };
     }
 
+    // Enforce UK Phone Normalization to E.164 (+447...) before any Twilio dispatch
+    const norm = normalizeUkMobilePhone(to);
+    const destinationNumber = norm.isValid ? norm.normalized : to;
+    const maskedPhone = to.length > 6 ? `${to.slice(0, 5)}***${to.slice(-3)}` : '******';
+
     try {
       const endpoint = `https://api.twilio.com/2010-04-01/Accounts/${this.accountSid}/Messages.json`;
       const params = new URLSearchParams({
-        To: to,
+        To: destinationNumber,
         From: this.fromNumber,
         Body: message,
       });
@@ -117,29 +124,32 @@ export class TwilioSmsAdapter implements MessagingAdapter {
         body: params.toString(),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        console.warn(`[TwilioSmsAdapter] Dispatch failed to ${maskedPhone}: ${data.message || res.statusText}`);
         return {
           success: false,
           channel: 'sms',
-          to,
-          error: data.message || 'Twilio API error',
+          to: destinationNumber,
+          error: data.message || `Twilio HTTP error ${res.status}`,
           provider: 'twilio',
         };
       }
 
+      console.log(`[TwilioSmsAdapter] Successfully dispatched SMS to ${maskedPhone} (SID: ${data.sid})`);
       return {
         success: true,
         messageId: data.sid,
         channel: 'sms',
-        to,
+        to: destinationNumber,
         provider: 'twilio',
       };
     } catch (err: any) {
+      console.error(`[TwilioSmsAdapter] Exception during dispatch to ${maskedPhone}:`, err.message);
       return {
         success: false,
         channel: 'sms',
-        to,
+        to: destinationNumber,
         error: err.message || 'Network error during Twilio dispatch',
         provider: 'twilio',
       };

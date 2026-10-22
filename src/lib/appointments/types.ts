@@ -63,5 +63,7 @@ export interface AppointmentServiceResponse<T = AppointmentRecord> {
   success: boolean;
   data?: T;
   error?: string;
-  code?: 'DOUBLE_BOOKED' | 'INVALID_PHONE' | 'INVALID_INPUT' | 'SLOT_UNAVAILABLE' | 'CLINIC_CLOSED' | 'SERVER_ERROR';
+  code?: 'DOUBLE_BOOKED' | 'INVALID_PHONE' | 'INVALID_INPUT' | 'SLOT_UNAVAILABLE' | 'CLINIC_CLOSED' | 'SERVER_ERROR' | '23505';
+  available_slots?: string[];
+  availableSlots?: string[];
 }

@@ -500,6 +500,16 @@ export default function AdminDashboardPage() {
             <span>Export CSV</span>
           </button>
 
+          {/* Live Bookings Console */}
+          <Link
+            href="/dashboard"
+            className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white border border-neutral-200/70 text-xs font-semibold text-neutral-700 hover:text-neutral-900 shadow-xs transition-colors"
+            title="Live Reception & Appointments Console"
+          >
+            <Activity className="w-3.5 h-3.5 text-cyan-600" />
+            <span>Live Bookings Console</span>
+          </Link>
+
           {/* Return to Public Website */}
           <Link
             href="/"

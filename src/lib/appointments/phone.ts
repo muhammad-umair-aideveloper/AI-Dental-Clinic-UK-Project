@@ -6,6 +6,7 @@
  */
 
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { normalizeUkMobilePhone } from '@/lib/uk-utils';
 
 export interface PhoneValidationResult {
   isValid: boolean;
@@ -32,8 +33,18 @@ export function normalizeUkPhone(input: string): PhoneValidationResult {
     };
   }
 
+  // 1. Primary Rigid Normalization (strip non-digits, convert 07 to +447)
+  const rigidResult = normalizeUkMobilePhone(input);
+  if (rigidResult.isValid) {
+    return {
+      isValid: true,
+      normalized: rigidResult.normalized,
+      isUkMobile: rigidResult.isUkMobile,
+    };
+  }
+
+  // 2. Secondary fallback via libphonenumber-js for other valid GB numbers
   const raw = input.trim();
-  // Attempt parse with 'GB' default country
   const parsed = parsePhoneNumberFromString(raw, 'GB');
 
   if (!parsed || !parsed.isValid()) {

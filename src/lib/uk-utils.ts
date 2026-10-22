@@ -32,51 +32,52 @@ export const UK_CLINIC_1HR_SLOTS: readonly string[] = [
 export function normalizeUkMobilePhone(input: string): {
   isValid: boolean;
   normalized: string;
+  isUkMobile: boolean;
   error?: string;
 } {
   if (!input || typeof input !== 'string') {
-    return { isValid: false, normalized: '', error: 'UK phone number is required.' };
+    return { isValid: false, normalized: '', isUkMobile: false, error: 'UK phone number is required.' };
   }
 
-  // Strip all non-digit and non-plus characters
-  let cleaned = input.replace(/[\s\-\(\)\.]/g, '').trim();
+  // Rigid normalization: Strip all whitespace and non-digit characters
+  const digitsOnly = input.replace(/\D/g, '');
 
-  // Convert international prefix 0044 to +44
-  if (cleaned.startsWith('0044')) {
-    cleaned = '+' + cleaned.slice(2);
+  let normalized = '';
+
+  if (digitsOnly.startsWith('00447') && digitsOnly.length === 15) {
+    normalized = '+44' + digitsOnly.slice(4);
+  } else if (digitsOnly.startsWith('0044') && digitsOnly.length >= 13) {
+    normalized = '+44' + digitsOnly.slice(4);
+  } else if (digitsOnly.startsWith('447') && digitsOnly.length === 12) {
+    normalized = '+' + digitsOnly;
+  } else if (digitsOnly.startsWith('44') && digitsOnly.length >= 11 && digitsOnly.length <= 13) {
+    normalized = '+' + digitsOnly;
+  } else if (digitsOnly.startsWith('07') && digitsOnly.length === 11) {
+    normalized = '+447' + digitsOnly.slice(2);
+  } else if (digitsOnly.startsWith('0') && (digitsOnly.length === 10 || digitsOnly.length === 11)) {
+    normalized = '+44' + digitsOnly.slice(1);
+  } else if (digitsOnly.startsWith('7') && digitsOnly.length === 10) {
+    normalized = '+447' + digitsOnly.slice(1);
+  } else if (digitsOnly.length === 12 && digitsOnly.startsWith('44')) {
+    normalized = '+' + digitsOnly;
   }
 
-  // Convert bare 447 to +447
-  if (cleaned.startsWith('447')) {
-    cleaned = '+' + cleaned;
-  }
+  const isUkMobile = /^\+447\d{9}$/.test(normalized);
+  const isGeneralUk = /^\+44[123789]\d{8,9}$/.test(normalized);
 
-  // Convert leading 07 to +447
-  if (cleaned.startsWith('07')) {
-    cleaned = '+44' + cleaned.slice(1);
-  }
-
-  // Convert leading 01, 02, 03, 08 (UK landlines/freephone)
-  if (/^0[12389]/.test(cleaned)) {
-    cleaned = '+44' + cleaned.slice(1);
-  }
-
-  // Validate E.164 UK Mobile: +447 followed by 9 digits
-  const ukMobileRegex = /^\+447\d{9}$/;
-  if (ukMobileRegex.test(cleaned)) {
-    return { isValid: true, normalized: cleaned };
-  }
-
-  // Fallback for general valid UK E.164 numbers (+44 followed by 9-10 digits)
-  const ukGeneralRegex = /^\+44[123789]\d{8,9}$/;
-  if (ukGeneralRegex.test(cleaned)) {
-    return { isValid: true, normalized: cleaned };
+  if (isUkMobile || isGeneralUk) {
+    return {
+      isValid: true,
+      normalized,
+      isUkMobile,
+    };
   }
 
   return {
     isValid: false,
-    normalized: cleaned,
-    error: `Invalid UK phone format: "${input}". Must be a UK mobile starting with 07 or +447 (e.g. 07123456789 or +447123456789).`,
+    normalized: normalized || input.trim(),
+    isUkMobile: false,
+    error: `Invalid UK phone format: "${input}". Must be a valid UK number starting with 07 or +447 (e.g. 07123 456789 or +447123456789).`,
   };
 }
 

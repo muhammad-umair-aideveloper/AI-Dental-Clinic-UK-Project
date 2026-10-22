@@ -300,6 +300,13 @@ export default function AdminDashboardPage() {
             </button>
 
             <Link
+              href="/admin-dashboard"
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition shadow-sm"
+            >
+              Staff CMS & Leads →
+            </Link>
+
+            <Link
               href="/"
               className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition shadow-sm"
             >

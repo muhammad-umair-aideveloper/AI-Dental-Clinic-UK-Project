@@ -29,6 +29,7 @@ import {
 } from '@/lib/uk-utils';
 import { appendChronologicalBookingToGoogleSheet } from '@/lib/google-sheets/sync';
 import { TwilioSmsAdapter, MockMessagingAdapter } from '@/lib/messaging';
+import { londonTimeToUtcIso } from '@/config/clinic.config';
 
 // In-Memory Storage for Offline / Testing Mode
 interface MemoryAppointment {
@@ -253,6 +254,11 @@ export async function create_booking(
 
   const supabase = getSupabaseServerClient();
 
+  const slotTimeUtcIso = londonTimeToUtcIso(rawDate, rawTime);
+  const slotStartDate = new Date(slotTimeUtcIso);
+  const slotEndDate = new Date(slotStartDate.getTime() + 60 * 60 * 1000);
+  const slotEndTimeUtcIso = slotEndDate.toISOString();
+
   // 3. Database Insertion with ATOMIC LOCK (Zero Double-Booking)
   if (supabase && isSupabaseConfigured()) {
     // Upsert patient record
@@ -261,6 +267,7 @@ export async function create_booking(
         {
           name: customerName,
           phone: customerPhone,
+          phone_number: customerPhone,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'phone' }
@@ -279,12 +286,18 @@ export async function create_booking(
           appt_date: rawDate,
           appt_time: apptTimeFormatted,
           reminder_sent: false,
+          reminder_1hr_sent: false,
+          reminder_consent: true,
+          consent_timestamp: new Date().toISOString(),
           // Compatibility columns for existing UI & triggers
           phone: customerPhone,
+          phone_number: customerPhone,
           appointment_date: rawDate,
           appointment_time: apptTimeFormatted,
           patient_name: customerName,
           reason: service,
+          slot_time: slotTimeUtcIso,
+          slot_end_time: slotEndTimeUtcIso,
           status: 'CONFIRMED',
           google_sheet_synced: false,
         })

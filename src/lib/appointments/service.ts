@@ -252,10 +252,13 @@ export async function createAppointment(
   const targetSlot = availability.find(s => s.utcIso === slotTimeUtcIso || s.timeStr === timeStr || s.time12 === timeStr);
 
   if (targetSlot && !targetSlot.available) {
+    const availableSlots = availability.filter(s => s.available).map(s => s.timeStr);
     return {
       success: false,
       code: 'DOUBLE_BOOKED',
       error: 'This appointment slot is no longer available. Please select another time.',
+      availableSlots,
+      available_slots: availableSlots,
     };
   }
 
@@ -273,6 +276,7 @@ export async function createAppointment(
         .upsert(
           {
             name: patientName,
+            phone: phoneNumber,
             phone_number: phoneNumber,
             email,
             updated_at: nowUtcIso,
@@ -289,21 +293,25 @@ export async function createAppointment(
       // Patient table upsert non-blocking
     }
 
-    // Insert into appointments table
+    // Insert into appointments table with strict anti-double-booking constraint
     const timeFormatted = timeStr.length === 5 ? `${timeStr}:00` : timeStr;
     const { data: insertedApt, error: insertError } = await supabase
       .from('appointments')
       .insert({
-        customer_name: patientName,
-        phone: phoneNumber,
-        service: reason,
+        // Primary and compatibility columns populated simultaneously
+        appt_date: dateStr,
+        appt_time: timeFormatted,
         appointment_date: dateStr,
         appointment_time: timeFormatted,
-        patient_id: patientId,
+        customer_name: patientName,
         patient_name: patientName,
+        customer_phone: phoneNumber,
+        phone: phoneNumber,
         phone_number: phoneNumber,
+        service: reason,
+        reason: reason,
+        patient_id: patientId,
         email,
-        reason,
         slot_time: slotTimeUtcIso,
         slot_end_time: slotEndTimeUtcIso,
         status: 'CONFIRMED',
@@ -311,6 +319,7 @@ export async function createAppointment(
         reminder_consent: reminderConsent,
         consent_timestamp: consentTimestamp,
         reminder_sent: false,
+        reminder_1hr_sent: false,
         google_sheet_synced: false,
         notes,
         source,
@@ -323,14 +332,19 @@ export async function createAppointment(
       if (
         insertError.code === '23505' ||
         insertError.code === '23P01' ||
+        insertError.message?.includes('unique_date_time') ||
         insertError.message?.includes('unique_date_time_slot') ||
         insertError.message?.includes('prevent_double_booking') ||
         insertError.message?.includes('duplicate key')
       ) {
+        const remaining = await getSlotAvailability(dateStr, clinicianName);
+        const freeSlots = remaining.filter(s => s.available).map(s => s.timeStr);
         return {
           success: false,
           code: 'DOUBLE_BOOKED',
           error: 'This appointment slot has just been booked by another patient. Please select another available time.',
+          availableSlots: freeSlots,
+          available_slots: freeSlots,
         };
       }
 
@@ -372,10 +386,14 @@ export async function createAppointment(
   );
 
   if (conflict) {
+    const remaining = await getSlotAvailability(dateStr, clinicianName);
+    const freeSlots = remaining.filter(s => s.available).map(s => s.timeStr);
     return {
       success: false,
       code: 'DOUBLE_BOOKED',
       error: 'This appointment slot has just been booked by another patient. Please select another available time.',
+      availableSlots: freeSlots,
+      available_slots: freeSlots,
     };
   }
 
@@ -439,18 +457,21 @@ export async function getAllAppointments(filters?: {
       query = query.eq('clinician_name', filters.clinicianName);
     }
     if (filters?.date) {
-      const dayStartUtc = londonTimeToUtcIso(filters.date, '00:00');
-      const dayEndUtc = londonTimeToUtcIso(filters.date, '23:59');
-      query = query.gte('slot_time', dayStartUtc).lte('slot_time', dayEndUtc);
+      const cleanDate = filters.date.trim().slice(0, 10);
+      const dayStartUtc = londonTimeToUtcIso(cleanDate, '00:00');
+      const dayEndUtc = londonTimeToUtcIso(cleanDate, '23:59');
+      query = query.or(`appt_date.eq.${cleanDate},appointment_date.eq.${cleanDate},and(slot_time.gte.${dayStartUtc},slot_time.lte.${dayEndUtc})`);
     }
 
     const { data } = await query.order('slot_time', { ascending: true });
-    return (data || []).map((row: AppointmentRecord) => {
-      const london = utcToLondon(row.slot_time);
+    return (data || []).map((row: any) => {
+      const slotTime = row.slot_time || (row.appt_date && row.appt_time ? londonTimeToUtcIso(row.appt_date, row.appt_time) : new Date().toISOString());
+      const london = utcToLondon(slotTime);
       return {
         ...row,
-        london_date: london.dateStr,
-        london_time: london.time12,
+        slot_time: slotTime,
+        london_date: row.appt_date || row.appointment_date || london.dateStr,
+        london_time: (row.appt_time || row.appointment_time || '').slice(0, 5) || london.time12,
         london_display: london.display,
       };
     });
@@ -464,7 +485,11 @@ export async function getAllAppointments(filters?: {
     list = list.filter(a => a.clinician_name === filters.clinicianName);
   }
   if (filters?.date) {
-    list = list.filter(a => utcToLondon(a.slot_time).dateStr === filters.date);
+    const cleanDate = filters.date.trim().slice(0, 10);
+    list = list.filter(a => {
+      const lDate = a.slot_time ? utcToLondon(a.slot_time).dateStr : null;
+      return lDate === cleanDate || a.appointment_date === cleanDate || a.appt_date === cleanDate;
+    });
   }
 
   return list
@@ -473,8 +498,8 @@ export async function getAllAppointments(filters?: {
       const london = utcToLondon(row.slot_time);
       return {
         ...row,
-        london_date: london.dateStr,
-        london_time: london.time12,
+        london_date: row.appointment_date || row.appt_date || london.dateStr,
+        london_time: (row.appointment_time || row.appt_time || '').slice(0, 5) || london.time12,
         london_display: london.display,
       };
     });
@@ -617,6 +642,7 @@ export async function markReminderAsSent(id: string): Promise<boolean> {
       .from('appointments')
       .update({
         reminder_sent: true,
+        reminder_1hr_sent: true,
         reminder_sent_at: now,
         updated_at: now,
       })
