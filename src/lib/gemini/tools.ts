@@ -52,7 +52,7 @@ if (!global.__dentalUkAppointments) {
   global.__dentalUkAppointments = [];
 }
 
-const memoryUkAppointments = global.__dentalUkAppointments;
+export const memoryUkAppointments = global.__dentalUkAppointments;
 
 // =========================================================================
 // TOOL 1: check_slot_availability
@@ -109,6 +109,10 @@ export async function check_slot_availability(
           const raw = row.appt_time || row.appointment_time || '';
           return normalizeUkTimeHHMM(raw);
         });
+      } else {
+        bookedTimes = memoryUkAppointments
+          .filter(a => a.appt_date === cleanDate && a.status !== 'CANCELLED')
+          .map(a => normalizeUkTimeHHMM(a.appt_time));
       }
     } catch (err) {
       console.warn('[check_slot_availability] Supabase query fallback to memory:', err);
@@ -307,10 +311,18 @@ export async function create_booking(
           };
         }
 
-        return {
-          success: false,
-          error: insertError.message || 'Database error creating appointment.',
-        };
+        if (
+          insertError.message?.includes('schema cache') ||
+          insertError.message?.includes('does not exist') ||
+          insertError.code === '42P01'
+        ) {
+          console.warn('[create_booking] Supabase appointments table not yet found; falling back to atomic in-memory lock.');
+        } else {
+          return {
+            success: false,
+            error: insertError.message || 'Database error creating appointment.',
+          };
+        }
       }
 
       if (inserted) {
