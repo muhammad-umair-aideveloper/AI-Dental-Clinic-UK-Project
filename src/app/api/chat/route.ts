@@ -25,6 +25,7 @@ import {
   scrubSensitiveHealthPii,
   CHAT_MAX_INPUT_LENGTH,
 } from '@/lib/chatbot/guardrails';
+import { runGeminiReceptionist } from '@/lib/gemini/agent';
 
 // System prompt defining persona, UK clinic pricing and NHS rules
 const SYSTEM_PROMPT = `You are Sarah, the polite, articulate, and exceptionally professional British AI Receptionist for Vertex Dental Lab, an elite private dental clinic located in Harley Street, London, UK.
@@ -519,179 +520,24 @@ export async function POST(req: NextRequest) {
 
     const { scrubbed, piiDetected, redactedTypes } = scrubSensitiveHealthPii(sanitized);
 
-    // 4. OpenAI Execution (if OPENAI_API_KEY configured)
-    const openAiApiKey = process.env.OPENAI_API_KEY;
+    // 4. Primary Engine: Gemini AI Receptionist Agent with Deterministic Function Calling
+    // (check_slot_availability, create_booking)
+    const geminiAgentResult = await runGeminiReceptionist(
+      scrubbed,
+      messageHistory as any
+    );
 
-    if (openAiApiKey) {
-      const openAiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-
-      const messagesForOpenAi = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...messageHistory.slice(-10).map(m => ({
-          role: m.role === 'assistant' ? 'assistant' : 'user',
-          content: m.role === 'user' ? (m.content === userMessage ? scrubbed : m.content) : m.content,
-        })),
-      ];
-
-      // Initial OpenAI Call
-      const openAiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${openAiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: openAiModel,
-          messages: messagesForOpenAi,
-          tools: CHAT_TOOLS,
-          tool_choice: 'auto',
-          temperature: 0.6,
-        }),
-      });
-
-      if (openAiRes.ok) {
-        const completion = await openAiRes.json();
-        const choice = completion.choices?.[0];
-        const responseMessage = choice?.message;
-
-        // Check if OpenAI wants to invoke a tool
-        if (responseMessage?.tool_calls && responseMessage.tool_calls.length > 0) {
-          const toolCalls = responseMessage.tool_calls;
-          const toolResultsMessages: any[] = [];
-          const executedRecords: any[] = [];
-
-          for (const call of toolCalls) {
-            const fnName = call.function.name;
-            let args: any = {};
-            try {
-              args = JSON.parse(call.function.arguments);
-            } catch {
-              args = {};
-            }
-
-            let result: any = null;
-
-            if (fnName === 'check_available_slots') {
-              result = await executeCheckAvailableSlots(args.date);
-            } else if (fnName === 'book_appointment') {
-              result = await executeBookAppointment({
-                customer_name: args.customer_name,
-                phone: args.phone,
-                service: args.service,
-                appointment_date: args.appointment_date,
-                appointment_time: args.appointment_time,
-              });
-            }
-
-            executedRecords.push({ name: fnName, args, result });
-            toolResultsMessages.push({
-              tool_call_id: call.id,
-              role: 'tool',
-              name: fnName,
-              content: JSON.stringify(result),
-            });
-          }
-
-          // Second OpenAI Call with tool outputs
-          const secondCallRes = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${openAiApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: openAiModel,
-              messages: [...messagesForOpenAi, responseMessage, ...toolResultsMessages],
-              temperature: 0.6,
-            }),
-          });
-
-          if (secondCallRes.ok) {
-            const secondCompletion = await secondCallRes.json();
-            const finalReply =
-              secondCompletion.choices?.[0]?.message?.content ||
-              'Thank you for your enquiry. We look forward to welcoming you to Vertex Dental Lab.';
-
-            await logChatToSupabase({
-              user_message: scrubbed,
-              bot_response: finalReply,
-              tools_called: executedRecords,
-            });
-
-            return NextResponse.json({
-              success: true,
-              reply: finalReply,
-              tools: executedRecords,
-              meta: { piiScrubbed: piiDetected, redactedTypes },
-            });
-          }
-        }
-
-        // Direct response without tool calls
-        const replyText = responseMessage?.content || 'How may I assist you with your dental care today?';
-        await logChatToSupabase({ user_message: scrubbed, bot_response: replyText });
-
-        return NextResponse.json({
-          success: true,
-          reply: replyText,
-          meta: { piiScrubbed: piiDetected, redactedTypes },
-        });
-      }
-    }
-
-    // 4b. Gemini AI Execution (if GEMINI_API_KEY is configured and OpenAI is not)
-    const geminiKey = process.env.GEMINI_API_KEY;
-    if (!openAiApiKey && geminiKey) {
-      try {
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [{ text: `${SYSTEM_PROMPT}\n\nPatient Query: ${scrubbed}` }],
-                },
-              ],
-              generationConfig: {
-                temperature: 0.6,
-                maxOutputTokens: 500,
-              },
-            }),
-          }
-        );
-
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          const replyText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-          if (replyText) {
-            await logChatToSupabase({ user_message: scrubbed, bot_response: replyText });
-            return NextResponse.json({
-              success: true,
-              reply: replyText,
-              meta: { piiScrubbed: piiDetected, redactedTypes },
-            });
-          }
-        }
-      } catch (err: any) {
-        console.warn('[ChatRoute] Gemini request failed, using deterministic local engine:', err.message);
-      }
-    }
-
-    // 5. Fallback British Receptionist Engine (Resilient offline / no key mode)
-    const localResult = await localBritishReceptionistEngine(scrubbed, messageHistory);
     await logChatToSupabase({
       user_message: scrubbed,
-      bot_response: localResult.reply,
-      tools_called: localResult.tools,
+      bot_response: geminiAgentResult.reply,
+      tools_called: geminiAgentResult.toolsExecuted,
     });
 
     return NextResponse.json({
       success: true,
-      reply: localResult.reply,
-      tools: localResult.tools,
+      reply: geminiAgentResult.reply,
+      tools: geminiAgentResult.toolsExecuted,
+      engine: geminiAgentResult.engine,
       meta: { piiScrubbed: piiDetected, redactedTypes },
     });
   } catch (err: any) {
