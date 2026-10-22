@@ -484,6 +484,12 @@ export default function AdminDashboardPage() {
             <Zap className="w-4 h-4" />
           </button>
 
+          {/* Supabase Realtime Live Status Indicator */}
+          <div className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/70 text-xs font-semibold text-emerald-800 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Supabase Realtime Live</span>
+          </div>
+
           {/* Export CSV */}
           <button
             onClick={handleExportCSV}

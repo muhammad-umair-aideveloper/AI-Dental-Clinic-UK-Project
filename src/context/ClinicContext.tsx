@@ -30,6 +30,7 @@ import {
   INITIAL_APPOINTMENTS,
   INITIAL_INQUIRIES,
 } from '@/lib/default-data';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export type Currency = 'GBP' | 'EUR' | 'USD';
 
@@ -174,6 +175,55 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } catch {
       // Ignore JSON parse errors or localStorage restrictions
     }
+  }, []);
+
+  // Supabase Realtime Subscription for appointments table
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel('clinic-context-realtime-appointments')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'appointments' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const raw = payload.new as any;
+            const customerName = raw.customer_name || raw.patient_name || 'Patient';
+            const customerPhone = raw.customer_phone || raw.phone || raw.phone_number || '';
+            const service = raw.service || raw.reason || 'General Dentistry';
+            const apptDate = raw.appt_date || raw.appointment_date || '';
+            const apptTime = (raw.appt_time || raw.appointment_time || '').slice(0, 5);
+
+            const newInq: WebInquiry = {
+              id: raw.id || `lead-${Date.now()}`,
+              name: customerName,
+              phone: customerPhone,
+              email: raw.email || '',
+              serviceRequested: service,
+              preferredDate: apptDate,
+              preferredTime: apptTime,
+              source: 'AI Chatbot',
+              status: 'Booked / Confirmed',
+              createdAt: raw.created_at || new Date().toISOString(),
+              message: `AI Chatbot confirmed appointment for ${service} on ${apptDate} at ${apptTime}.`,
+            };
+
+            setInquiries((prev) => {
+              if (prev.some((i) => i.id === newInq.id)) return prev;
+              return [newInq, ...prev];
+            });
+
+            triggerToast(`Live Booking: ${customerName} for ${service} on ${apptDate} at ${apptTime}`);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
