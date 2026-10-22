@@ -403,24 +403,24 @@ export default function AdminDashboardPage() {
       {/* ======================================================== */}
       {/* 1. TOP UNIFIED NAVBAR (Single Horizontal Row) */}
       {/* ======================================================== */}
-      <header className="sticky top-0 z-40 bg-[#F6F7F9]/90 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between border-b border-neutral-200/50">
+      <header className="sticky top-0 z-40 bg-[#F6F7F9]/90 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between border-b border-neutral-200/50 gap-2">
         
         {/* Left: Brand Pill with Orange Circular Icon + Vertex Title */}
-        <div className="flex items-center space-x-3">
-          <div className="bg-white px-4 py-2 rounded-full shadow-xs border border-neutral-200/70 flex items-center space-x-2.5">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FF7A45] to-[#F54B1A] flex items-center justify-center text-white font-black text-[11px] shadow-xs">
+        <div className="flex items-center space-x-3 shrink-0">
+          <div className="bg-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-xs border border-neutral-200/70 flex items-center space-x-2 shrink-0">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FF7A45] to-[#F54B1A] flex items-center justify-center text-white font-black text-[11px] shadow-xs shrink-0">
               V
             </div>
-            <span className="font-bold text-sm tracking-tight text-neutral-900">Vertex</span>
-            <span className="text-[10px] text-neutral-400 font-medium border-l border-neutral-200 pl-2">Lab</span>
+            <span className="font-bold text-sm tracking-tight text-neutral-900 whitespace-nowrap">Vertex</span>
+            <span className="text-[10px] text-neutral-400 font-medium border-l border-neutral-200 pl-2 whitespace-nowrap">Lab</span>
           </div>
         </div>
 
-        {/* Center: Floating White Pill Container with Navigation Tabs */}
-        <nav className="hidden md:flex items-center p-1 bg-white border border-neutral-200/70 rounded-full shadow-xs space-x-1">
+        {/* Center: Floating White Pill Container with Navigation Tabs (Shown on xl screens where plenty of horizontal space exists) */}
+        <nav className="hidden xl:flex items-center p-1 bg-white border border-neutral-200/70 rounded-full shadow-xs space-x-1 shrink-0">
           <button
             onClick={() => setActiveMainTab('leads')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               activeMainTab === 'leads'
                 ? 'bg-[#141519] text-white shadow-xs'
                 : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
@@ -430,7 +430,7 @@ export default function AdminDashboardPage() {
           </button>
           <button
             onClick={() => setActiveMainTab('cms')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               activeMainTab === 'cms'
                 ? 'bg-[#141519] text-white shadow-xs'
                 : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
@@ -440,7 +440,7 @@ export default function AdminDashboardPage() {
           </button>
           <button
             onClick={() => setActiveMainTab('ai')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               activeMainTab === 'ai'
                 ? 'bg-[#141519] text-white shadow-xs'
                 : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
@@ -450,7 +450,7 @@ export default function AdminDashboardPage() {
           </button>
           <button
             onClick={() => setActiveMainTab('reports')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               activeMainTab === 'reports'
                 ? 'bg-[#141519] text-white shadow-xs'
                 : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
@@ -461,7 +461,7 @@ export default function AdminDashboardPage() {
         </nav>
 
         {/* Right: Quick Utility Pills + Clinic Profile Pill */}
-        <div className="flex items-center space-x-2 sm:space-x-2.5">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
           {/* Quick Search trigger */}
           <button
             onClick={() => {
@@ -469,7 +469,7 @@ export default function AdminDashboardPage() {
               const el = document.getElementById('bento-search-input');
               if (el) el.focus();
             }}
-            className="w-9 h-9 rounded-full bg-white border border-neutral-200/70 flex items-center justify-center text-neutral-600 hover:text-neutral-900 shadow-xs transition-colors"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white border border-neutral-200/70 flex items-center justify-center text-neutral-600 hover:text-neutral-900 shadow-xs transition-colors shrink-0"
             title="Search Leads"
           >
             <Search className="w-4 h-4" />
@@ -478,56 +478,61 @@ export default function AdminDashboardPage() {
           {/* CRM Webhook Push */}
           <button
             onClick={() => setShowWebhookModal(true)}
-            className="w-9 h-9 rounded-full bg-white border border-neutral-200/70 flex items-center justify-center text-amber-500 hover:text-amber-600 hover:bg-amber-50 shadow-xs transition-colors"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white border border-neutral-200/70 flex items-center justify-center text-amber-500 hover:text-amber-600 hover:bg-amber-50 shadow-xs transition-colors shrink-0"
             title="Push to Dentally / CRM Zapier"
           >
             <Zap className="w-4 h-4" />
           </button>
 
           {/* Supabase Realtime Live Status Indicator */}
-          <div className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/70 text-xs font-semibold text-emerald-800 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Supabase Realtime Live</span>
+          <div
+            className="hidden md:flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/70 text-xs font-semibold text-emerald-800 shadow-2xs shrink-0 whitespace-nowrap"
+            title="Supabase Database Realtime Active"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="hidden xl:inline">Supabase Realtime</span>
+            <span className="hidden 2xl:inline"> Live</span>
+            <span className="inline xl:hidden">Live</span>
           </div>
 
           {/* Export CSV */}
           <button
             onClick={handleExportCSV}
-            className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white border border-neutral-200/70 text-xs font-semibold text-neutral-700 hover:text-neutral-900 shadow-xs transition-colors"
+            className="hidden sm:flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white border border-neutral-200/70 text-xs font-semibold text-neutral-700 hover:text-neutral-900 shadow-xs transition-colors shrink-0 whitespace-nowrap"
             title="Export Leads CSV"
           >
-            <Download className="w-3.5 h-3.5 text-neutral-500" />
-            <span>Export CSV</span>
+            <Download className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+            <span className="hidden lg:inline">Export CSV</span>
           </button>
 
           {/* Live Bookings Console */}
           <Link
             href="/dashboard"
-            className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white border border-neutral-200/70 text-xs font-semibold text-neutral-700 hover:text-neutral-900 shadow-xs transition-colors"
+            className="hidden sm:flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white border border-neutral-200/70 text-xs font-semibold text-neutral-700 hover:text-neutral-900 shadow-xs transition-colors shrink-0 whitespace-nowrap"
             title="Live Reception & Appointments Console"
           >
-            <Activity className="w-3.5 h-3.5 text-cyan-600" />
-            <span>Live Bookings Console</span>
+            <Activity className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+            <span className="hidden lg:inline">Live Console</span>
           </Link>
 
           {/* Return to Public Website */}
           <Link
             href="/"
-            className="hidden lg:flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white border border-neutral-200/70 text-xs font-semibold text-neutral-700 hover:text-neutral-900 shadow-xs transition-colors"
+            className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white border border-neutral-200/70 text-xs font-semibold text-neutral-700 hover:text-neutral-900 shadow-xs transition-colors shrink-0 whitespace-nowrap"
             title="Return to Public Site"
           >
-            <ArrowLeft className="w-3.5 h-3.5 text-neutral-500" />
-            <span>Public Site</span>
+            <ArrowLeft className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+            <span className="hidden lg:inline">Public Site</span>
           </Link>
 
-          {/* Clinic Profile Pill */}
-          <div className="bg-white pl-1.5 pr-3.5 py-1.5 rounded-full shadow-xs border border-neutral-200/70 flex items-center space-x-2.5">
-            <div className="w-7 h-7 rounded-full bg-neutral-900 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+          {/* Clinic Profile Pill (Hardened against shrinking or vertical multi-line wrap) */}
+          <div className="bg-white pl-1.5 pr-3 sm:pr-3.5 py-1.5 rounded-full shadow-xs border border-neutral-200/70 flex items-center space-x-2 shrink-0">
+            <div className="w-7 h-7 rounded-full bg-neutral-900 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0">
               AV
             </div>
-            <div className="hidden sm:block text-left leading-tight">
-              <p className="font-bold text-xs text-neutral-900">Dr. Alistair Vance</p>
-              <p className="text-[10px] text-neutral-400">GDC: 248912 • Marylebone</p>
+            <div className="hidden sm:flex flex-col text-left leading-none shrink-0 whitespace-nowrap">
+              <p className="font-bold text-xs text-neutral-900 whitespace-nowrap leading-tight">Dr. Alistair Vance</p>
+              <p className="text-[10px] text-neutral-400 whitespace-nowrap leading-tight mt-0.5">GDC: 248912 • Marylebone</p>
             </div>
           </div>
         </div>
