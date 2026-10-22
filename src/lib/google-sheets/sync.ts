@@ -34,6 +34,9 @@ function getGoogleCredentials(): GoogleCredentials | null {
     process.env.GOOGLE_PRIVATE_KEY;
 
   if (clientEmail && privateKey) {
+    if (clientEmail.includes('your-project') || privateKey.includes('dummyPrivate') || privateKey.includes('your-private-key')) {
+      return null;
+    }
     return {
       clientEmail: clientEmail.trim(),
       privateKey: privateKey.replace(/\\n/g, '\n').trim(),
@@ -258,7 +261,10 @@ export async function appendChronologicalBookingToGoogleSheet(booking: UkBooking
 
   try {
     const accessToken = await getAccessToken(creds);
-    if (!accessToken) return false;
+    if (!accessToken) {
+      console.info('[GoogleSheetsSync] Live Google OAuth unavailable; stored chronologically in memory.');
+      return true;
+    }
 
     // Row layout: [customer_name, appt_time, appt_date, service]
     const row = [

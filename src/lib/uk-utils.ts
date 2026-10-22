@@ -150,14 +150,14 @@ export function getEuropeLondonDateTime(dateObj: Date = new Date()): {
  * Evaluates whether a booking is SAME-DAY AFTER 08:00 AM UK time.
  * If appt_date == current UK date AND current UK time >= 08:00:00 -> returns true.
  */
-export function isSameDayAfter8AmUk(apptDate: string): {
+export function isSameDayAfter8AmUk(apptDate: string, referenceDate: Date = new Date()): {
   isSameDayAfter8Am: boolean;
   currentLondonDate: string;
   currentLondonTime: string;
   reason: string;
 } {
   const cleanApptDate = apptDate.trim().slice(0, 10);
-  const londonNow = getEuropeLondonDateTime();
+  const londonNow = getEuropeLondonDateTime(referenceDate);
 
   const isSameDay = cleanApptDate === londonNow.dateStr;
   const isPast8Am = londonNow.hour >= 8;
