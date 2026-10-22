@@ -153,7 +153,38 @@ export const DentalAgentWidget: React.FC = () => {
     setInput('');
     setIsTyping(true);
 
-    // Process Natural Language Triage
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: query,
+          messages: [...messages, userMessage].map(m => ({
+            role: m.sender === 'user' ? 'user' : 'assistant',
+            content: m.text,
+          })),
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.reply) {
+          setIsTyping(false);
+          const aiMessage: ChatMessage = {
+            id: `ai-${Date.now()}`,
+            sender: 'ai',
+            text: data.reply,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+          setMessages(prev => [...prev, aiMessage]);
+          return;
+        }
+      }
+    } catch {
+      // Fallback to local triage if network or offline
+    }
+
+    // Process Local Triage Fallback
     setTimeout(() => {
       const triage = processDentalTriage(query, language);
       setIsTyping(false);
