@@ -71,9 +71,11 @@ export type LeadSource = 'Web Form' | 'AI Bot' | 'AI Chatbot' | 'Guest Triage Mo
 export interface WebInquiry {
   id: string;
   patientName: string;
+  name?: string;
   email: string;
   phone: string;
   serviceInterest: string;
+  serviceRequested?: string;
   message: string;
   createdAt: string;
   status: LeadStatus;

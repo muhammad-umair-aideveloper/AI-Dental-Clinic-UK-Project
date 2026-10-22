@@ -198,9 +198,11 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
             const newInq: WebInquiry = {
               id: raw.id || `lead-${Date.now()}`,
+              patientName: customerName,
               name: customerName,
               phone: customerPhone,
               email: raw.email || '',
+              serviceInterest: service,
               serviceRequested: service,
               preferredDate: apptDate,
               preferredTime: apptTime,
