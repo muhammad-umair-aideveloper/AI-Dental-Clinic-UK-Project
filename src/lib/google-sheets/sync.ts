@@ -206,10 +206,146 @@ export interface BookingSheetRow {
   service: string;
 }
 
+export interface UkBookingSheetRow {
+  customer_name: string;
+  appt_time: string;
+  appt_date: string;
+  service: string;
+}
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __dentalGoogleSheetChronologicalRows: UkBookingSheetRow[] | undefined;
+}
+
+if (!global.__dentalGoogleSheetChronologicalRows) {
+  global.__dentalGoogleSheetChronologicalRows = [];
+}
+
+/**
+ * Appends the booking row (`customer_name`, `appt_time`, `appt_date`, `service`)
+ * to Google Sheets sorted chronologically by date and time.
+ */
+export async function appendChronologicalBookingToGoogleSheet(booking: UkBookingSheetRow): Promise<boolean> {
+  const cleanBooking: UkBookingSheetRow = {
+    customer_name: booking.customer_name.trim(),
+    appt_time: booking.appt_time.trim().slice(0, 5),
+    appt_date: booking.appt_date.trim().slice(0, 10),
+    service: booking.service.trim(),
+  };
+
+  // Keep in-memory store chronologically sorted by appt_date ASC, appt_time ASC
+  if (global.__dentalGoogleSheetChronologicalRows) {
+    global.__dentalGoogleSheetChronologicalRows.push(cleanBooking);
+    global.__dentalGoogleSheetChronologicalRows.sort((a, b) => {
+      const dateCompare = a.appt_date.localeCompare(b.appt_date);
+      if (dateCompare !== 0) return dateCompare;
+      return a.appt_time.localeCompare(b.appt_time);
+    });
+  }
+
+  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+  if (!spreadsheetId) {
+    console.info('[GoogleSheetsSync] GOOGLE_SHEETS_SPREADSHEET_ID not set; stored chronologically in memory.');
+    return true;
+  }
+
+  const creds = getGoogleCredentials();
+  if (!creds) {
+    console.info('[GoogleSheetsSync] Google service account credentials not configured; stored chronologically in memory.');
+    return true;
+  }
+
+  try {
+    const accessToken = await getAccessToken(creds);
+    if (!accessToken) return false;
+
+    // Row layout: [customer_name, appt_time, appt_date, service]
+    const row = [
+      cleanBooking.customer_name,
+      cleanBooking.appt_time,
+      cleanBooking.appt_date,
+      cleanBooking.service,
+    ];
+
+    const sheetRange = process.env.GOOGLE_SHEETS_RANGE || 'Appointments!A:D';
+    const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(
+      sheetRange
+    )}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+
+    const res = await fetch(appendUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        values: [row],
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('[GoogleSheetsSync] Failed to append chronological row:', err);
+      return false;
+    }
+
+    // Attempt chronological sort request on spreadsheet: sort by Column C (appt_date) ASC, then Column B (appt_time) ASC
+    try {
+      const sortUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`;
+      await fetch(sortUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requests: [
+            {
+              sortRange: {
+                range: {
+                  sheetId: 0,
+                  startRowIndex: 1, // Skip header row
+                },
+                sortSpecs: [
+                  {
+                    dimensionIndex: 2, // Column C: appt_date
+                    sortOrder: 'ASCENDING',
+                  },
+                  {
+                    dimensionIndex: 1, // Column B: appt_time
+                    sortOrder: 'ASCENDING',
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      });
+    } catch {
+      // Non-critical: row was already appended successfully
+    }
+
+    console.log(`[GoogleSheetsSync] Appended chronological booking: ${cleanBooking.customer_name} on ${cleanBooking.appt_date} at ${cleanBooking.appt_time}`);
+    return true;
+  } catch (err: any) {
+    console.error('[GoogleSheetsSync] Error syncing chronological booking:', err.message);
+    return false;
+  }
+}
+
 /**
  * Backward-compatible adapter for legacy callers expecting appendBookingToGoogleSheet.
  */
 export async function appendBookingToGoogleSheet(booking: BookingSheetRow): Promise<boolean> {
+  // Sync to both legacy and new chronological format
+  appendChronologicalBookingToGoogleSheet({
+    customer_name: booking.customer_name,
+    appt_time: booking.appointment_time,
+    appt_date: booking.appointment_date,
+    service: booking.service,
+  }).catch(() => {});
+
   return appendAppointmentToGoogleSheet({
     appointment_date: booking.appointment_date,
     appointment_time: booking.appointment_time,
@@ -226,4 +362,5 @@ export async function appendBookingToGoogleSheet(booking: BookingSheetRow): Prom
     google_sheet_synced: false,
   } as unknown as AppointmentRecord);
 }
+
 
