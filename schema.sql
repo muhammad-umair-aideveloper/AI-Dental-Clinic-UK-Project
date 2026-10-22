@@ -27,28 +27,31 @@ CREATE INDEX IF NOT EXISTS idx_patients_phone ON public.patients (phone);
 CREATE TABLE IF NOT EXISTS public.appointments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     customer_name TEXT NOT NULL,
-    phone TEXT NOT NULL,
+    customer_phone TEXT NOT NULL,
     service TEXT NOT NULL,
-    appointment_date DATE NOT NULL,
-    appointment_time TIME NOT NULL,
-    status TEXT NOT NULL DEFAULT 'CONFIRMED',
-    reminder_1hr_sent BOOLEAN NOT NULL DEFAULT false,
+    appt_date DATE NOT NULL,
+    appt_time TIME NOT NULL,
     reminder_sent BOOLEAN NOT NULL DEFAULT false,
-    reminder_sent_at TIMESTAMPTZ,
-    google_sheet_synced BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     -- Compatibility columns for existing clinical workflows
-    patient_name TEXT,
+    appointment_date DATE,
+    appointment_time TIME,
+    phone TEXT,
     phone_number TEXT,
+    patient_name TEXT,
     reason TEXT,
+    status TEXT NOT NULL DEFAULT 'CONFIRMED',
+    reminder_1hr_sent BOOLEAN NOT NULL DEFAULT false,
+    reminder_sent_at TIMESTAMPTZ,
+    google_sheet_synced BOOLEAN NOT NULL DEFAULT false,
     email TEXT,
     notes TEXT,
     source TEXT DEFAULT 'Website',
 
     -- CRITICAL ANTI-DOUBLE-BOOKING CONSTRAINT (Raises 23505 on duplicate date + time slot)
-    CONSTRAINT unique_date_time_slot UNIQUE (appointment_date, appointment_time)
+    CONSTRAINT unique_date_time UNIQUE (appt_date, appt_time)
 );
 
 -- Fast lookup indexes
@@ -58,20 +61,40 @@ CREATE INDEX IF NOT EXISTS idx_appointments_phone ON public.appointments (phone)
 CREATE INDEX IF NOT EXISTS idx_appointments_reminder_poll ON public.appointments (appointment_date, appointment_time, reminder_1hr_sent, status);
 CREATE INDEX IF NOT EXISTS idx_appointments_reminder_sent ON public.appointments (appointment_date, appointment_time, reminder_sent, status);
 
--- Sync trigger to guarantee customer_name/patient_name, phone/phone_number, and service/reason consistency
+-- Sync trigger to guarantee customer_name/patient_name, phone/customer_phone, appt_date/appointment_date, and service/reason consistency
 CREATE OR REPLACE FUNCTION sync_appointment_columns()
 RETURNS TRIGGER AS $$
 BEGIN
+    -- Synchronize appt_date and appointment_date
+    IF NEW.appt_date IS NOT NULL AND NEW.appointment_date IS NULL THEN
+        NEW.appointment_date := NEW.appt_date;
+    ELSIF NEW.appointment_date IS NOT NULL AND NEW.appt_date IS NULL THEN
+        NEW.appt_date := NEW.appointment_date;
+    END IF;
+
+    -- Synchronize appt_time and appointment_time
+    IF NEW.appt_time IS NOT NULL AND NEW.appointment_time IS NULL THEN
+        NEW.appointment_time := NEW.appt_time;
+    ELSIF NEW.appointment_time IS NOT NULL AND NEW.appt_time IS NULL THEN
+        NEW.appt_time := NEW.appointment_time;
+    END IF;
+
+    -- Synchronize customer_phone, phone, and phone_number
+    IF NEW.customer_phone IS NOT NULL THEN
+        IF NEW.phone IS NULL THEN NEW.phone := NEW.customer_phone; END IF;
+        IF NEW.phone_number IS NULL THEN NEW.phone_number := NEW.customer_phone; END IF;
+    ELSIF NEW.phone IS NOT NULL THEN
+        NEW.customer_phone := NEW.phone;
+        IF NEW.phone_number IS NULL THEN NEW.phone_number := NEW.phone; END IF;
+    ELSIF NEW.phone_number IS NOT NULL THEN
+        NEW.customer_phone := NEW.phone_number;
+        IF NEW.phone IS NULL THEN NEW.phone := NEW.phone_number; END IF;
+    END IF;
+
     IF NEW.customer_name IS NULL AND NEW.patient_name IS NOT NULL THEN
         NEW.customer_name := NEW.patient_name;
     ELSIF NEW.patient_name IS NULL AND NEW.customer_name IS NOT NULL THEN
         NEW.patient_name := NEW.customer_name;
-    END IF;
-
-    IF NEW.phone IS NULL AND NEW.phone_number IS NOT NULL THEN
-        NEW.phone := NEW.phone_number;
-    ELSIF NEW.phone_number IS NULL AND NEW.phone IS NOT NULL THEN
-        NEW.phone_number := NEW.phone;
     END IF;
 
     IF NEW.service IS NULL AND NEW.reason IS NOT NULL THEN
