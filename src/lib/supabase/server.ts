@@ -11,10 +11,15 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 let serverClient: SupabaseClient | null = null;
 
 export function getSupabaseServerClient(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
+    return null;
+  }
+
+  // If using placeholder dummy credentials, don't attempt live network calls
+  if (url.includes('your-project-id') || key.includes('your-supabase')) {
     return null;
   }
 
@@ -31,8 +36,10 @@ export function getSupabaseServerClient(): SupabaseClient | null {
 }
 
 export function isSupabaseConfigured(): boolean {
-  return !!(
-    (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) &&
-    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-  );
+  const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) return false;
+  if (url.includes('your-project-id') || key.includes('your-supabase')) return false;
+  return true;
 }

@@ -265,100 +265,105 @@ export async function create_booking(
       // non-blocking
     }
 
-    // Insert into appointments table
-    const { data: inserted, error: insertError } = await supabase
-      .from('appointments')
-      .insert({
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        service,
-        appt_date: rawDate,
-        appt_time: apptTimeFormatted,
-        reminder_sent: false,
-        // Compatibility columns for existing UI & triggers
-        phone: customerPhone,
-        appointment_date: rawDate,
-        appointment_time: apptTimeFormatted,
-        patient_name: customerName,
-        reason: service,
-        status: 'CONFIRMED',
-        google_sheet_synced: false,
-      })
-      .select('*')
-      .single();
+    try {
+      const { data: inserted, error: insertError } = await supabase
+        .from('appointments')
+        .insert({
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          service,
+          appt_date: rawDate,
+          appt_time: apptTimeFormatted,
+          reminder_sent: false,
+          // Compatibility columns for existing UI & triggers
+          phone: customerPhone,
+          appointment_date: rawDate,
+          appointment_time: apptTimeFormatted,
+          patient_name: customerName,
+          reason: service,
+          status: 'CONFIRMED',
+          google_sheet_synced: false,
+        })
+        .select('*')
+        .single();
 
-    if (insertError) {
-      // Check PostgreSQL unique constraint failure code 23505 (unique_date_time)
-      if (
-        insertError.code === '23505' ||
-        insertError.message?.includes('unique_date_time') ||
-        insertError.message?.includes('unique_date_time_slot') ||
-        insertError.message?.includes('duplicate key')
-      ) {
-        // Query remaining available slots for this date
-        const slotsCheck = await check_slot_availability({ appt_date: rawDate });
+      if (insertError) {
+        // Check PostgreSQL unique constraint failure code 23505 (unique_date_time)
+        if (
+          insertError.code === '23505' ||
+          insertError.message?.includes('unique_date_time') ||
+          insertError.message?.includes('unique_date_time_slot') ||
+          insertError.message?.includes('duplicate key')
+        ) {
+          // Query remaining available slots for this date
+          const slotsCheck = await check_slot_availability({ appt_date: rawDate });
+          return {
+            success: false,
+            code: '23505',
+            error: `Slot ${apptTimeDisplay} on ${rawDate} is already booked. Please choose an alternative time slot.`,
+            appt_date: rawDate,
+            appt_time: apptTimeDisplay,
+            available_slots: slotsCheck.available_slots,
+          };
+        }
+
         return {
           success: false,
-          code: '23505',
-          error: `Slot ${apptTimeDisplay} on ${rawDate} is already booked. Please choose an alternative time slot.`,
-          appt_date: rawDate,
-          appt_time: apptTimeDisplay,
-          available_slots: slotsCheck.available_slots,
+          error: insertError.message || 'Database error creating appointment.',
         };
       }
 
-      return {
-        success: false,
-        error: insertError.message || 'Database error creating appointment.',
-      };
-    }
+      if (inserted) {
+        const bookingId = inserted.id;
 
-    const bookingId = inserted.id;
+        // 4. Chronological Google Sheets Sync
+        let sheetSynced = false;
+        try {
+          sheetSynced = await appendChronologicalBookingToGoogleSheet({
+            customer_name: customerName,
+            appt_time: apptTimeDisplay,
+            appt_date: rawDate,
+            service,
+          });
 
-    // 4. Chronological Google Sheets Sync
-    let sheetSynced = false;
-    try {
-      sheetSynced = await appendChronologicalBookingToGoogleSheet({
-        customer_name: customerName,
-        appt_time: apptTimeDisplay,
-        appt_date: rawDate,
-        service,
-      });
+          if (sheetSynced) {
+            await supabase
+              .from('appointments')
+              .update({ google_sheet_synced: true })
+              .eq('id', bookingId);
+          }
+        } catch (sheetErr) {
+          console.error('[create_booking] Google Sheets sync error:', sheetErr);
+        }
 
-      if (sheetSynced) {
-        await supabase
-          .from('appointments')
-          .update({ google_sheet_synced: true })
-          .eq('id', bookingId);
+        // 5. SAME-DAY AFTER 08:00 AM UK ALERT
+        let urgentSmsSent = false;
+        const sameDayEvaluation = isSameDayAfter8AmUk(rawDate);
+
+        if (sameDayEvaluation.isSameDayAfter8Am) {
+          urgentSmsSent = await sendUrgentSameDayAlert({
+            customer_name: customerName,
+            customer_phone: customerPhone,
+            service,
+            appt_time: apptTimeDisplay,
+          });
+        }
+
+        return {
+          success: true,
+          booking_id: bookingId,
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          service,
+          appt_date: rawDate,
+          appt_time: apptTimeDisplay,
+          google_sheets_synced: sheetSynced,
+          urgent_same_day_sms_sent: urgentSmsSent,
+        };
       }
-    } catch (sheetErr) {
-      console.error('[create_booking] Google Sheets sync error:', sheetErr);
+    } catch (netErr) {
+      console.warn('[create_booking] Supabase live connection failed; falling back to atomic in-memory lock:', netErr);
     }
-
-    // 5. SAME-DAY AFTER 08:00 AM UK ALERT
-    let urgentSmsSent = false;
-    const sameDayEvaluation = isSameDayAfter8AmUk(rawDate);
-
-    if (sameDayEvaluation.isSameDayAfter8Am) {
-      urgentSmsSent = await sendUrgentSameDayAlert({
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        service,
-        appt_time: apptTimeDisplay,
-      });
-    }
-
-    return {
-      success: true,
-      booking_id: bookingId,
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      service,
-      appt_date: rawDate,
-      appt_time: apptTimeDisplay,
-      google_sheets_synced: sheetSynced,
-      urgent_same_day_sms_sent: urgentSmsSent,
-    };
   }
 
   // 3b. Atomic In-Memory Fallback (Offline / Testing)

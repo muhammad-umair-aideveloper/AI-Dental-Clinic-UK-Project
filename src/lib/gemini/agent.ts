@@ -270,6 +270,14 @@ export async function runDeterministicBritishReceptionist(
         engine: 'deterministic-fallback',
       };
     }
+    if ((msgLower.includes('hygiene') || msgLower.includes('clean') || msgLower.includes('scale')) && (msgLower.includes('check-up') || msgLower.includes('check up') || msgLower.includes('exam'))) {
+      return {
+        reply:
+          "Our Routine Dental Hygiene (Scale & Polish / Airflow Clean) is £85, and a New Patient Dental Examination is £65. Both treatments can lovely and conveniently be arranged together. Would you like to check available slots?",
+        toolsExecuted: [],
+        engine: 'deterministic-fallback',
+      };
+    }
     if (msgLower.includes('exam') || msgLower.includes('check-up') || msgLower.includes('check up') || msgLower.includes('new patient')) {
       return {
         reply:
