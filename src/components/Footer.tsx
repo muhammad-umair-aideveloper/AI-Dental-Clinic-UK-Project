@@ -353,7 +353,7 @@ export const Footer: React.FC = () => {
         {/* ========================================================= */}
         {/* SECONDARY CLINICAL COMPLIANCE & STAFF PORTAL ACCESS STRIP */}
         {/* ========================================================= */}
-        <div className="mt-14 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between text-[11px] text-slate-400 gap-4 text-center md:text-left">
+        <div className="mt-14 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between text-[11px] text-slate-400 gap-4 text-center md:text-left pb-16 lg:pb-8">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-1">
             <span className="text-slate-300 font-medium">Vertex Dental Lab Ltd</span>
             <span>•</span>
@@ -362,7 +362,7 @@ export const Footer: React.FC = () => {
             <span>British Dental Association (BDA) Member</span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-4 gap-y-2">
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-4 gap-y-2 pr-0 md:pr-44 lg:pr-52">
             <Link
               href="/dashboard"
               className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors text-[11px] whitespace-nowrap"
