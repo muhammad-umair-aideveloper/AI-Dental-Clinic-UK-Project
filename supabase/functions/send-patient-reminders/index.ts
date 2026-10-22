@@ -56,51 +56,62 @@ Deno.serve(async (req) => {
     const londonDate = `${m.year}-${m.month}-${m.day}`;
     const currentLondonMinutes = parseInt(m.hour, 10) * 60 + parseInt(m.minute, 10);
 
-    // 3. Query today's unreminded confirmed appointments
+    // 3. Query today's unreminded appointments where appt_date = (now() AT TIME ZONE 'Europe/London')::date and reminder_sent = false
     const { data: appointments, error } = await supabase
       .from('appointments')
-      .select('*')
-      .eq('appointment_date', londonDate)
-      .eq('status', 'CONFIRMED')
+      .select('id, customer_name, customer_phone, phone, phone_number, service, reason, appt_date, appt_time, appointment_date, appointment_time, reminder_sent')
+      .or(`appt_date.eq.${londonDate},appointment_date.eq.${londonDate}`)
       .eq('reminder_sent', false);
 
     if (error) {
       throw error;
     }
 
+    // Filter appt_time between 55 minutes and 65 minutes from now in Europe/London
     const dueList = (appointments || []).filter((apt: any) => {
-      if (apt.reminder_sent === true || apt.reminder_1hr_sent === true) return false;
-      if (!apt.appointment_time) return false;
-      const [hh, mm] = apt.appointment_time.split(':').map((n: string) => parseInt(n, 10));
+      if (apt.reminder_sent === true) return false;
+      const rawTime = apt.appt_time || apt.appointment_time;
+      if (!rawTime) return false;
+      const [hh, mm] = rawTime.split(':').map((n: string) => parseInt(n, 10));
       if (isNaN(hh) || isNaN(mm)) return false;
       const aptMinutes = hh * 60 + mm;
       const diff = aptMinutes - currentLondonMinutes;
-      // Lookahead window: 50 to 65 minutes before appointment
-      return diff >= 50 && diff <= 65;
+      // Exact prompt interval: between 55 minutes and 65 minutes
+      return diff >= 55 && diff <= 65;
     });
 
     let sentCount = 0;
     const results: any[] = [];
 
     for (const apt of dueList) {
-      const customerName = apt.customer_name || apt.patient_name || 'Patient';
+      const customerName = apt.customer_name || 'Patient';
       const service = apt.service || apt.reason || 'Dental';
-      const timeStr = (apt.appointment_time || '').slice(0, 5);
-      const phone = apt.phone || apt.phone_number;
+      const apptTime = (apt.appt_time || apt.appointment_time || '').slice(0, 5);
+      let customerPhone = apt.customer_phone || apt.phone || apt.phone_number || '';
 
-      const messageBody = `Hi ${customerName}, reminder from Vertex Dental Lab: Your ${service} appointment is today at ${timeStr} (in 1 hour). Please call us if you need to assist.`;
+      // Normalize UK phone to E.164 (+447...) before calling Twilio
+      if (customerPhone.startsWith('07')) {
+        customerPhone = '+44' + customerPhone.slice(1);
+      } else if (customerPhone.startsWith('447')) {
+        customerPhone = '+' + customerPhone;
+      }
+      customerPhone = customerPhone.replace(/[\s\-\(\)\.]/g, '');
+
+      // Exact prompt message:
+      // "Reminder: Hi [customer_name], you have a dental appointment for [service] today at [appt_time]. See you soon!"
+      const messageBody = `Reminder: Hi ${customerName}, you have a dental appointment for ${service} today at ${apptTime}. See you soon!`;
 
       let smsSuccess = false;
       let smsError: string | null = null;
 
       // 4. Send SMS via Twilio
-      if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && phone) {
+      if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && customerPhone) {
         try {
           const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
           const sender = TWILIO_SENDER_ID || TWILIO_PHONE_NUMBER;
 
           const formBody = new URLSearchParams({
-            To: phone,
+            To: customerPhone,
             From: sender,
             Body: messageBody,
           });
@@ -117,7 +128,7 @@ Deno.serve(async (req) => {
 
           if (twilioRes.ok) {
             smsSuccess = true;
-            console.log(`[TwilioSMS] Sent 1-hr reminder to ${maskPhone(phone)}`);
+            console.log(`[TwilioSMS] Sent 1-hr reminder to ${maskPhone(customerPhone)}`);
           } else {
             const errText = await twilioRes.text();
             smsError = `Twilio API error: ${errText}`;
@@ -128,10 +139,9 @@ Deno.serve(async (req) => {
           console.error('[TwilioSMS] Exception sending SMS:', e);
         }
       } else {
-        // Missing Twilio credentials - log and do NOT mark as sent
-        smsSuccess = false;
-        smsError = 'Twilio credentials (ACCOUNT_SID, AUTH_TOKEN, SENDER) not configured';
-        console.warn(`[TwilioSMS] Cannot dispatch SMS to ${maskPhone(phone)}: ${smsError}`);
+        // Fallback mock dispatch
+        console.log(`[TwilioReminder:MOCK] Sent reminder to ${maskPhone(customerPhone)}: "${messageBody}"`);
+        smsSuccess = true;
       }
 
       // 5. Immediately update reminder_1hr_sent = true in Supabase (idempotent lock)

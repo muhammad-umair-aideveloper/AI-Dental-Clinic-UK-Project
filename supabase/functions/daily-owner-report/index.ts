@@ -84,26 +84,30 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 4. Query Supabase for ONLY TODAY'S confirmed appointments (Do NOT include tomorrow or future)
+    // 4. Query Supabase for rows where appt_date = (now() AT TIME ZONE 'Europe/London')::date ONLY. Strictly exclude next day or future appointments.
     const { data: appointments, error: aptError } = await supabase
       .from('appointments')
-      .select('customer_name, appointment_date, appointment_time, service, phone')
-      .eq('appointment_date', londonDate)
-      .eq('status', 'CONFIRMED')
-      .order('appointment_time', { ascending: true });
+      .select('customer_name, appt_date, appt_time, service, customer_phone, phone, appointment_date, appointment_time')
+      .or(`appt_date.eq.${londonDate},appointment_date.eq.${londonDate}`)
+      .order('appt_time', { ascending: true });
 
     if (aptError) {
       throw aptError;
     }
 
-    const aptList = appointments || [];
+    const aptList = (appointments || []).map((a: any) => ({
+      customer_name: a.customer_name || 'Patient',
+      appt_date: a.appt_date || a.appointment_date || londonDate,
+      appt_time: (a.appt_time || a.appointment_time || '').slice(0, 5),
+      service: a.service || 'General Dentistry',
+      customer_phone: a.customer_phone || a.phone || '',
+    }));
     const count = aptList.length;
 
-    // 5. Generate CSV Attachment (Google Sheets compatible)
+    // 5. Generate Clean CSV / Sheet Attachment
     const csvRows = aptList.map((a: any) => {
       const escape = (val: string) => `"${(val || '').replace(/"/g, '""')}"`;
-      const timeClean = (a.appointment_time || '').slice(0, 5);
-      return `${escape(a.customer_name)},${escape(a.appointment_date)},${escape(timeClean)},${escape(a.service)},${escape(a.phone)}`;
+      return `${escape(a.customer_name)},${escape(a.appt_date)},${escape(a.appt_time)},${escape(a.service)},${escape(a.customer_phone)}`;
     });
 
     const csvContent = ['Customer Name,Date,Time,Service,Phone', ...csvRows].join('\r\n');
@@ -116,14 +120,13 @@ Deno.serve(async (req) => {
         : aptList
             .map((a: any, idx: number) => {
               const bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
-              const timeDisplay = (a.appointment_time || '').slice(0, 5);
               return `
                 <tr style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0;">
                   <td style="padding: 12px 16px; font-weight: 600; color: #0f172a;">${a.customer_name}</td>
-                  <td style="padding: 12px 16px; color: #334155;">${a.appointment_date}</td>
-                  <td style="padding: 12px 16px; font-weight: 700; color: #0284c7;">${timeDisplay}</td>
+                  <td style="padding: 12px 16px; color: #334155;">${a.appt_date}</td>
+                  <td style="padding: 12px 16px; font-weight: 700; color: #0284c7;">${a.appt_time}</td>
                   <td style="padding: 12px 16px; color: #334155;">${a.service}</td>
-                  <td style="padding: 12px 16px; font-family: monospace; color: #0f172a;">${a.phone}</td>
+                  <td style="padding: 12px 16px; font-family: monospace; color: #0f172a;">${a.customer_phone}</td>
                 </tr>`;
             })
             .join('');

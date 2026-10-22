@@ -159,15 +159,18 @@ export default function AdminDashboardPage() {
 
           if (payload.eventType === 'INSERT') {
             const raw = payload.new as any;
+            const apptDate = raw.appt_date || raw.appointment_date || (raw.slot_time ? raw.slot_time.slice(0, 10) : '');
+            const apptTime = (raw.appt_time || raw.appointment_time || (raw.slot_time ? raw.slot_time.slice(11, 16) : '')).slice(0, 5);
+
             const newItem: AppointmentItem = {
               id: raw.id,
               customer_name: raw.customer_name || raw.patient_name || 'Patient',
-              phone: raw.phone || raw.phone_number || '',
+              phone: raw.customer_phone || raw.phone || raw.phone_number || '',
               service: raw.service || raw.reason || 'General Consultation',
-              appointment_date: raw.appointment_date || (raw.slot_time ? raw.slot_time.slice(0, 10) : ''),
-              appointment_time: (raw.appointment_time || (raw.slot_time ? raw.slot_time.slice(11, 16) : '')).slice(0, 5),
+              appointment_date: apptDate,
+              appointment_time: apptTime,
               status: raw.status || 'CONFIRMED',
-              reminder_1hr_sent: !!raw.reminder_1hr_sent,
+              reminder_1hr_sent: !!(raw.reminder_sent || raw.reminder_1hr_sent),
               google_sheet_synced: !!raw.google_sheet_synced,
               created_at: raw.created_at || new Date().toISOString(),
             };
@@ -183,18 +186,21 @@ export default function AdminDashboardPage() {
             });
           } else if (payload.eventType === 'UPDATE') {
             const raw = payload.new as any;
+            const apptDate = raw.appt_date || raw.appointment_date;
+            const apptTime = (raw.appt_time || raw.appointment_time);
+
             setAppointments((prev) =>
               prev.map((a) =>
                 a.id === raw.id
                   ? {
                       ...a,
                       customer_name: raw.customer_name || raw.patient_name || a.customer_name,
-                      phone: raw.phone || raw.phone_number || a.phone,
+                      phone: raw.customer_phone || raw.phone || raw.phone_number || a.phone,
                       service: raw.service || raw.reason || a.service,
-                      appointment_date: raw.appointment_date || a.appointment_date,
-                      appointment_time: (raw.appointment_time || a.appointment_time).slice(0, 5),
+                      appointment_date: apptDate || a.appointment_date,
+                      appointment_time: apptTime ? apptTime.slice(0, 5) : a.appointment_time,
                       status: raw.status || a.status,
-                      reminder_1hr_sent: !!raw.reminder_1hr_sent,
+                      reminder_1hr_sent: !!(raw.reminder_sent || raw.reminder_1hr_sent),
                       google_sheet_synced: !!raw.google_sheet_synced,
                     }
                   : a

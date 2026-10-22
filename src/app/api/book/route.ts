@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient, isSupabaseConfigured } from '@/lib/supabase/server';
 import { appendBookingToGoogleSheet } from '@/lib/google-sheets/sync';
+import { create_booking, check_slot_availability } from '@/lib/gemini/tools';
 
 // Standard UK Clinic Slots (09:00 to 17:00, 30-minute intervals)
 export const CLINIC_SLOTS = [
@@ -218,170 +219,54 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Sanitize UK Phone Number to E.164 (+447XXXXXXXXX)
-    const phoneResult = sanitizeUkMobile(rawPhone);
-    if (!phoneResult.isValid) {
-      return NextResponse.json(
-        { success: false, error: phoneResult.error },
-        { status: 400 }
-      );
-    }
-    const phone = phoneResult.normalized;
+    // Unified deterministic create_booking tool
+    const bookingResult = await create_booking({
+      customer_name: customerName,
+      customer_phone: rawPhone,
+      service,
+      appt_date: rawDate,
+      appt_time: rawTime,
+    });
 
-    // Normalize time to HH:MM:00
-    const appointmentTime = normalizeTimeFormat(rawTime);
-    const appointmentDate = rawDate;
-
-    // 3. Insert into Supabase PostgreSQL
-    const supabase = getSupabaseServerClient();
-
-    if (supabase && isSupabaseConfigured()) {
-      // Upsert patient record for contact tracking
-      try {
-        await supabase
-          .from('patients')
-          .upsert(
-            { name: customerName, phone, updated_at: new Date().toISOString() },
-            { onConflict: 'phone' }
-          );
-      } catch (err) {
-        console.warn('[Booking] Non-critical error updating patient table:', err);
-      }
-
-      // Insert appointment with database-level UNIQUE lock
-      const { data: inserted, error: insertError } = await supabase
-        .from('appointments')
-        .insert({
-          customer_name: customerName,
-          phone,
-          service,
-          appointment_date: appointmentDate,
-          appointment_time: appointmentTime,
-          status: 'CONFIRMED',
-          reminder_1hr_sent: false,
-          google_sheet_synced: false,
-        })
-        .select()
-        .single();
-
-      if (insertError) {
-        // PostgreSQL error code 23505 = unique_violation (unique_date_time_slot constraint)
-        if (
-          insertError.code === '23505' ||
-          insertError.message?.includes('unique_date_time_slot') ||
-          insertError.message?.includes('duplicate key')
-        ) {
-          const availableSlots = await getAvailableSlots(appointmentDate);
-          return NextResponse.json(
-            {
-              success: false,
-              code: '23505',
-              error: `Slot ${appointmentTime.slice(0, 5)} on ${appointmentDate} is already booked. Please choose an alternative time.`,
-              requested_date: appointmentDate,
-              requested_time: appointmentTime.slice(0, 5),
-              available_slots: availableSlots,
-            },
-            { status: 409 }
-          );
-        }
-
+    if (!bookingResult.success) {
+      if (bookingResult.code === '23505') {
         return NextResponse.json(
-          { success: false, error: insertError.message || 'Database error creating appointment.' },
-          { status: 500 }
+          {
+            success: false,
+            code: '23505',
+            error: bookingResult.error,
+            requested_date: rawDate,
+            requested_time: rawTime.slice(0, 5),
+            available_slots: bookingResult.available_slots,
+          },
+          { status: 409 }
         );
       }
 
-      // 4. Real-time Google Sheets Sync
-      let sheetSynced = false;
-      try {
-        sheetSynced = await appendBookingToGoogleSheet({
-          appointment_date: appointmentDate,
-          appointment_time: appointmentTime.slice(0, 5),
-          customer_name: customerName,
-          phone,
-          service,
-        });
-
-        if (sheetSynced && inserted?.id) {
-          await supabase
-            .from('appointments')
-            .update({ google_sheet_synced: true })
-            .eq('id', inserted.id);
-        }
-      } catch (sheetErr) {
-        console.error('[Booking] Google Sheets sync error:', sheetErr);
-      }
-
       return NextResponse.json(
-        {
-          success: true,
-          message: 'Appointment confirmed successfully.',
-          appointment: {
-            ...inserted,
-            google_sheet_synced: sheetSynced,
-          },
-        },
-        { status: 201 }
+        { success: false, error: bookingResult.error || 'Failed to book appointment.' },
+        { status: 400 }
       );
     }
-
-    // 5. In-Memory Fallback (Replicates PostgreSQL 23505 unique constraint)
-    const existingConflict = memoryAppointments.find(
-      a =>
-        a.appointment_date === appointmentDate &&
-        a.appointment_time.slice(0, 5) === appointmentTime.slice(0, 5) &&
-        a.status !== 'CANCELLED'
-    );
-
-    if (existingConflict) {
-      const availableSlots = await getAvailableSlots(appointmentDate);
-      return NextResponse.json(
-        {
-          success: false,
-          code: '23505',
-          error: `Slot ${appointmentTime.slice(0, 5)} on ${appointmentDate} is already booked. Please choose an alternative time.`,
-          requested_date: appointmentDate,
-          requested_time: appointmentTime.slice(0, 5),
-          available_slots: availableSlots,
-        },
-        { status: 409 }
-      );
-    }
-
-    // Append to Google Sheets if configured
-    let sheetSynced = false;
-    try {
-      sheetSynced = await appendBookingToGoogleSheet({
-        appointment_date: appointmentDate,
-        appointment_time: appointmentTime.slice(0, 5),
-        customer_name: customerName,
-        phone,
-        service,
-      });
-    } catch (sheetErr) {
-      console.error('[Booking] Google Sheets sync error:', sheetErr);
-    }
-
-    const memoryRecord: StoredBooking = {
-      id: `apt-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      customer_name: customerName,
-      phone,
-      service,
-      appointment_date: appointmentDate,
-      appointment_time: appointmentTime,
-      status: 'CONFIRMED',
-      reminder_1hr_sent: false,
-      google_sheet_synced: sheetSynced,
-      created_at: new Date().toISOString(),
-    };
-
-    memoryAppointments.push(memoryRecord);
 
     return NextResponse.json(
       {
         success: true,
         message: 'Appointment confirmed successfully.',
-        appointment: memoryRecord,
+        appointment: {
+          id: bookingResult.booking_id,
+          customer_name: bookingResult.customer_name,
+          customer_phone: bookingResult.customer_phone,
+          phone: bookingResult.customer_phone,
+          service: bookingResult.service,
+          appt_date: bookingResult.appt_date,
+          appt_time: bookingResult.appt_time,
+          appointment_date: bookingResult.appt_date,
+          appointment_time: bookingResult.appt_time,
+          status: 'CONFIRMED',
+          google_sheet_synced: bookingResult.google_sheets_synced,
+          urgent_same_day_sms_sent: bookingResult.urgent_same_day_sms_sent,
+        },
       },
       { status: 201 }
     );
