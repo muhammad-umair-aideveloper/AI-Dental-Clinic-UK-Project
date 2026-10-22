@@ -685,9 +685,53 @@ export default function AdminDashboardPage() {
         {/* Main Dashboard Canvas */}
         <main className="flex-1 min-w-0">
           
+          {/* Mobile / Tablet Tab Selector (< xl screens) */}
+          <div className="flex xl:hidden items-center p-1 bg-white border border-neutral-200/70 rounded-full shadow-xs space-x-1 mb-5 overflow-x-auto shrink-0">
+            <button
+              onClick={() => setActiveMainTab('leads')}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+                activeMainTab === 'leads'
+                  ? 'bg-[#141519] text-white shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+              }`}
+            >
+              Overview / Leads
+            </button>
+            <button
+              onClick={() => setActiveMainTab('cms')}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+                activeMainTab === 'cms'
+                  ? 'bg-[#141519] text-white shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+              }`}
+            >
+              Clinic CMS
+            </button>
+            <button
+              onClick={() => setActiveMainTab('ai')}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+                activeMainTab === 'ai'
+                  ? 'bg-[#141519] text-white shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+              }`}
+            >
+              AI Assistant
+            </button>
+            <button
+              onClick={() => setActiveMainTab('reports')}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+                activeMainTab === 'reports'
+                  ? 'bg-[#141519] text-white shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+              }`}
+            >
+              Revenue Reports
+            </button>
+          </div>
+
           {/* Greeting Header directly below navbar */}
           <div className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight text-neutral-900 font-sans">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 font-sans">
               Good morning, Vertex Clinic
             </h1>
             <p className="text-sm text-neutral-500 mt-1">
@@ -707,23 +751,23 @@ export default function AdminDashboardPage() {
                 {/* ---------------------------------------------------- */}
                 {/* Card A (col-12 lg:col-4): "Estimated Monthly Revenue" */}
                 {/* ---------------------------------------------------- */}
-                <div className="col-span-12 lg:col-span-4 bg-white p-5 sm:p-6 rounded-[24px] border border-neutral-200/70 shadow-xs flex flex-col justify-between">
+                <div className="col-span-12 lg:col-span-4 bg-white p-5 sm:p-6 rounded-[24px] border border-neutral-200/70 shadow-xs flex flex-col justify-between min-w-0">
                   <div>
                     {/* Header line */}
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold text-neutral-500">Estimated Monthly Revenue</p>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-100 text-neutral-700 border border-neutral-200/80">
+                      <p className="text-xs font-semibold text-neutral-500 truncate mr-2">Estimated Monthly Revenue</p>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-100 text-neutral-700 border border-neutral-200/80 shrink-0">
                         GBP £
                       </span>
                     </div>
 
                     {/* Main Revenue Figure */}
                     <div className="mt-2">
-                      <p className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900">
+                      <p className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 truncate">
                         £{totalRevenue.toLocaleString('en-GB')}.00
                       </p>
                       <div className="flex items-center space-x-1.5 mt-1.5">
-                        <span className="text-xs font-bold text-emerald-600 flex items-center">
+                        <span className="text-xs font-bold text-emerald-600 flex items-center shrink-0">
                           <TrendingUp className="w-3.5 h-3.5 mr-1" />
                           +18%
                         </span>
@@ -735,17 +779,17 @@ export default function AdminDashboardPage() {
                     <div className="grid grid-cols-2 gap-2.5 mt-5">
                       <button
                         onClick={() => setShowWebhookModal(true)}
-                        className="w-full py-2.5 px-4 rounded-full bg-[#141519] hover:bg-neutral-800 text-white font-semibold text-xs transition-colors shadow-xs flex items-center justify-center space-x-1.5"
+                        className="w-full py-2.5 px-3 rounded-full bg-[#141519] hover:bg-neutral-800 text-white font-semibold text-xs transition-colors shadow-xs flex items-center justify-center space-x-1.5 whitespace-nowrap"
                       >
-                        <Zap className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Push to CRM</span>
+                        <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span className="truncate">Push to CRM</span>
                       </button>
                       <button
                         onClick={handleExportCSV}
-                        className="w-full py-2.5 px-4 rounded-full bg-[#F5F6F8] hover:bg-neutral-200 text-neutral-800 font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5"
+                        className="w-full py-2.5 px-3 rounded-full bg-[#F5F6F8] hover:bg-neutral-200 text-neutral-800 font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5 whitespace-nowrap"
                       >
-                        <Download className="w-3.5 h-3.5 text-neutral-500" />
-                        <span>Export CSV</span>
+                        <Download className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                        <span className="truncate">Export CSV</span>
                       </button>
                     </div>
                   </div>
@@ -753,39 +797,39 @@ export default function AdminDashboardPage() {
                   {/* Nested Bottom Sub-Cards ("Revenue by Category | 3 Core Streams") */}
                   <div className="mt-6 p-3 rounded-2xl bg-[#F7F8FA] border border-neutral-200/70">
                     <div className="flex items-center justify-between mb-2 px-1">
-                      <span className="text-[11px] font-bold text-neutral-500">Revenue by Category</span>
-                      <span className="text-[10px] text-neutral-400 font-medium">3 Core Streams</span>
+                      <span className="text-[11px] font-bold text-neutral-500 truncate mr-2">Revenue by Category</span>
+                      <span className="text-[10px] text-neutral-400 font-medium shrink-0">3 Core Streams</span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2">
                       {/* Stream 1: Implants */}
-                      <div className="bg-white p-2.5 rounded-xl border border-neutral-200/60 shadow-2xs">
+                      <div className="bg-white p-2.5 rounded-xl border border-neutral-200/60 shadow-2xs min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-[10px] font-bold text-neutral-700 truncate">Implants</span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                         </div>
-                        <p className="text-xs font-bold text-neutral-900">£{(implantsRevenue / 1000).toFixed(1)}k</p>
-                        <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded mt-1 inline-block font-semibold">Active</span>
+                        <p className="text-xs font-bold text-neutral-900 truncate">£{(implantsRevenue / 1000).toFixed(1)}k</p>
+                        <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded mt-1 inline-block font-semibold whitespace-nowrap">Active</span>
                       </div>
 
                       {/* Stream 2: Invisalign & Ortho */}
-                      <div className="bg-white p-2.5 rounded-xl border border-neutral-200/60 shadow-2xs">
+                      <div className="bg-white p-2.5 rounded-xl border border-neutral-200/60 shadow-2xs min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-[10px] font-bold text-neutral-700 truncate">Invisalign</span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                         </div>
-                        <p className="text-xs font-bold text-neutral-900">£{(orthoRevenue / 1000).toFixed(1)}k</p>
-                        <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded mt-1 inline-block font-semibold">Active</span>
+                        <p className="text-xs font-bold text-neutral-900 truncate">£{(orthoRevenue / 1000).toFixed(1)}k</p>
+                        <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded mt-1 inline-block font-semibold whitespace-nowrap">Active</span>
                       </div>
 
                       {/* Stream 3: Cosmetic & Veneers */}
-                      <div className="bg-white p-2.5 rounded-xl border border-neutral-200/60 shadow-2xs">
+                      <div className="bg-white p-2.5 rounded-xl border border-neutral-200/60 shadow-2xs min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-[10px] font-bold text-neutral-700 truncate">Veneers</span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
                         </div>
-                        <p className="text-xs font-bold text-neutral-900">£{(cosmeticRevenue / 1000).toFixed(1)}k</p>
-                        <span className="text-[9px] text-amber-800 bg-amber-50 px-1 py-0.2 rounded mt-1 inline-block font-semibold">High Demand</span>
+                        <p className="text-xs font-bold text-neutral-900 truncate">£{(cosmeticRevenue / 1000).toFixed(1)}k</p>
+                        <span className="text-[9px] text-amber-800 bg-amber-50 px-1 py-0.2 rounded mt-1 inline-block font-semibold whitespace-nowrap">Demand</span>
                       </div>
                     </div>
                   </div>
@@ -794,70 +838,70 @@ export default function AdminDashboardPage() {
                 {/* ---------------------------------------------------- */}
                 {/* Card B (col-12 lg:col-4): 2x2 KPI Calculation Grid */}
                 {/* ---------------------------------------------------- */}
-                <div className="col-span-12 lg:col-span-4 bg-white p-3.5 rounded-[24px] border border-neutral-200/70 shadow-xs flex flex-col justify-between">
+                <div className="col-span-12 lg:col-span-4 bg-white p-3.5 rounded-[24px] border border-neutral-200/70 shadow-xs flex flex-col justify-between min-w-0">
                   <div className="grid grid-cols-2 gap-3.5 h-full">
                     
                     {/* KPI 1: Confirmed Bookings (Vibrant Orange Gradient) */}
-                    <div className="rounded-[18px] p-4 bg-gradient-to-br from-[#FF7A45] to-[#F54B1A] text-white flex flex-col justify-between shadow-xs">
+                    <div className="rounded-[18px] p-4 bg-gradient-to-br from-[#FF7A45] to-[#F54B1A] text-white flex flex-col justify-between shadow-xs min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-white/90">Confirmed Bookings</span>
-                        <Sparkles className="w-3.5 h-3.5 text-white/80" />
+                        <span className="text-xs font-semibold text-white/90 truncate mr-1">Confirmed Bookings</span>
+                        <Sparkles className="w-3.5 h-3.5 text-white/80 shrink-0" />
                       </div>
                       <div className="my-2">
-                        <p className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                        <p className="text-2xl sm:text-3xl font-bold tracking-tight text-white truncate">
                           £{confirmedRevenue.toLocaleString('en-GB')}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-1 text-[11px] font-medium text-white/90">
+                      <div className="flex items-center space-x-1 text-[11px] font-medium text-white/90 whitespace-nowrap">
                         <span>+12%</span>
                         <span className="text-white/70">This month</span>
                       </div>
                     </div>
 
                     {/* KPI 2: Pending Pipeline (Soft Grey) */}
-                    <div className="rounded-[18px] p-4 bg-[#F7F8FA] border border-neutral-200/60 flex flex-col justify-between">
+                    <div className="rounded-[18px] p-4 bg-[#F7F8FA] border border-neutral-200/60 flex flex-col justify-between min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-neutral-600">Pending Pipeline</span>
-                        <Clock className="w-3.5 h-3.5 text-neutral-400" />
+                        <span className="text-xs font-semibold text-neutral-600 truncate mr-1">Pending Pipeline</span>
+                        <Clock className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                       </div>
                       <div className="my-2">
-                        <p className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
+                        <p className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 truncate">
                           £{pendingRevenue.toLocaleString('en-GB')}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-1 text-[11px] font-medium text-neutral-500">
+                      <div className="flex items-center space-x-1 text-[11px] font-medium text-neutral-500 whitespace-nowrap">
                         <span>{pendingLeads.length} leads in triage</span>
                       </div>
                     </div>
 
                     {/* KPI 3: Total Patient Leads (Soft Grey) */}
-                    <div className="rounded-[18px] p-4 bg-[#F7F8FA] border border-neutral-200/60 flex flex-col justify-between">
+                    <div className="rounded-[18px] p-4 bg-[#F7F8FA] border border-neutral-200/60 flex flex-col justify-between min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-neutral-600">Total Patient Leads</span>
-                        <Users className="w-3.5 h-3.5 text-neutral-400" />
+                        <span className="text-xs font-semibold text-neutral-600 truncate mr-1">Total Patient Leads</span>
+                        <Users className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                       </div>
                       <div className="my-2">
-                        <p className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
+                        <p className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 truncate">
                           {inquiries.length} Leads
                         </p>
                       </div>
-                      <div className="flex items-center space-x-1 text-[11px] font-semibold text-emerald-600">
+                      <div className="flex items-center space-x-1 text-[11px] font-semibold text-emerald-600 whitespace-nowrap">
                         <span>Web & AI Triage</span>
                       </div>
                     </div>
 
                     {/* KPI 4: Avg. Case Value (Soft Grey) */}
-                    <div className="rounded-[18px] p-4 bg-[#F7F8FA] border border-neutral-200/60 flex flex-col justify-between">
+                    <div className="rounded-[18px] p-4 bg-[#F7F8FA] border border-neutral-200/60 flex flex-col justify-between min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-neutral-600">Avg. Case Value</span>
-                        <Activity className="w-3.5 h-3.5 text-neutral-400" />
+                        <span className="text-xs font-semibold text-neutral-600 truncate mr-1">Avg. Case Value</span>
+                        <Activity className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                       </div>
                       <div className="my-2">
-                        <p className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
+                        <p className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 truncate">
                           £{avgCaseValue.toLocaleString('en-GB')}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-1 text-[11px] font-medium text-emerald-600">
+                      <div className="flex items-center space-x-1 text-[11px] font-medium text-emerald-600 whitespace-nowrap">
                         <span>+8%</span>
                         <span className="text-neutral-400">This month</span>
                       </div>
@@ -1092,7 +1136,7 @@ export default function AdminDashboardPage() {
                       <table className="w-full text-xs text-left">
                         <thead>
                           <tr className="bg-[#F8F9FA] border-b border-neutral-200/60 text-neutral-400 text-xs font-medium">
-                            <th className="py-3 px-3 w-8 text-center">
+                            <th className="py-3 px-3 w-8 text-center shrink-0">
                               <input
                                 type="checkbox"
                                 checked={selectedLeadIds.length === filteredLeads.length && filteredLeads.length > 0}
@@ -1100,12 +1144,12 @@ export default function AdminDashboardPage() {
                                 className="rounded text-[#141519] focus:ring-0 cursor-pointer"
                               />
                             </th>
-                            <th className="py-3 px-3">Patient</th>
-                            <th className="py-3 px-3">Treatment Interest</th>
-                            <th className="py-3 px-3">Est. Value (£)</th>
-                            <th className="py-3 px-3">Direct Contact</th>
-                            <th className="py-3 px-3">Status</th>
-                            <th className="py-3 px-3 text-right">Actions</th>
+                            <th className="py-3 px-3 whitespace-nowrap">Patient</th>
+                            <th className="py-3 px-3 whitespace-nowrap">Treatment Interest</th>
+                            <th className="py-3 px-3 whitespace-nowrap">Est. Value (£)</th>
+                            <th className="py-3 px-3 whitespace-nowrap">Direct Contact</th>
+                            <th className="py-3 px-3 whitespace-nowrap">Status</th>
+                            <th className="py-3 px-3 text-right whitespace-nowrap">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-neutral-100 font-medium">
@@ -1122,7 +1166,7 @@ export default function AdminDashboardPage() {
                                 }`}
                               >
                                 {/* Checkbox */}
-                                <td className="py-3.5 px-3 text-center">
+                                <td className="py-3.5 px-3 text-center shrink-0">
                                   <input
                                     type="checkbox"
                                     checked={isSelected}
@@ -1132,9 +1176,9 @@ export default function AdminDashboardPage() {
                                 </td>
 
                                 {/* Col 1: Patient Name & Email */}
-                                <td className="py-3.5 px-3">
-                                  <p className="font-bold text-neutral-900 text-xs">{lead.patientName}</p>
-                                  <p className="text-[10px] text-neutral-400">{lead.email}</p>
+                                <td className="py-3.5 px-3 whitespace-nowrap">
+                                  <p className="font-bold text-neutral-900 text-xs truncate max-w-[160px]">{lead.patientName}</p>
+                                  <p className="text-[10px] text-neutral-400 truncate max-w-[160px]">{lead.email}</p>
                                 </td>
 
                                 {/* Col 2: Treatment Interest */}
@@ -1144,42 +1188,42 @@ export default function AdminDashboardPage() {
                                 </td>
 
                                 {/* Col 3: NEW REVENUE VALUATION COLUMN */}
-                                <td className="py-3.5 px-3">
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[#ECFDF3] text-[#027A48] border border-emerald-200/60">
+                                <td className="py-3.5 px-3 whitespace-nowrap">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[#ECFDF3] text-[#027A48] border border-emerald-200/60 whitespace-nowrap">
                                     £{estVal.toLocaleString('en-GB')}
                                   </span>
                                 </td>
 
                                 {/* Col 4: Direct Contact Triggers */}
-                                <td className="py-3.5 px-3">
-                                  <div className="flex items-center space-x-1.5">
+                                <td className="py-3.5 px-3 whitespace-nowrap">
+                                  <div className="flex items-center space-x-1.5 shrink-0">
                                     <a
                                       href={`tel:${lead.phone.replace(/\s+/g, '')}`}
-                                      className="px-2.5 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-[10px] font-semibold transition-colors flex items-center space-x-1"
+                                      className="px-2.5 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-[10px] font-semibold transition-colors flex items-center space-x-1 whitespace-nowrap shrink-0"
                                       title="Call Patient"
                                     >
-                                      <Phone className="w-2.5 h-2.5 text-neutral-600" />
+                                      <Phone className="w-2.5 h-2.5 text-neutral-600 shrink-0" />
                                       <span>Call</span>
                                     </a>
                                     <a
                                       href={`https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(lead.patientName)},%20this%20is%20Vertex%20Dental%20Lab%20in%20Marylebone%20following%20up%20on%20your%20inquiry.`}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="px-2.5 py-1 rounded-full bg-[#ECFDF3] hover:bg-emerald-100 text-[#027A48] text-[10px] font-semibold border border-emerald-200/60 transition-colors flex items-center space-x-1"
+                                      className="px-2.5 py-1 rounded-full bg-[#ECFDF3] hover:bg-emerald-100 text-[#027A48] text-[10px] font-semibold border border-emerald-200/60 transition-colors flex items-center space-x-1 whitespace-nowrap shrink-0"
                                       title="WhatsApp"
                                     >
-                                      <MessageSquare className="w-2.5 h-2.5 text-[#027A48]" />
+                                      <MessageSquare className="w-2.5 h-2.5 text-[#027A48] shrink-0" />
                                       <span>WhatsApp</span>
                                     </a>
                                   </div>
                                 </td>
 
                                 {/* Col 5: Status Dropdown */}
-                                <td className="py-3.5 px-3">
+                                <td className="py-3.5 px-3 whitespace-nowrap">
                                   <select
                                     value={lead.status}
                                     onChange={e => updateInquiryStatus(lead.id, e.target.value as LeadStatus)}
-                                    className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors focus:outline-none ${
+                                    className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors focus:outline-none whitespace-nowrap ${
                                       lead.status === 'New Lead' || lead.status === 'New'
                                         ? 'bg-[#FFF4ED] text-[#C4320A] border-orange-200/80'
                                         : lead.status === 'Contacted'
@@ -1197,18 +1241,18 @@ export default function AdminDashboardPage() {
                                 </td>
 
                                 {/* Col 6: Actions */}
-                                <td className="py-3.5 px-3 text-right">
-                                  <div className="flex items-center justify-end space-x-1">
+                                <td className="py-3.5 px-3 text-right whitespace-nowrap">
+                                  <div className="flex items-center justify-end space-x-1 shrink-0">
                                     <button
                                       onClick={() => setSelectedLeadForView(lead)}
-                                      className="p-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 transition-colors"
+                                      className="p-1.5 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-600 transition-colors shrink-0"
                                       title="View Lead Details"
                                     >
                                       <Eye className="w-3 h-3" />
                                     </button>
                                     <button
                                       onClick={() => deleteInquiry(lead.id)}
-                                      className="p-1.5 rounded-full bg-neutral-100 hover:bg-rose-50 text-neutral-400 hover:text-rose-600 transition-colors"
+                                      className="p-1.5 rounded-full bg-neutral-100 hover:bg-rose-50 text-neutral-400 hover:text-rose-600 transition-colors shrink-0"
                                       title="Delete Lead"
                                     >
                                       <Trash2 className="w-3 h-3" />
@@ -1278,10 +1322,10 @@ export default function AdminDashboardPage() {
         {activeMainTab === 'cms' && (
           <div className="space-y-6 animate-fade-in">
             {/* Sub-tab Pills */}
-            <div className="inline-flex items-center p-1.5 bg-white border border-neutral-200/60 rounded-full shadow-[0_2px_10px_-2px_rgba(0,0,0,0.03)] space-x-1">
+            <div className="inline-flex items-center p-1.5 bg-white border border-neutral-200/60 rounded-full shadow-[0_2px_10px_-2px_rgba(0,0,0,0.03)] space-x-1 overflow-x-auto max-w-full">
               <button
                 onClick={() => setActiveCMSTab('prices')}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
                   activeCMSTab === 'prices'
                     ? 'bg-[#141519] text-white shadow-xs'
                     : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
@@ -1291,7 +1335,7 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 onClick={() => setActiveCMSTab('team')}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
                   activeCMSTab === 'team'
                     ? 'bg-[#141519] text-white shadow-xs'
                     : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
@@ -1301,7 +1345,7 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 onClick={() => setActiveCMSTab('gallery')}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
                   activeCMSTab === 'gallery'
                     ? 'bg-[#141519] text-white shadow-xs'
                     : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
@@ -1314,7 +1358,7 @@ export default function AdminDashboardPage() {
             {/* CMS 1: Starting Prices & Treatments */}
             {activeCMSTab === 'prices' && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h3 className="text-lg font-semibold tracking-tight text-[#111827]">Starting-From Prices & Treatment Durations</h3>
                     <p className="text-xs text-neutral-500">Live prices published across website and synced with AI Chatbot.</p>
@@ -1334,40 +1378,40 @@ export default function AdminDashboardPage() {
                       });
                       setServiceModalOpen(true);
                     }}
-                    className="px-4 py-2 rounded-full bg-[#141519] hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition-colors"
+                    className="px-4 py-2 rounded-full bg-[#141519] hover:bg-neutral-800 text-white text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition-colors whitespace-nowrap shrink-0 self-start sm:self-auto"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-3.5 h-3.5 shrink-0" />
                     <span>+ Add New Treatment</span>
                   </button>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-neutral-200/60 overflow-hidden shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)]">
-                  <table className="w-full text-xs text-left">
+                <div className="bg-white rounded-2xl border border-neutral-200/60 overflow-x-auto shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)]">
+                  <table className="w-full text-xs text-left min-w-[640px]">
                     <thead>
                       <tr className="bg-[#F8F9FA] border-b border-neutral-100 text-neutral-400 text-xs font-medium">
-                        <th className="py-3.5 px-4">Treatment Name</th>
-                        <th className="py-3.5 px-4">Category</th>
-                        <th className="py-3.5 px-4">Starting Fee (£)</th>
-                        <th className="py-3.5 px-4">0% Finance / Mo</th>
-                        <th className="py-3.5 px-4">Typical Duration</th>
-                        <th className="py-3.5 px-4 text-right">Actions</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap">Treatment Name</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap">Category</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap">Starting Fee (£)</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap">0% Finance / Mo</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap">Typical Duration</th>
+                        <th className="py-3.5 px-4 text-right whitespace-nowrap">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-100 font-medium">
                       {services.map(srv => (
                         <tr key={srv.id} className="hover:bg-[#F8F9FA]/70 transition-colors">
-                          <td className="py-4 px-4 font-semibold text-neutral-900">{srv.name}</td>
-                          <td className="py-4 px-4">
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F2F4F7] text-[#344054]">
+                          <td className="py-4 px-4 font-semibold text-neutral-900 whitespace-nowrap">{srv.name}</td>
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F2F4F7] text-[#344054] whitespace-nowrap">
                               {srv.category}
                             </span>
                           </td>
-                          <td className="py-4 px-4 font-bold text-[#111827]">£{srv.basePriceGbp}</td>
-                          <td className="py-4 px-4 text-emerald-700 font-semibold">
+                          <td className="py-4 px-4 font-bold text-[#111827] whitespace-nowrap">£{srv.basePriceGbp}</td>
+                          <td className="py-4 px-4 text-emerald-700 font-semibold whitespace-nowrap">
                             {srv.financeMonthlyFrom ? `£${srv.financeMonthlyFrom}/mo` : 'N/A'}
                           </td>
-                          <td className="py-4 px-4 text-neutral-600">{srv.duration}</td>
-                          <td className="py-4 px-4 text-right space-x-1.5">
+                          <td className="py-4 px-4 text-neutral-600 whitespace-nowrap">{srv.duration}</td>
+                          <td className="py-4 px-4 text-right space-x-1.5 whitespace-nowrap">
                             <button
                               onClick={() => {
                                 setEditingService(srv);
@@ -1586,10 +1630,10 @@ export default function AdminDashboardPage() {
         {activeMainTab === 'ai' && (
           <div className="space-y-6 animate-fade-in">
             {/* Top Navigation for AI 3 Subtabs */}
-            <div className="inline-flex items-center p-1.5 bg-white border border-neutral-200/60 rounded-full shadow-[0_2px_10px_-2px_rgba(0,0,0,0.03)] space-x-1">
+            <div className="inline-flex items-center p-1.5 bg-white border border-neutral-200/60 rounded-full shadow-[0_2px_10px_-2px_rgba(0,0,0,0.03)] space-x-1 overflow-x-auto max-w-full">
               <button
                 onClick={() => setActiveAITab('knowledge')}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
                   activeAITab === 'knowledge'
                     ? 'bg-[#141519] text-white shadow-xs'
                     : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
@@ -1599,7 +1643,7 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 onClick={() => setActiveAITab('guardrails')}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
                   activeAITab === 'guardrails'
                     ? 'bg-[#141519] text-white shadow-xs'
                     : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
@@ -1609,7 +1653,7 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 onClick={() => setActiveAITab('simulator')}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
                   activeAITab === 'simulator'
                     ? 'bg-[#141519] text-white shadow-xs'
                     : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50'
@@ -2118,7 +2162,7 @@ export default function AdminDashboardPage() {
       {/* ======================================================== */}
       {selectedLeadForView && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
-          <div className="relative w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+          <div className="relative w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <div>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F2F4F7] text-[#344054]">
@@ -2128,7 +2172,7 @@ export default function AdminDashboardPage() {
               </div>
               <button
                 onClick={() => setSelectedLeadForView(null)}
-                className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors"
+                className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition-colors shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2136,15 +2180,15 @@ export default function AdminDashboardPage() {
 
             <div className="text-xs space-y-3">
               <div className="grid grid-cols-2 gap-2.5 p-3.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/70">
-                <div>
+                <div className="min-w-0">
                   <span className="text-neutral-500 block mb-0.5">Phone / WhatsApp:</span>
-                  <a href={`tel:${selectedLeadForView.phone}`} className="font-semibold text-neutral-900 hover:text-[#FF5722] transition-colors">
+                  <a href={`tel:${selectedLeadForView.phone}`} className="font-semibold text-neutral-900 hover:text-[#FF5722] transition-colors truncate block">
                     {selectedLeadForView.phone}
                   </a>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="text-neutral-500 block mb-0.5">Email:</span>
-                  <a href={`mailto:${selectedLeadForView.email}`} className="font-semibold text-neutral-900 hover:text-[#FF5722] transition-colors">
+                  <a href={`mailto:${selectedLeadForView.email}`} className="font-semibold text-neutral-900 hover:text-[#FF5722] transition-colors truncate block">
                     {selectedLeadForView.email}
                   </a>
                 </div>
@@ -2157,7 +2201,7 @@ export default function AdminDashboardPage() {
 
               <div>
                 <span className="text-neutral-500 block mb-1">Chief Concern / Symptoms Message:</span>
-                <div className="p-3.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/70 text-neutral-800 leading-relaxed">
+                <div className="p-3.5 rounded-xl bg-[#F8F9FA] border border-neutral-200/70 text-neutral-800 leading-relaxed break-words whitespace-pre-wrap">
                   {selectedLeadForView.message}
                 </div>
               </div>
@@ -2173,7 +2217,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center space-x-2">
                 <a
                   href={`tel:${selectedLeadForView.phone.replace(/\s+/g, '')}`}
-                  className="px-3.5 py-2 rounded-full bg-[#141519] text-white font-semibold text-xs flex items-center space-x-1.5 hover:bg-neutral-800 transition-colors"
+                  className="px-3.5 py-2 rounded-full bg-[#141519] text-white font-semibold text-xs flex items-center space-x-1.5 hover:bg-neutral-800 transition-colors whitespace-nowrap shrink-0"
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>Call Patient</span>
@@ -2182,7 +2226,7 @@ export default function AdminDashboardPage() {
                   href={`https://wa.me/${selectedLeadForView.phone.replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3.5 py-2 rounded-full bg-[#ECFDF3] hover:bg-emerald-100 text-[#027A48] border border-emerald-200/60 font-semibold text-xs flex items-center space-x-1.5 transition-colors"
+                  className="px-3.5 py-2 rounded-full bg-[#ECFDF3] hover:bg-emerald-100 text-[#027A48] border border-emerald-200/60 font-semibold text-xs flex items-center space-x-1.5 transition-colors whitespace-nowrap shrink-0"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
                   <span>WhatsApp</span>
@@ -2191,7 +2235,7 @@ export default function AdminDashboardPage() {
 
               <button
                 onClick={() => setSelectedLeadForView(null)}
-                className="px-4 py-2 rounded-full text-xs font-semibold text-neutral-600 hover:bg-neutral-100 transition-colors"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-neutral-600 hover:bg-neutral-100 transition-colors whitespace-nowrap shrink-0"
               >
                 Close
               </button>
@@ -2205,7 +2249,7 @@ export default function AdminDashboardPage() {
       {/* ======================================================== */}
       {showWebhookModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/40 backdrop-blur-xs animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4">
+          <div className="relative w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-neutral-200/60 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <h3 className="text-base font-semibold text-[#111827] flex items-center space-x-2">
                 <Zap className="w-4 h-4 text-amber-500" />
