@@ -122,9 +122,9 @@ async function getAccessToken(creds: GoogleCredentials): Promise<string | null> 
  * [london_date, london_time, patient_name, phone_number, reason, clinician_name, status, created_at]
  */
 export async function appendAppointmentToGoogleSheet(record: AppointmentRecord): Promise<boolean> {
-  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+  const spreadsheetId = process.env.GOOGLE_SHEET_ID || process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
   if (!spreadsheetId) {
-    console.info('[GoogleSheetsSync] GOOGLE_SHEETS_SPREADSHEET_ID is not configured. Skipping sync.');
+    console.info('[GoogleSheetsSync] GOOGLE_SHEET_ID / GOOGLE_SHEETS_SPREADSHEET_ID is not configured. Skipping sync.');
     return false;
   }
 
@@ -244,9 +244,9 @@ export async function appendChronologicalBookingToGoogleSheet(booking: UkBooking
     });
   }
 
-  const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+  const spreadsheetId = process.env.GOOGLE_SHEET_ID || process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
   if (!spreadsheetId) {
-    console.info('[GoogleSheetsSync] GOOGLE_SHEETS_SPREADSHEET_ID not set; stored chronologically in memory.');
+    console.info('[GoogleSheetsSync] GOOGLE_SHEET_ID / GOOGLE_SHEETS_SPREADSHEET_ID not set; stored chronologically in memory.');
     return true;
   }
 

@@ -441,6 +441,7 @@ async function sendUrgentSameDayAlert(details: {
   appt_time: string;
 }): Promise<boolean> {
   const recipient =
+    process.env.OWNER_UK_PHONE ||
     process.env.CLINIC_OWNER_PHONE ||
     process.env.RECEPTION_PHONE ||
     process.env.TWILIO_ALERT_TO ||
