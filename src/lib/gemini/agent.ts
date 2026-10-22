@@ -19,35 +19,51 @@ import {
 } from './tools';
 import { getEuropeLondonDateTime } from '@/lib/uk-utils';
 
-const GEMINI_SYSTEM_INSTRUCTION = `You are Sarah, the polite, articulate, and exceptionally professional British AI Receptionist for Vertex Dental Lab, an elite private dental clinic located in Harley Street, London, UK.
+export function buildSystemPrompt(currentUkDateTime: string): string {
+  return `# ROLE & IDENTITY
+You are the virtual receptionist for a Private Dental Practice in the UK. Your job is to smoothly answer patient questions regarding treatments and prices, check real-time slot availability in Supabase, and book conflict-free appointments.
 
-TIMEZONE & HOURS:
-- Vertex Dental Lab operates in the Europe/London timezone (accounting for GMT and BST).
-- Clinic hours: Monday to Friday 09:00 to 17:00 (1-hour appointment slots). Closed Sundays.
+# CURRENT UK DATE & TIME CONTEXT
+Current UK Date & Time (Europe/London): ${currentUkDateTime}
 
-STRICT PROTOCOLS FOR BOOKINGS:
-1. When a patient asks about booking, availability, or dates, always invoke the tool 'check_slot_availability' with 'appt_date' (YYYY-MM-DD) and optional 'appt_time' (HH:MM).
-2. To book a confirmed appointment, you MUST gather:
-   - Full Name (customer_name)
-   - UK Mobile Number (customer_phone — e.g. 07123456789 or +447123456789)
-   - Service / Treatment required (service)
-   - Appointment Date (appt_date — YYYY-MM-DD)
-   - Appointment Time (appt_time — HH:MM between 09:00 and 17:00)
-3. Once all 5 parameters are present, call 'create_booking'.
-4. NEVER confirm an appointment until 'create_booking' succeeds. If the slot is double-booked (code 23505), apologize politely in British fashion and present the remaining available slots returned by the tool.
+# TONE & COMMUNICATION STYLE
+- Use warm, professional, and polite British English (e.g., use "practice" instead of "office", "booked in", "lovely", "£").
+- Keep answers concise, clear, and reassuring—never robotic or overly lengthy.
 
-BRITISH CLINIC FEES (GBP £):
-- New Patient Consultation: £65
-- Hygiene Scale & Polish: £85
-- Routine Extraction: £150
-- White Composite Filling: £140
-- Root Canal Treatment: £450
-- Boutique Teeth Whitening: £350
-- Invisalign Clear Aligners: From £2,500 (0% finance available)
-- Single Dental Implant: £2,200
+# PRACTICE TREATMENTS & PRICING (GBP £)
+- New Patient Dental Examination / Check-up: £65
+- Routine Dental Hygiene (Scale & Polish / Airflow Clean): £85
+- Emergency Dental Appointment: £95
+- White Composite Filling: from £140
+- Tooth Extraction: from £180
+- Root Canal Treatment: from £450
+- Professional Teeth Whitening (Boutique): £350
+- Dental Implant Consultation: £95 (Implant treatment from £2,400)
+- Opening Hours: Monday to Saturday, 9:00 AM to 5:00 PM (Last appointment slot at 4:00 PM / 16:00).
 
-NHS POLICY:
-- Vertex Dental Lab is currently at full capacity for NHS registrations and cannot accept new NHS patients. Emphasize immediate private availability.`;
+# STRICT BOOKING PROTOCOL (ZERO EXCEPTIONS)
+1. NEVER GUESS SLOT AVAILABILITY:
+   - You must NEVER tell a patient a time is available without calling check_slot_availability first.
+   - If the requested time slot is already booked in Supabase, politely inform the patient that the dentist is unavailable at that exact time and offer the alternative free slots returned by the tool.
+
+2. MANDATORY 5 FIELDS BEFORE BOOKING:
+   Before calling create_booking, ensure you have collected:
+   - Patient's Full Name (customer_name)
+   - UK Mobile Number (customer_phone - e.g., 07... or +447... for their 1-hour SMS reminder)
+   - Required Treatment/Service (service)
+   - Preferred Date (appt_date in YYYY-MM-DD format)
+   - Preferred Time (appt_time in HH:MM 24-hour format)
+   Ask for any missing details naturally in a single brief message.
+
+3. STRICT FORMAT CONVERSION FOR TOOLS:
+   - Convert relative dates ("today", "tomorrow", "this Friday") into strict YYYY-MM-DD format based on current UK date.
+   - Convert all 12-hour times ("2pm", "2:00 in the afternoon", "10am") into strict 24-hour HH:MM format (e.g., 2:00 PM MUST be passed as "14:00", 9:00 AM as "09:00"). Never pass "AM" or "PM" into tool parameters.
+   - Convert UK phone numbers starting with 07 into +447 format before passing to create_booking (e.g., 07911123456 -> +447911123456).
+
+4. CONFIRMATION:
+   - Confirm the booking to the patient ONLY after create_booking returns a success response.
+   - Provide a clear summary (Name, Treatment, Date, Time) and mention that they will receive an automated text reminder 1 hour prior to their appointment.`;
+}
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'model' | 'system';
@@ -76,7 +92,8 @@ export async function runGeminiReceptionist(
   const model = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
 
   const londonNow = getEuropeLondonDateTime();
-  const dateContextPrompt = `\n[CURRENT UK CLINIC TIME: ${londonNow.dateStr} at ${londonNow.timeStr} Europe/London (${londonNow.isBst ? 'BST' : 'GMT'})]`;
+  const currentUkDateTime = `${londonNow.dateStr} at ${londonNow.timeStr} Europe/London (${londonNow.isBst ? 'BST' : 'GMT'})`;
+  const systemPrompt = buildSystemPrompt(currentUkDateTime);
 
   // 1. If Gemini API key is available, run live Gemini Generative Language API
   if (apiKey) {
@@ -97,13 +114,13 @@ export async function runGeminiReceptionist(
       // Add latest user message
       contents.push({
         role: 'user',
-        parts: [{ text: userMessage + dateContextPrompt }],
+        parts: [{ text: userMessage }],
       });
 
       const requestPayload: any = {
         contents,
         systemInstruction: {
-          parts: [{ text: GEMINI_SYSTEM_INSTRUCTION }],
+          parts: [{ text: systemPrompt }],
         },
         tools: [
           {
@@ -174,7 +191,7 @@ export async function runGeminiReceptionist(
             body: JSON.stringify({
               contents,
               systemInstruction: {
-                parts: [{ text: GEMINI_SYSTEM_INSTRUCTION }],
+                parts: [{ text: systemPrompt }],
               },
               generationConfig: {
                 temperature: 0.3,
@@ -245,18 +262,50 @@ export async function runDeterministicBritishReceptionist(
     msgLower.includes('fee') ||
     msgLower.includes('how much')
   ) {
-    if (msgLower.includes('invisalign')) {
+    if (msgLower.includes('emergency')) {
       return {
         reply:
-          "Our Invisalign clear aligner treatments start from £2,500. This includes an initial consultation, complimentary 3D iTero digital scan, custom aligners, and all refinement appointments. We also offer 0% interest-free patient finance. Would you like to check availability for a consultation?",
+          "An Emergency Dental Appointment is £95. We offer same-day triage, immediate pain relief, and clinical diagnosis. Would you like me to check our available times for today?",
         toolsExecuted: [],
         engine: 'deterministic-fallback',
       };
     }
-    if (msgLower.includes('implant')) {
+    if (msgLower.includes('exam') || msgLower.includes('check-up') || msgLower.includes('check up') || msgLower.includes('new patient')) {
       return {
         reply:
-          "A Single Dental Implant is £2,200 at Vertex Dental Lab, which includes the premium titanium fixture, custom precision abutment, and porcelain aesthetic crown. May I arrange a consultation for you?",
+          "Our New Patient Dental Examination is £65, which includes a comprehensive oral health check, low-dose digital X-rays, and a bespoke treatment plan. May I check our diary for a lovely time for you?",
+        toolsExecuted: [],
+        engine: 'deterministic-fallback',
+      };
+    }
+    if (msgLower.includes('hygiene') || msgLower.includes('clean') || msgLower.includes('scale')) {
+      return {
+        reply:
+          "Our Routine Dental Hygiene (Scale & Polish / Airflow Clean) is £85 for a comprehensive periodontal clean and stain removal. Would you like to check available slots?",
+        toolsExecuted: [],
+        engine: 'deterministic-fallback',
+      };
+    }
+    if (msgLower.includes('filling')) {
+      return {
+        reply:
+          "White Composite Fillings start from £140, shade-matched seamlessly to your natural teeth. Would you like to book a consultation?",
+        toolsExecuted: [],
+        engine: 'deterministic-fallback',
+      };
+    }
+    if (msgLower.includes('extraction') || msgLower.includes('tooth removal')) {
+      return {
+        reply:
+          "Tooth Extractions start from £180 for gentle, painless removal under local anaesthetic. Would you like to book in?",
+        toolsExecuted: [],
+        engine: 'deterministic-fallback',
+      };
+    }
+    if (msgLower.includes('root canal')) {
+      return {
+        reply:
+          "Root Canal Treatment starts from £450, carried out with specialist endodontic equipment for maximum comfort. May I find an available slot for you?",
         toolsExecuted: [],
         engine: 'deterministic-fallback',
       };
@@ -264,22 +313,22 @@ export async function runDeterministicBritishReceptionist(
     if (msgLower.includes('whitening')) {
       return {
         reply:
-          "Our Boutique Teeth Whitening system is £350, including custom laboratory-formed trays and high-strength professional whitening gels. Would you like to reserve a time?",
+          "Professional Teeth Whitening (Boutique) is £350, including custom laboratory-made trays and professional whitening gels. Would you like to arrange an appointment?",
         toolsExecuted: [],
         engine: 'deterministic-fallback',
       };
     }
-    if (msgLower.includes('hygiene') || msgLower.includes('clean')) {
+    if (msgLower.includes('implant')) {
       return {
         reply:
-          "Our Hygiene Scale & Polish is £85 for a 30-minute deep periodontal clean and stain removal. Would you like me to check our open appointment slots?",
+          "A Dental Implant Consultation is £95, with complete implant treatment starting from £2,400 including fixture, abutment, and bespoke crown. Would you like to book a consultation?",
         toolsExecuted: [],
         engine: 'deterministic-fallback',
       };
     }
     return {
       reply:
-        "Here is our private fee schedule at Vertex Dental Lab:\n• New Patient Consultation: £65\n• Hygiene Scale & Polish: £85\n• Routine Extraction: £150\n• White Composite Filling: £140\n• Root Canal Treatment: £450\n• Boutique Teeth Whitening: £350\n• Invisalign: From £2,500\n• Single Dental Implant: £2,200\n\nWhich treatment can I assist you in booking today?",
+        "Here is our private treatment fee schedule:\n• New Patient Dental Examination: £65\n• Routine Dental Hygiene: £85\n• Emergency Dental Appointment: £95\n• White Composite Filling: from £140\n• Tooth Extraction: from £180\n• Root Canal Treatment: from £450\n• Professional Teeth Whitening (Boutique): £350\n• Dental Implant Consultation: £95 (Implant from £2,400)\n\nWe are open Monday to Saturday, 9:00 AM to 5:00 PM (last slot 4:00 PM). Which treatment can I help you book in for?",
       toolsExecuted: [],
       engine: 'deterministic-fallback',
     };
@@ -298,9 +347,23 @@ export async function runDeterministicBritishReceptionist(
     detectedDate = getEuropeLondonDateTime(tmrw).dateStr;
   }
 
-  // Time detection (e.g. 10:00, 14:00)
-  const timeMatch = userMessage.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
-  const detectedTime = timeMatch ? timeMatch[0] : undefined;
+  // Time detection (e.g. 10:00, 14:00, 2pm, 10am)
+  let detectedTime: string | undefined = undefined;
+  const time24Match = userMessage.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+  if (time24Match) {
+    detectedTime = time24Match[0];
+  } else {
+    // 12-hour regex: 2pm, 10am, 2:00 pm
+    const time12Match = userMessage.match(/\b(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*(am|pm)\b/i);
+    if (time12Match) {
+      let hr = parseInt(time12Match[1], 10);
+      const min = time12Match[2] || '00';
+      const meridian = time12Match[3].toLowerCase();
+      if (meridian === 'pm' && hr < 12) hr += 12;
+      if (meridian === 'am' && hr === 12) hr = 0;
+      detectedTime = `${String(hr).padStart(2, '0')}:${min}`;
+    }
+  }
 
   // Phone detection (07... or +447...)
   const phoneMatch = userMessage.match(/(\+?44\s?7\d{3}\s?\d{6}|07\d{3}\s?\d{6}|\b07\d{9}\b)/);
@@ -329,12 +392,14 @@ export async function runDeterministicBritishReceptionist(
     }
 
     // Determine service
-    let service = 'New Patient Consultation';
-    if (msgLower.includes('hygiene') || msgLower.includes('scale')) service = 'Hygiene Scale & Polish';
-    else if (msgLower.includes('invisalign')) service = 'Invisalign Consultation';
-    else if (msgLower.includes('whitening')) service = 'Teeth Whitening';
+    let service = 'New Patient Dental Examination';
+    if (msgLower.includes('emergency')) service = 'Emergency Dental Appointment';
+    else if (msgLower.includes('hygiene') || msgLower.includes('scale') || msgLower.includes('clean')) service = 'Routine Dental Hygiene';
+    else if (msgLower.includes('filling')) service = 'White Composite Filling';
+    else if (msgLower.includes('extraction') || msgLower.includes('removal')) service = 'Tooth Extraction';
+    else if (msgLower.includes('root canal')) service = 'Root Canal Treatment';
+    else if (msgLower.includes('whitening')) service = 'Professional Teeth Whitening (Boutique)';
     else if (msgLower.includes('implant')) service = 'Dental Implant Consultation';
-    else if (msgLower.includes('extraction')) service = 'Routine Extraction';
 
     const bookingResult = await create_booking({
       customer_name: customerName,
@@ -348,14 +413,14 @@ export async function runDeterministicBritishReceptionist(
 
     if (bookingResult.success) {
       return {
-        reply: `Delighted to confirm, ${customerName}! Your appointment for ${service} has been booked for ${bookingResult.appt_date} at ${bookingResult.appt_time} (Europe/London). We have recorded your mobile number (${bookingResult.customer_phone}). You will receive an SMS reminder 1 hour prior to your visit. We look forward to welcoming you to Vertex Dental Lab!`,
+        reply: `Delighted to get you booked in, ${customerName}! Your appointment for ${service} is confirmed for ${bookingResult.appt_date} at ${bookingResult.appt_time} at our practice. We have logged your mobile number (${bookingResult.customer_phone}) and you will receive an automated text reminder 1 hour prior to your appointment. We look forward to seeing you!`,
         toolsExecuted,
         engine: 'deterministic-fallback',
       };
     } else if (bookingResult.code === '23505') {
       const freeSlots = bookingResult.available_slots?.join(', ') || '09:00, 11:00, 14:00';
       return {
-        reply: `Terribly sorry, but slot ${detectedTime} on ${bookingDate} has just been reserved. We do however have availability on that same date at: ${freeSlots}. Which of those alternative slots would suit you best?`,
+        reply: `Terribly sorry, but our dentist is unavailable at ${detectedTime} on ${bookingDate} as that slot is already taken. We do have availability on that same date at: ${freeSlots}. Would any of those times suit you?`,
         toolsExecuted,
         engine: 'deterministic-fallback',
       };
