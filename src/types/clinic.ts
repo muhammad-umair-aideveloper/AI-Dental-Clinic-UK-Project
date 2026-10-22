@@ -65,8 +65,8 @@ export interface Appointment {
   aiApprovalReason?: string;
 }
 
-export type LeadStatus = 'New Lead' | 'Contacted' | 'Consultation Booked' | 'Lost / Archived' | 'New' | 'Resolved';
-export type LeadSource = 'Web Form' | 'AI Bot' | 'Guest Triage Modal' | 'Emergency Fast-Track' | 'Reception' | 'Online Booking';
+export type LeadStatus = 'New Lead' | 'Contacted' | 'Consultation Booked' | 'Booked / Confirmed' | 'Lost / Archived' | 'New' | 'Resolved';
+export type LeadSource = 'Web Form' | 'AI Bot' | 'AI Chatbot' | 'Guest Triage Modal' | 'Emergency Fast-Track' | 'Reception' | 'Online Booking';
 
 export interface WebInquiry {
   id: string;

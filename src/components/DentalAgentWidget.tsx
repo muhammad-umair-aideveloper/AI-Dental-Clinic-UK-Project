@@ -138,7 +138,7 @@ export const DentalAgentWidget: React.FC = () => {
     setMessages(prev => [...prev, welcomeMsg]);
   };
 
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || input).trim();
     if (!query) return;
 
