@@ -2089,7 +2089,8 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-      </main>
+        </main>
+      </div>
 
       {/* ======================================================== */}
       {/* MODAL: VIEW FULL LEAD DETAILS */}
