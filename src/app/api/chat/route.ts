@@ -533,11 +533,20 @@ export async function POST(req: NextRequest) {
       tools_called: geminiAgentResult.toolsExecuted,
     });
 
+    // Determine if a booking was successfully confirmed in this turn
+    const bookingConfirmed = Array.isArray(geminiAgentResult.toolsExecuted) &&
+      geminiAgentResult.toolsExecuted.some(
+        (t: any) =>
+          (t.name === 'create_booking' || t.name === 'book_appointment') &&
+          t.result?.success === true
+      );
+
     return NextResponse.json({
       success: true,
       reply: geminiAgentResult.reply,
       tools: geminiAgentResult.toolsExecuted,
       engine: geminiAgentResult.engine,
+      bookingConfirmed,
       meta: { piiScrubbed: piiDetected, redactedTypes },
     });
   } catch (err: any) {

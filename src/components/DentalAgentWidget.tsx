@@ -23,6 +23,37 @@ import {
 import { processDentalTriage, SupportedLanguage, TriageResult } from '@/lib/triage-engine';
 import { useClinic } from '@/context/ClinicContext';
 
+/**
+ * Returns true if the user's message appears to contain all 5 booking fields:
+ * name, UK phone, service/treatment, date, and time.
+ * When true, the message must be routed directly to the Gemini backend
+ * — the local triage engine and the manual slot picker must NOT intercept it.
+ */
+function hasCompleteBookingDetails(text: string): boolean {
+  const t = text.toLowerCase();
+  // Phone: matches +44..., 07..., or 447...
+  const hasPhone = /(?:\+44|\b07|\b447)\d{7,10}/.test(text);
+  // Date: YYYY-MM-DD, DD/MM/YYYY, or natural month names
+  const hasDate =
+    /\b\d{4}-\d{2}-\d{2}\b/.test(t) ||
+    /\b\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}\b/.test(t) ||
+    /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2}/.test(t) ||
+    /\b\d{1,2}\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*/.test(t);
+  // Time: 09:00, 9am, 14:30, 2:30 pm, etc.
+  const hasTime = /\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b|\b\d{1,2}:\d{2}\b/.test(t);
+  // Name: at least two words that look like a person's name (not all digits)
+  const hasName = /\b[a-z]{2,}\s+[a-z]{2,}\b/.test(t);
+  // Service/treatment keyword
+  const serviceKeywords = [
+    'exam', 'scan', 'hygiene', 'clean', 'scaling', 'whitening', 'implant',
+    'extraction', 'root canal', 'rct', 'invisalign', 'veneer', 'filling',
+    'emergency', 'checkup', 'check-up', 'consultation', 'airflow',
+  ];
+  const hasService = serviceKeywords.some(k => t.includes(k));
+
+  return hasPhone && hasDate && hasTime && hasName && hasService;
+}
+
 interface ChatMessage {
   id: string;
   sender: 'ai' | 'user';
@@ -142,6 +173,12 @@ export const DentalAgentWidget: React.FC = () => {
     const query = (textToSend || input).trim();
     if (!query) return;
 
+    // ── GUARDRAIL ─────────────────────────────────────────────────────────────
+    // If the message already contains all 5 booking fields (name, phone, service,
+    // date, time), we MUST NOT open the manual slot picker. Send to Gemini only.
+    const messageHasAllFields = hasCompleteBookingDetails(query);
+    // ─────────────────────────────────────────────────────────────────────────
+
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       sender: 'user',
@@ -152,6 +189,12 @@ export const DentalAgentWidget: React.FC = () => {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsTyping(true);
+
+    // Close the slot picker if the user is submitting complete booking details
+    // — Gemini's create_booking tool will handle the write directly.
+    if (messageHasAllFields) {
+      setShowSlotPicker(false);
+    }
 
     try {
       const res = await fetch('/api/chat', {
@@ -177,14 +220,22 @@ export const DentalAgentWidget: React.FC = () => {
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           };
           setMessages(prev => [...prev, aiMessage]);
+
+          // If Gemini confirmed a booking, close the slot picker (if open)
+          if (data.bookingConfirmed) {
+            setShowSlotPicker(false);
+          }
           return;
         }
       }
     } catch {
-      // Fallback to local triage if network or offline
+      // Network error → fall through to local triage
     }
 
-    // Process Local Triage Fallback
+    // ── LOCAL TRIAGE FALLBACK ─────────────────────────────────────────────────
+    // Only used when /api/chat is unreachable (offline / server error).
+    // CRITICAL: Do NOT open the slot picker if the message contained all 5
+    // booking fields — that would bypass Gemini's create_booking tool.
     setTimeout(() => {
       const triage = processDentalTriage(query, language);
       setIsTyping(false);
@@ -192,14 +243,20 @@ export const DentalAgentWidget: React.FC = () => {
       const aiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: triage.reply,
+        text: messageHasAllFields
+          ? `I've received your booking details. Unfortunately I couldn't reach the server right now. Please try again in a moment, or call us directly to confirm your appointment.`
+          : triage.reply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        triageData: triage,
+        triageData: messageHasAllFields ? undefined : triage,
       };
 
       setMessages(prev => [...prev, aiMessage]);
 
-      if (triage.suggestedAction === 'open_booking' || triage.suggestedAction === 'select_slot') {
+      // Only open the slot picker for simple booking inquiries (no complete details)
+      if (
+        !messageHasAllFields &&
+        (triage.suggestedAction === 'open_booking' || triage.suggestedAction === 'select_slot')
+      ) {
         setShowSlotPicker(true);
         if (triage.treatmentRecommended) {
           setSelectedTreatment(triage.treatmentRecommended);
